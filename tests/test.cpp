@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "UIManager_test.hpp"
+#include "Meal_test.hpp"
 
 int main(int argc, char** argv)
 {
