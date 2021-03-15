@@ -5,7 +5,7 @@ SET(CMAKE_CXX_STANDARD 11)
 ADD_EXECUTABLE(Space_Escape 
 src/main.cpp src/UIManager.cpp)
 
-ADD_EXECUTABLE(test tests/test.cpp)
+ADD_EXECUTABLE(test tests/test.cpp src/UIManager.cpp)
 
 ADD_SUBDIRECTORY(googletest)
 
