@@ -19,12 +19,35 @@ TEST(MealTest, setPrice_getPrice)
 
 TEST(MealTest, setTags_getTags)
 {
-	Meal testMeal;
-	std::vector<Tag> testTags = { NONE, TAKESLONG };
-	testMeal.setTags(testTags);
+	std::map<DaysOfTheWeek, bool> enabledDays = 
+	{ {MONDAY, false}, {TUESDAY, true}, {WEDNESDAY, false}, {THURSDAY, true},
+	{FRIDAY, false}, {SATURDAY, true}, {SUNDAY, false} };
 
-	EXPECT_EQ(NONE, testMeal.getTags().at(0));
-	EXPECT_EQ(TAKESLONG, testMeal.getTags().at(1));
+	Tag newTag("Name", "Desc", enabledDays, true, 3);
+	std::vector<Tag> newTags; newTags.push_back(newTag);
+
+	Meal testMeal;
+	testMeal.setTags(newTags);
+
+	EXPECT_EQ("Name", testMeal.getTags().at(0).getName());
+	EXPECT_EQ("Desc", testMeal.getTags().at(0).getDescription());
+	EXPECT_EQ(true, testMeal.getTags().at(0).getPriority());
+}
+
+TEST(MealTest, addTag)
+{
+	std::map<DaysOfTheWeek, bool> enabledDays =
+	{ {MONDAY, false}, {TUESDAY, true}, {WEDNESDAY, false}, {THURSDAY, true},
+	{FRIDAY, false}, {SATURDAY, true}, {SUNDAY, false} };
+
+	Tag newTag("10101", "000111", enabledDays, true, 3);
+
+	Meal testMeal;
+	testMeal.addTag(newTag);
+
+	EXPECT_EQ("10101", testMeal.getTags().at(0).getName());
+	EXPECT_EQ("000111", testMeal.getTags().at(0).getDescription());
+	EXPECT_EQ(true, testMeal.getTags().at(0).getPriority());
 }
 
 TEST(MealTest, setEnabledDays_getEnabledDays)

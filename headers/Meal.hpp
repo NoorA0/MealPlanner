@@ -1,26 +1,10 @@
 #ifndef __MEAL_HPP__
 #define __MEAL_HPP__
 
-#include <string>
-#include <map>
+#include "Tag.hpp"
 #include <vector>
 
-enum DaysOfTheWeek
-{
-	MONDAY,
-	TUESDAY,
-	WEDNESDAY,
-	THURSDAY,
-	FRIDAY,
-	SATURDAY,
-	SUNDAY
-};
 
-enum Tag
-{
-	NONE,
-	TAKESLONG
-};
 
 class Meal
 {
@@ -37,6 +21,7 @@ public:
 	void setName(const std::string& new_name);
 	void setPrice(const double& new_price);
 	void setTags(const std::vector<Tag>& new_tags);
+	void addTag(const Tag& newTag);
 	void setEnabledDays(const std::map<DaysOfTheWeek, bool> new_enabledDays);
 
 	// GETTERS
@@ -45,6 +30,4 @@ public:
 	std::vector<Tag> getTags() const;
 	std::map<DaysOfTheWeek, bool> getEnabledDays() const;
 };
-
-
 #endif // !__MEAL_HPP__

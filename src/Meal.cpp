@@ -4,7 +4,6 @@ Meal::Meal()
 {
 	name = "UNSET";
 	price = 0.0;
-	tags.push_back(NONE);
 
 	enabledDays.emplace(MONDAY, false);
 	enabledDays.emplace(TUESDAY, false);
@@ -32,6 +31,11 @@ void Meal::setPrice(const double& new_price)
 void Meal::setTags(const std::vector<Tag>& new_tags)
 {
 	tags = new_tags;
+}
+
+void Meal::addTag(const Tag& newTag)
+{
+	tags.push_back(newTag);
 }
 
 void Meal::setEnabledDays(const std::map<DaysOfTheWeek, bool> new_enabledDays)
