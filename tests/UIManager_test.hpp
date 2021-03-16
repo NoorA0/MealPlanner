@@ -1,3 +1,9 @@
+/*
+* Copied from UCR Winter 2021 CS100 final project
+* Created by Noor Alaghbar for UCR CS100 Class Project
+* Adapted for Personal Use
+*/
+
 #ifndef __UIMANAGER_TEST_HPP__
 #define __UIMANAGER_TEST_HPP__
 

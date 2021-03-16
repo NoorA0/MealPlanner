@@ -2,10 +2,11 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 SET(CMAKE_CXX_STANDARD 11)
 
-ADD_EXECUTABLE(Space_Escape 
-src/main.cpp src/UIManager.cpp)
+ADD_EXECUTABLE(MealPlanner
+src/main.cpp src/UIManager.cpp src/Meal.cpp src/Tag.cpp)
 
-ADD_EXECUTABLE(test tests/test.cpp src/UIManager.cpp)
+ADD_EXECUTABLE(test 
+tests/test.cpp src/UIManager.cpp src/Meal.cpp src/Tag.cpp)
 
 ADD_SUBDIRECTORY(googletest)
 
