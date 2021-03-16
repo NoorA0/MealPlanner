@@ -1,5 +1,5 @@
 #include "../headers/UIManager.hpp"
-#include "../headers/Meal.hpp" // includes Tag
+#include "../headers/MealManager.hpp" // includes Tag, Meal
 
 int main()
 {
