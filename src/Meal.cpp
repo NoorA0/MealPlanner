@@ -28,14 +28,14 @@ void Meal::setPrice(const double& new_price)
 	price = new_price;
 }
 
-void Meal::setTags(const std::vector<Tag>& new_tags)
+void Meal::setTags(const std::vector<Tag*>& new_tags)
 {
 	tags = new_tags;
 }
 
-void Meal::addTag(const Tag& newTag)
+void Meal::addTag(Tag& newTag)
 {
-	tags.push_back(newTag);
+	tags.push_back(&newTag);
 }
 
 void Meal::setEnabledDays(const std::map<DaysOfTheWeek, bool> new_enabledDays)
@@ -53,7 +53,7 @@ double Meal::getPrice() const
 	return price;
 }
 
-std::vector<Tag> Meal::getTags() const
+std::vector<Tag*> Meal::getTags() const
 {
 	return tags;
 }
