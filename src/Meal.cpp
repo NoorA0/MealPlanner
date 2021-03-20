@@ -4,6 +4,7 @@ Meal::Meal()
 {
 	name = "UNSET";
 	price = 0.0;
+	isDisabled = true;
 }
 
 Meal::~Meal()
@@ -30,6 +31,11 @@ void Meal::addTag(Tag* newTag)
 	tags.push_back(newTag);
 }
 
+void Meal::setIsDisabled(const bool& isDisabled)
+{
+	this->isDisabled = isDisabled;
+}
+
 std::string Meal::getName() const
 {
 	return name;
@@ -43,4 +49,9 @@ double Meal::getPrice() const
 std::vector<Tag*> Meal::getTags() const
 {
 	return tags;
+}
+
+bool Meal::isDisabled() const
+{
+	return isDisabled;
 }

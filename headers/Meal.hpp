@@ -9,9 +9,9 @@
 class Meal
 {
 	std::string name;
-	std::map<DaysOfTheWeek, bool> enabledDays; // days of the week that meal is enabled on
 	std::vector<Tag*> tags; // tags that food is a part of
 	double price; // how much it costs to make
+	bool isDisabled;
 
 public:
 	Meal();
@@ -22,10 +22,12 @@ public:
 	void setPrice(const double& new_price);
 	void setTags(const std::vector<Tag*>& new_tags);
 	void addTag(Tag* newTag);
+	void setIsDisabled(const bool& isDisabled);
 
 	// GETTERS
 	std::string getName() const;
 	double getPrice() const;
 	std::vector<Tag*> getTags() const;
+	bool isDisabled() const;
 };
 #endif // !__MEAL_HPP__
