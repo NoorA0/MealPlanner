@@ -21,7 +21,7 @@ public:
 	void setName(const std::string& new_name);
 	void setPrice(const double& new_price);
 	void setTags(const std::vector<Tag*>& new_tags);
-	void addTag(Tag& newTag);
+	void addTag(Tag* newTag);
 	void setEnabledDays(const std::map<DaysOfTheWeek, bool> new_enabledDays);
 
 	// GETTERS

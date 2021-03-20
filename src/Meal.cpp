@@ -4,14 +4,6 @@ Meal::Meal()
 {
 	name = "UNSET";
 	price = 0.0;
-
-	enabledDays.emplace(MONDAY, false);
-	enabledDays.emplace(TUESDAY, false);
-	enabledDays.emplace(WEDNESDAY, false);
-	enabledDays.emplace(THURSDAY, false);
-	enabledDays.emplace(FRIDAY, false);
-	enabledDays.emplace(SATURDAY, false);
-	enabledDays.emplace(SUNDAY, false);
 }
 
 Meal::~Meal()
@@ -33,14 +25,9 @@ void Meal::setTags(const std::vector<Tag*>& new_tags)
 	tags = new_tags;
 }
 
-void Meal::addTag(Tag& newTag)
+void Meal::addTag(Tag* newTag)
 {
-	tags.push_back(&newTag);
-}
-
-void Meal::setEnabledDays(const std::map<DaysOfTheWeek, bool> new_enabledDays)
-{
-	enabledDays = new_enabledDays;
+	tags.push_back(newTag);
 }
 
 std::string Meal::getName() const
@@ -56,9 +43,4 @@ double Meal::getPrice() const
 std::vector<Tag*> Meal::getTags() const
 {
 	return tags;
-}
-
-std::map<DaysOfTheWeek, bool> Meal::getEnabledDays() const
-{
-	return enabledDays;
 }
