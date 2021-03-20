@@ -809,6 +809,153 @@ TEST(UIManagerTest, prompt_FreeInt_inputChar)
 	EXPECT_EQ(expected, userInput);
 }
 
+TEST(UIManagerTest, prompt_FreeDouble_outputSuccess)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("3.99\n");
+
+	uim.setDimensions(80, 20);
+	uim.prompt_FreeDouble(1.23, 4.56);
+
+	uim.display(oStream, iStream);
+
+	std::string reference =
+		"--------------------------------------------------------------------------------\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|(Enter a value between 1.23 and 4.56)                                         |\n"
+		"--------------------------------------------------------------------------------\n"
+		":";
+
+	EXPECT_EQ(oStream.str(), reference);
+}
+
+TEST(UIManagerTest, prompt_FreeDouble_outputFailures)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("-1\n\n22.7\n");
+
+	uim.setDimensions(80, 20);
+	uim.prompt_FreeDouble(0, 255.5);
+
+	uim.display(oStream, iStream);
+
+	std::string reference =
+		"--------------------------------------------------------------------------------\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|(Enter a value between 0 and 255.5)                                           |\n"
+		"--------------------------------------------------------------------------------\n"
+		":Invalid input! Enter a value between 0 and 255.5.\n"
+		"(Press <enter> to continue)\n\n\n"
+		"--------------------------------------------------------------------------------\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|(Enter a value between 0 and 255.5)                                           |\n"
+		"--------------------------------------------------------------------------------\n"
+		":";
+
+	EXPECT_EQ(oStream.str(), reference);
+}
+
+TEST(UIManagerTest, prompt_FreeDouble_negativeInputSuccess)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("-100.9\n");
+
+	std::string expected, userInput;
+	expected = "-100.9";
+
+	uim.setDimensions(80, 20);
+	uim.prompt_FreeDouble(-200, -99);
+
+	userInput = uim.display(oStream, iStream);
+
+	EXPECT_EQ(expected, userInput);
+}
+
+TEST(UIManagerTest, prompt_FreeDouble_inputFailures)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("-100.99\n\n70.1000000\n\n0");
+
+	std::string expected, userInput;
+	expected = "0";
+
+	uim.setDimensions(80, 20);
+	uim.prompt_FreeDouble(0, 0);
+
+	userInput = uim.display(oStream, iStream);
+
+	EXPECT_EQ(expected, userInput);
+}
+
+TEST(UIManagerTest, prompt_FreeDouble_inputChar)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("E\n\n0");
+
+	std::string expected, userInput;
+	expected = "0";
+
+	uim.setDimensions(80, 20);
+	uim.prompt_FreeDouble(0, 0);
+
+	userInput = uim.display(oStream, iStream);
+
+	EXPECT_EQ(expected, userInput);
+}
+
 TEST(UIManagerTest, prompt_FreeString_outputSuccess)
 {
 	UIManager uim;

@@ -93,6 +93,7 @@ void UIManager::printPrompt(std::ostream& out)
 	case PROMPT_NONE:
 	case PROMPT_FREEINT:
 	case PROMPT_FREESTRING:
+	case PROMPT_FREEDOUBLE:
 		out << "|";
 		printLeftAllignedText(promptBuffer.at(0), screenWidth - 2, out);
 		out << "|\n";
@@ -165,8 +166,33 @@ std::string UIManager::validateInput(bool& isValid, std::ostream& out, std::istr
 			try
 			{
 				// convert userInput into integer and validate
-				if (std::stoi(userInput, nullptr, 10) >= lowerLimit &&
-					std::stoi(userInput, nullptr, 10) <= upperLimit)
+				if (std::stoi(userInput, nullptr, 10) >= int(lowerLimit) &&
+					std::stoi(userInput, nullptr, 10) <= int(upperLimit))
+					isValid = true;
+			}
+			catch (const std::invalid_argument& exception)
+			{
+				// bad conversion: userInput does not begin with integer. regard as false match
+			}
+		}
+
+		// if input invalid due to 0 length or failed conversion
+		if (!isValid)
+		{
+			out << "Invalid input! Enter a value between " << int(lowerLimit)
+				<< " and " << int(upperLimit) << ".\n(Press <enter> to continue)\n";
+			std::getline(in, userInput);
+		}
+		break;
+	case PROMPT_FREEDOUBLE:
+		// check if empty string
+		if (userInput.length() > 0)
+		{
+			try
+			{
+				// convert userInput into integer and validate
+				if (std::stod(userInput) >= lowerLimit &&
+					std::stod(userInput) <= upperLimit)
 					isValid = true;
 			}
 			catch (const std::invalid_argument& exception)
@@ -182,7 +208,7 @@ std::string UIManager::validateInput(bool& isValid, std::ostream& out, std::istr
 				<< " and " << upperLimit << ".\n(Press <enter> to continue)\n";
 			std::getline(in, userInput);
 		}
-		
+
 		break;
 	case PROMPT_FREESTRING:
 		if (userInput.length() >= 1 && userInput.length() <= inputLength)
@@ -311,8 +337,10 @@ void UIManager::skipLines(const unsigned int& linesToSkip)
 
 	since the first char indicates an option's corresponding key, the UIManager knows all of the valid
 	 values that can be entered, thus it can validate input easily.
+
+	 The passed vector is cleared after processing, to prevent reusing choices accidently.
 */
-void UIManager::prompt_List(const std::vector<std::string>& prompts)
+void UIManager::prompt_List(std::vector<std::string>& prompts)
 {
 	// check if prompts has anything, else default to prompt_None()
 	if (prompts.size() > 0)
@@ -324,6 +352,7 @@ void UIManager::prompt_List(const std::vector<std::string>& prompts)
 		{
 			promptBuffer.push_back(promptsIter);
 		}
+		prompts.clear();
 	}
 	else
 		prompt_None();
@@ -335,8 +364,44 @@ void UIManager::prompt_FreeInt(const int& min, const int& max)
 	lowerLimit = min;
 	upperLimit = max;
 	promptBuffer.clear(); // clear buffer to insert prompt
-	std::string tempStr = "(Enter a value between " + std::to_string(lowerLimit) +
-						  " and " + std::to_string(upperLimit) + ")";
+	std::string tempStr = "(Enter a value between " + std::to_string(int(lowerLimit)) +
+						  " and " + std::to_string(int(upperLimit)) + ")";
+
+	promptBuffer.push_back(tempStr);
+}
+
+void UIManager::prompt_FreeDouble(const double& min, const double& max)
+{
+	promptType = PROMPT_FREEDOUBLE;
+	lowerLimit = min;
+	upperLimit = max;
+	std::string lowerStr; // string of lowerLimit
+	std::string upperStr; // string of upperLimit
+	promptBuffer.clear(); // clear buffer to insert prompt
+
+	// format lowerLimit for output
+	// convert to string
+	lowerStr = std::to_string(lowerLimit);
+
+	// erase trailing zeros, leaves '.' at end of string
+	lowerStr.erase(lowerStr.find_last_not_of("0") + 1, std::string::npos);
+
+	// erase '.' if exists
+	if (lowerStr[lowerStr.length() - 1] == '.')
+		lowerStr.pop_back();
+
+	// format upperLimit for output
+	// convert to string
+	upperStr = std::to_string(upperLimit);
+
+	// erase trailing zeros, leaves '.' at end of string
+	upperStr.erase(upperStr.find_last_not_of("0") + 1, std::string::npos);
+
+	// erase '.' if exists
+	if (upperStr[upperStr.length() - 1] == '.')
+		upperStr.pop_back();
+
+	std::string tempStr = "(Enter a value between " + lowerStr + " and " + upperStr + ")";
 
 	promptBuffer.push_back(tempStr);
 }
@@ -383,6 +448,7 @@ std::string UIManager::display(std::ostream& out, std::istream& in)
 		{
 		case PROMPT_NONE:
 		case PROMPT_FREEINT:
+		case PROMPT_FREEDOUBLE:
 		case PROMPT_FREESTRING:
 			availBodyHeight -= 1; // need room to tell user to press enter, or to enter values
 			break;
