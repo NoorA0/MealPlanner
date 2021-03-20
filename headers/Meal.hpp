@@ -22,12 +22,10 @@ public:
 	void setPrice(const double& new_price);
 	void setTags(const std::vector<Tag*>& new_tags);
 	void addTag(Tag* newTag);
-	void setEnabledDays(const std::map<DaysOfTheWeek, bool> new_enabledDays);
 
 	// GETTERS
 	std::string getName() const;
 	double getPrice() const;
 	std::vector<Tag*> getTags() const;
-	std::map<DaysOfTheWeek, bool> getEnabledDays() const;
 };
 #endif // !__MEAL_HPP__
