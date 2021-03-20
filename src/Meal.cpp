@@ -55,3 +55,35 @@ bool Meal::getIsDisabled() const
 {
 	return isDisabled;
 }
+
+std::map<DaysOfTheWeek, bool> Meal::getEnabledDays() const
+{
+	// default to always enabled
+	std::map<DaysOfTheWeek, bool> enabledDays =
+	{ {MONDAY, true}, {TUESDAY, true}, {WEDNESDAY, true}, {THURSDAY, true},
+		{FRIDAY, true}, {SATURDAY, true}, {SUNDAY, true} };
+
+	// check every tag applied
+	for (auto tagIter : tags)
+	{
+		std::map<DaysOfTheWeek, bool> tagDays = tagIter->getEnabledDays();
+
+		// if tag's day is disabled, then disable day
+		if (!tagDays.at(MONDAY))
+			enabledDays.at(MONDAY) = false;
+		if (!tagDays.at(TUESDAY))
+			enabledDays.at(TUESDAY) = false;
+		if (!tagDays.at(WEDNESDAY))
+			enabledDays.at(WEDNESDAY) = false;
+		if (!tagDays.at(THURSDAY))
+			enabledDays.at(THURSDAY) = false;
+		if (!tagDays.at(FRIDAY))
+			enabledDays.at(FRIDAY) = false;
+		if (!tagDays.at(SATURDAY))
+			enabledDays.at(SATURDAY) = false;
+		if (!tagDays.at(SUNDAY))
+			enabledDays.at(SUNDAY) = false;
+	}
+
+	return enabledDays;
+}

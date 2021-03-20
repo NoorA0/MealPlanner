@@ -29,5 +29,8 @@ public:
 	double getPrice() const;
 	std::vector<Tag*> getTags() const;
 	bool getIsDisabled() const;
+
+	// OTHER FUNCTIONS
+	std::map<DaysOfTheWeek, bool> getEnabledDays() const;
 };
 #endif // !__MEAL_HPP__
