@@ -9,7 +9,7 @@ TEST(MealTest, defaultConstructor)
 
 	EXPECT_EQ(testMeal.getName(), "UNSET");
 	EXPECT_DOUBLE_EQ(testMeal.getPrice(), 0.0);
-	EXPECT_EQ(testMeal.isDisabled(), true);
+	EXPECT_EQ(testMeal.getIsDisabled(), true);
 }
 
 TEST(MealTest, setName_getName)
@@ -65,6 +65,6 @@ TEST(MealTest, isDisabled)
 {
 	Meal testMeal;
 	testMeal.setIsDisabled(false);
-	EXPECT_EQ(testMeal.isDisabled(), false);
+	EXPECT_EQ(testMeal.getIsDisabled(), false);
 }
 #endif // !__MEAL_TEST_HPP__

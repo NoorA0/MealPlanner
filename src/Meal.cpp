@@ -51,7 +51,7 @@ std::vector<Tag*> Meal::getTags() const
 	return tags;
 }
 
-bool Meal::isDisabled() const
+bool Meal::getIsDisabled() const
 {
 	return isDisabled;
 }

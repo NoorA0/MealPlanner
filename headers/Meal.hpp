@@ -28,6 +28,6 @@ public:
 	std::string getName() const;
 	double getPrice() const;
 	std::vector<Tag*> getTags() const;
-	bool isDisabled() const;
+	bool getIsDisabled() const;
 };
 #endif // !__MEAL_HPP__
