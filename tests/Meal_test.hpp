@@ -3,6 +3,15 @@
 
 #include "../headers/Meal.hpp"
 
+TEST(MealTest, defaultConstructor)
+{
+	Meal testMeal;
+
+	EXPECT_EQ(testMeal.getName(), "UNSET");
+	EXPECT_DOUBLE_EQ(testMeal.getPrice(), 0.0);
+	EXPECT_EQ(testMeal.isDisabled(), true);
+}
+
 TEST(MealTest, setName_getName)
 {
 	Meal testMeal;
@@ -50,5 +59,12 @@ TEST(MealTest, addTag)
 	EXPECT_EQ(true, testMeal.getTags().at(0)->getPriority());
 	
 	delete newTag;
+}
+
+TEST(MealTest, isDisabled)
+{
+	Meal testMeal;
+	testMeal.setIsDisabled(false);
+	EXPECT_EQ(testMeal.isDisabled(), false);
 }
 #endif // !__MEAL_TEST_HPP__
