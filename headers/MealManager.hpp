@@ -21,6 +21,14 @@ class MealManager
 	void createTag(Tag* tagPtr, UIManager& uim);
 	void editMealTags(Meal* mealPtr, UIManager& uim);
 	void editMeal(Meal* mealPtr, UIManager& uim);
+	std::string formatPrice(const double& price); // return string of price without trailing zeros
+
+	// return string of enabledDays, if no days enabled, then will return "[]"
+	std::string formatEnabledDays(const Meal* mealPtr);
+
+	// display all Meals/Tags, returns index for meals or normalTags(), return -1 if user chose to quit
+	int displayMeals(UIManager& uim);
+	int displayTags(UIManager& uim);
 
 public:
 	MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE, 

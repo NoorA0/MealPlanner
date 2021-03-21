@@ -31,10 +31,16 @@ int main()
 		uim.centeredText("Main Menu");
 		uim.skipLines(2);
 		uim.centeredText("Select an option.");
-		strVec = { "1Generate a Meal Schedule", "2View Meals", "3View Tags", "4Quit Program" };
-		uim.prompt_List(strVec);
+		strVec = { "1Generate a Meal Schedule", "2Meal Menu", "3Tag Menu", "QQuit Program" };
+		uim.prompt_List_Case_Insensitive(strVec);
 
-		tempInt = std::stoi(uim.display());
+		tempStr = uim.display();
+		tempStr = std::toupper(tempStr.at(0));
+
+		if (tempStr != "Q")
+			tempInt = std::stoi(tempStr);
+		else
+			tempInt = 4;
 
 		switch (tempInt)
 		{
