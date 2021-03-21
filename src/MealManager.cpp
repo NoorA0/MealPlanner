@@ -1,8 +1,21 @@
 #include "../headers/MealManager.hpp"
 
-MealManager::MealManager()
+MealManager::MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE, 
+						 const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH)
 {
+	// verify values
+	if (MINIMUM_PRICE >= 0)
+		this->MINIMUM_PRICE = MINIMUM_PRICE;
+	else
+		this->MINIMUM_PRICE = 0;
 
+	if (MAXIMUM_PRICE < this->MINIMUM_PRICE)
+		this->MAXIMUM_PRICE = MINIMUM_PRICE;
+	else
+		this->MAXIMUM_PRICE = MAXIMUM_PRICE;
+
+	this->NAME_LENGTH = NAME_LENGTH;
+	this->DESC_LENGTH = DESC_LENGTH;
 }
 
 MealManager::~MealManager()
@@ -23,11 +36,97 @@ MealManager::~MealManager()
 	}
 }
 
+void MealManager::createMeal(Meal* mealptr, UIManager& uim)
+{
+	bool doneCreating = false;
+	bool inputValid = false;
+	std::string tempStr = "";
+	int tempInt;
+	double tempDouble;
+	std::vector<std::string> strVec;
+
+	// loop while user is not done choosing a name
+	while (!doneCreating)
+	{
+		uim.centeredText("New Meal - Name");
+		uim.skipLines(2);
+
+		// prompt and get name
+		uim.centeredText("Enter a name.");
+		uim.prompt_FreeString(NAME_LENGTH);
+		tempStr = uim.display();
+
+		// if there are other meals stored, check if names conflict (case insensitive)
+		if (meals.size() > 0)
+		{
+			// get uppercase version of tempStr
+			std::string upperStr = tempStr;
+			for (int i = 0; i < upperStr.size(); ++i)
+			{
+				char makeUpper = std::toupper(upperStr.at(i));
+				upperStr.at(i) = makeUpper;
+			}
+
+			// compare with all names of all meals until a match is found
+			inputValid = true;
+			auto mealsIter = meals.begin();
+			while (inputValid && mealsIter != meals.end())
+			{
+				// get uppercase version of meal's name
+				std::string mealName = (*mealsIter)->getName();
+				for (int i = 0; i < mealName.size(); ++i)
+				{
+					char makeUpper = std::toupper(mealName.at(i));
+					mealName.at(i) = makeUpper;
+				}
+
+				// check if names match
+				if (upperStr == mealName)
+					inputValid = false;
+				++mealsIter;
+			}
+
+			// check if name is valid
+			if (inputValid)
+			{
+				// make new meal and set name
+				mealptr = new Meal;
+				mealptr->setName(tempStr);
+				doneCreating = true; // exits section of creation
+			}
+			else // invalid name, inform user
+			{
+				uim.centeredText("Error: Invalid Name");
+				uim.skipLines(2);
+				uim.leftAllignedText("The name you entered already exists. (case insensitive)");
+				uim.display();
+			}
+		}
+		else // add meal
+		{
+			mealptr = new Meal;
+			mealptr->setName(tempStr);
+			doneCreating = true;
+		}
+
+	}// while (!doneCreating)
+
+	uim.centeredText("New Meal - Price");
+	uim.skipLines(2);
+
+	// prompt and get price
+	uim.centeredText("Enter a price:");
+	uim.prompt_FreeDouble(MINIMUM_PRICE, MAXIMUM_PRICE);
+	tempDouble = std::stod(uim.display());
+
+	mealptr->setPrice(tempDouble);
+
+	// assign tags to meal
+	editMealTags(mealptr, uim);
+}
+
 void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 {
-	const int NAME_LENGTH = 40;
-	const int DESC_LENGTH = 80;
-
 	std::string tempStr = "";
 	int tempInt;
 	std::vector<std::string> strVec;
@@ -45,7 +144,7 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 	uim.centeredText("Create Tag - Name");
 	uim.skipLines(2);
 
-	uim.leftAllignedText("Enter a name (recommended 2-3 words).");
+	uim.centeredText("Enter a name (recommended 2-3 words).");
 	uim.prompt_FreeString(NAME_LENGTH);
 	tagName = uim.display();
 
@@ -53,7 +152,7 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 	uim.centeredText("Create Tag - Description");
 	uim.skipLines(2);
 
-	uim.leftAllignedText("Enter a description.");
+	uim.centeredText("Enter a description.");
 	uim.prompt_FreeString(DESC_LENGTH);
 	tagDesc = uim.display();
 
@@ -61,12 +160,13 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 	uim.centeredText("Create Tag - Priority Setting");
 	uim.skipLines(2);
 
-	uim.leftAllignedText("Can this Tag override global settings? (Y/N)");
+	uim.centeredText("Can this Tag override global settings? (Y/N)");
 	strVec = { "YYes", "NNo" };
-	uim.prompt_List(strVec);
+	uim.prompt_List_Case_Insensitive(strVec);
 
 	tempStr = uim.display();
-	
+	tempStr = std::toupper(tempStr.at(0));
+
 	// set hasPriority depending on user choice
 	if (tempStr == "Y")
 		hasPriority = true;
@@ -76,7 +176,7 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 	uim.centeredText("Create Tag - Consecutive Days Limit");
 	uim.skipLines(2);
 
-	uim.leftAllignedText("How many consecutive days can a Meal with this Tag occurr in?");
+	uim.centeredText("How many consecutive days can a Meal with this Tag occurr in?");
 	uim.prompt_FreeInt(0, 1000);
 	consecutiveLimit = std::stoi(uim.display());
 
@@ -145,8 +245,9 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 				  "EEnable ALL", "DDisable ALL", "QConfirm Selection" };
 
 		// prompt and get input
-		uim.prompt_List(strVec);
+		uim.prompt_List_Case_Insensitive(strVec);
 		tempStr = uim.display();
+		tempStr = std::toupper(tempStr.at(0));
 
 		if (tempStr == "E")
 		{
@@ -235,12 +336,13 @@ void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
 		uim.centeredText("Assign Tags");
 		uim.skipLines(2);
 
-		uim.leftAllignedText("Meal has no Tags, do you want to assign some?");
+		uim.centeredText("Meal has no Tags, do you want to assign some?");
 		
 		strVec = { "YYes", "NNo" };
-		uim.prompt_List(strVec);
+		uim.prompt_List_Case_Insensitive(strVec);
 
 		tempStr = uim.display();
+		tempStr = std::toupper(tempStr.at(0));
 
 		// bypass display tags
 		if (tempStr != "Y")
@@ -257,12 +359,13 @@ void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
 			uim.centeredText("Assign Tags");
 			uim.skipLines(2);
 
-			uim.leftAllignedText("There are no saved Tags, do you want to create one?");
+			uim.centeredText("There are no saved Tags, do you want to create one?");
 
 			strVec = { "YYes", "NNo" };
-			uim.prompt_List(strVec);
+			uim.prompt_List_Case_Insensitive(strVec);
 
 			tempStr = uim.display();
+			tempStr = std::toupper(tempStr.at(0));
 
 			// bypass editing tags
 			if (tempStr != "Y")
@@ -303,8 +406,9 @@ void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
 			strVec.push_back(tempStr);
 
 			// prompt and get input
-			uim.prompt_List(strVec);
+			uim.prompt_List_Case_Insensitive(strVec);
 			tempStr = uim.display();
+			tempStr = std::toupper(tempStr.at(0));
 
 			// check if user chose to quit
 			if (tempStr != "Q")
@@ -420,8 +524,9 @@ void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
 				strVec.push_back(tempStr);
 
 				// display UI and get input
-				uim.prompt_List(strVec);
+				uim.prompt_List_Case_Insensitive(strVec);
 				tempStr = uim.display();
+				tempStr = std::toupper(tempStr.at(0));
 
 				// check if choice is N, P, or Q
 				if (tempStr == "N")
@@ -486,7 +591,7 @@ void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
 	} // while (tempStr != "Q")
 }
 
-void MealManager::editMeal(Meal* mealPtr, UIManager& uim, const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE, const int& NAME_LENGTH)
+void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 {
 	std::string tempStr = "";
 	int tempInt;
@@ -620,9 +725,10 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim, const double& MINIMUM_
 
 		// prompt user for attribute to edit or quit
 		strVec = { "1Edit Name", "2Edit Price", "3Enable/Disable Meal", "4Edit Tags", "QQuit Selection" };
-		uim.prompt_List(strVec);
+		uim.prompt_List_Case_Insensitive(strVec);
 
 		tempStr = uim.display();
+		tempStr = std::toupper(tempStr.at(0));
 
 		if (tempStr != "Q")
 		{
@@ -742,9 +848,10 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim, const double& MINIMUM_
 				uim.leftAllignedText(tempStr);
 
 				strVec = { "YYes", "NNo" };
-				uim.prompt_List(strVec);
+				uim.prompt_List_Case_Insensitive(strVec);
 
 				tempStr = uim.display();
+				tempStr = std::toupper(tempStr.at(0));
 
 				// process user's input
 				if (tempStr == "Y")
@@ -775,11 +882,6 @@ void MealManager::generateSchedule(std::string outputFile, std::ostream& oFile)
 
 void MealManager::mealEditor(UIManager& uim)
 {
-	// limits for meal creation
-	const double MINIMUM_PRICE = 0;
-	const double MAXIMUM_PRICE = 99;
-	const int NAME_LENGTH = 80;
-
 	std::string tempStr;
 	int tempInt = 0;
 	double tempDouble = 0;
@@ -797,7 +899,7 @@ void MealManager::mealEditor(UIManager& uim)
 		uim.centeredText(tempStr);
 
 		strVec = { "1View/Edit Meals", "2Create Meal", "3Exit Menu" };
-		uim.prompt_List(strVec);
+		uim.prompt_List_Case_Insensitive(strVec);
 
 		tempInt = std::stoi(uim.display());
 
@@ -872,8 +974,9 @@ void MealManager::mealEditor(UIManager& uim)
 						strVec.push_back(tempStr);
 
 						// display UI and get input
-						uim.prompt_List(strVec);
+						uim.prompt_List_Case_Insensitive(strVec);
 						tempStr = uim.display();
+						tempStr = std::toupper(tempStr.at(0));
 
 						// check if choice is N, P, or Q
 						if (tempStr == "N")
@@ -902,7 +1005,7 @@ void MealManager::mealEditor(UIManager& uim)
 
 							// get meal and call editor
 							Meal* mealPtr = meals.at(tempInt);
-							editMeal(mealPtr, uim, MINIMUM_PRICE, MAXIMUM_PRICE, NAME_LENGTH);
+							editMeal(mealPtr, uim);
 						}
 					} // while (tempStr != "Q")
 				}
@@ -928,8 +1031,9 @@ void MealManager::mealEditor(UIManager& uim)
 						tempStr = "QQuit Selection";
 						strVec.push_back(tempStr);
 
-						uim.prompt_List(strVec);
+						uim.prompt_List_Case_Insensitive(strVec);
 						tempStr = uim.display();
+						tempStr = std::toupper(tempStr.at(0));
 
 						// user chose a meal to edit
 						if (tempStr != "Q")
@@ -940,7 +1044,7 @@ void MealManager::mealEditor(UIManager& uim)
 							Meal* mealPtr = meals.at(tempInt);
 
 							// display menu to edit meal
-							editMeal(mealPtr, uim, MINIMUM_PRICE, MAXIMUM_PRICE, NAME_LENGTH);
+							editMeal(mealPtr, uim);
 							tempStr = ""; // ensure menu will loop until user chooses to exit
 						}
 					}// while (tempStr != "Q")
@@ -950,271 +1054,15 @@ void MealManager::mealEditor(UIManager& uim)
 			{
 				uim.centeredText("Error");
 				uim.skipLines(2);
-				uim.leftAllignedText("You have no Meals to display.");
+				uim.centeredText("You have no Meals to display.");
 				uim.prompt_None();
 				uim.display();
 			}
 			break;
 		case 2: // create a new meal and add to meals stored
-
-			// loop while user is not done choosing a name
-			while (!doneCreating)
-			{
-				uim.centeredText("New Meal");
-				uim.skipLines(2);
-
-				// prompt and get name
-				uim.leftAllignedText("Enter a name.");
-				uim.prompt_FreeString(NAME_LENGTH);
-				tempStr = uim.display();
-
-				// check for match, case insensitive
-				{
-					// get uppercase version of tempStr
-					std::string upperStr = tempStr;
-					for (int i = 0; i < upperStr.size(); ++i)
-					{
-						char makeUpper = std::toupper(upperStr.at(i));
-						upperStr.at(i) = makeUpper;
-					}
-
-					// compare with all names of all meals until a match is found
-					inputValid = true;
-					auto mealsIter = meals.begin();
-					while (inputValid && mealsIter != meals.end())
-					{
-						// get uppercase version of meal's name
-						std::string mealName = (*mealsIter)->getName();
-						for (int i = 0; i < mealName.size(); ++i)
-						{
-							char makeUpper = std::toupper(mealName.at(i));
-							mealName.at(i) = makeUpper;
-						}
-
-						// check if names match
-						if (upperStr == mealName)
-							inputValid = false;
-						++mealsIter;
-					}
-				}
-				// check if name is valid
-				if (inputValid)
-				{
-					// make new meal and set name
-					mealptr = new Meal;
-					mealptr->setName(tempStr);
-					doneCreating = true; // exits section of creation
-				}
-				else // invalid name, inform user
-				{
-					uim.centeredText("Error: Invalid Name");
-					uim.skipLines(2);
-					uim.leftAllignedText("Meals cannot have the same name (case insensitive).");
-					uim.prompt_None();
-					uim.display();
-				}
-			}// while (!doneCreating)
-
-			uim.centeredText("New Meal");
-			uim.skipLines(2);
-
-			// prompt and get price
-			uim.leftAllignedText("Enter a price:");
-			uim.prompt_FreeDouble(MINIMUM_PRICE, MAXIMUM_PRICE);
-			tempDouble = std::stod(uim.display());
-
-			mealptr->setPrice(tempDouble);
-			reminder here // create function to reduce code below
-			// assign tags to meal (if they exist)
-			if (normalTags.size() > 0)
-			{
-				// if more than 10 tags exist, display in pages
-				if (normalTags.size() > 10)
-				{
-					tempStr = "";
-
-					int currentPage = 1;
-					int totalPages = normalTags.size() / 10; // remainder may be present
-
-					// if remainder, then add an extra page
-					if (normalTags.size() % 10 > 0)
-						++totalPages;
-
-					// loop while user has not quit menu
-					while (tempStr != "Q")
-					{
-						uim.centeredText("Assign Tags");
-						// display "Page x/y"
-						tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
-						uim.centeredText(tempStr);
-						uim.skipLines(2);
-						uim.leftAllignedText("Choose a Tag to assign to the Meal:");
-
-						// start index for the current page
-						int startIndex = (10 * (currentPage - 1));
-
-						//if displaying a page that is NOT last page, then display 10 items
-						if (currentPage < totalPages)
-						{
-							// create iterator at index's position
-							auto tagIter = normalTags.begin() + startIndex;
-
-							// create prompts for tags
-							for (int count = 0; count < 10; ++count)
-							{
-								tempStr = std::to_string(count) + (*tagIter)->getName();
-								strVec.push_back(tempStr);
-							}
-						}
-						else // the current page is the last page, so there may be less than 10 elements to display
-						{
-							// create iterator at index's position
-							auto tagIter = normalTags.begin() + startIndex;
-							int count = 0; // used to print prompt number
-
-							// create prompts for the rest of the elements
-							while (tagIter != normalTags.end())
-							{
-								tempStr = std::to_string(count) + (*tagIter)->getName();
-								strVec.push_back(tempStr);
-								++count;
-							}
-						}
-
-						// add prompts to go to next page, previous, and quit
-						tempStr = "NNext Page";
-						strVec.push_back(tempStr);
-
-						tempStr = "PPrevious Page";
-						strVec.push_back(tempStr);
-
-						tempStr = "QQuit Selection";
-						strVec.push_back(tempStr);
-
-						// display UI and get input
-						uim.prompt_List(strVec);
-						tempStr = uim.display();
-
-						// check if choice is N, P, or Q
-						if (tempStr == "N")
-						{
-							// increment page number (loops around if at end)
-							if (currentPage == totalPages)
-								currentPage = 1;
-							else
-								++currentPage;
-						}
-						else if (tempStr == "P")
-						{
-							// decrement page number (loops around if at beginning)
-							if (currentPage == 1)
-								currentPage = totalPages;
-							else
-								--currentPage;
-						}
-						else if (tempStr != "Q")
-						{
-							// get the user's choice
-							tempInt = std::stoi(tempStr);
-
-							// convert into tag's index
-							tempInt += startIndex;
-
-							// if Meal has no tags, then add the chosen tag
-							if (mealptr->getTags().size() == 0)
-							{
-								mealptr->addTag(normalTags.at(tempInt));
-							}
-							else // need to check if tag already exists
-							{
-								bool isValid = true;
-
-								// copy the meal's tags and create iterator
-								std::vector<Tag*> mealTags = mealptr->getTags();
-								auto mealTagsIter = mealTags.begin();
-
-								// get the tag that user wants to add
-								Tag* compareTag = normalTags.at(tempInt);
-
-								while (isValid && mealTagsIter != mealTags.end())
-								{
-									// check if names match
-									if (compareTag->getName() == (*mealTagsIter)->getName())
-										isValid = false;
-									++mealTagsIter;
-								}
-
-								// if the new tag does not already exist, add it
-								if (isValid)
-								{
-									mealptr->addTag(compareTag);
-								}
-							}
-						}
-					} // while (tempStr != "Q")
-				}
-				else // display all tags
-				{
-					uim.centeredText("Assign Tags");
-					uim.skipLines(2);
-
-					uim.leftAllignedText("Choose a Tag to assign to the Meal:");
-
-					// create a choice for all tags
-					int index = 0;
-					for (auto tagIter : normalTags)
-					{
-						tempStr = std::to_string(index) + tagIter->getName();
-						strVec.push_back(tempStr);
-
-						++index;
-					}
-
-					// add a quit option
-					tempStr = "QQuit Selection";
-					strVec.push_back(tempStr);
-
-					uim.prompt_List(strVec);
-					tempStr = uim.display();
-
-					// check if user wants to quit
-					if (tempStr != "Q")
-					{
-						tempInt = std::stoi(tempStr); // used as index
-
-						// if Meal has no tags, then add the chosen tag
-						if (mealptr->getTags().size() == 0)
-						{
-							mealptr->addTag(normalTags.at(tempInt));
-						}
-						else // need to check if tag already exists
-						{
-							bool isValid = true;
-
-							// copy the meal's tags and create iterator
-							std::vector<Tag*> mealTags = mealptr->getTags();
-							auto mealTagsIter = mealTags.begin();
-							
-							// get the tag that use wants to add
-							Tag* compareTag = normalTags.at(tempInt);
-
-							while (isValid && mealTagsIter != mealTags.end())
-							{
-								// check if names match
-								if (compareTag->getName() == (*mealTagsIter)->getName())
-									isValid = false;
-								++mealTagsIter;
-							}
-
-							// if the new tag does not already exist, add it
-							if (isValid)
-							{
-								mealptr->addTag(compareTag);
-							}
-						}
-					} // if (tempStr != "Q")
-				} // if less than 10 tags
-			} // if (normalTags.size() > 0)
+			mealptr = nullptr;
+			
+			createMeal(mealptr, uim);
 
 			// add meal to meals 
 			meals.push_back(mealptr);

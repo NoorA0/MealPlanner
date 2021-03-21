@@ -6,9 +6,13 @@ int main()
 	const std::string OUTPUTFILE = "Generated_List.txt"; // name of file that stores generated meal list
 	const int UI_WIDTH = 100;
 	const int UI_HEIGHT = 45;
+	const double MINIMUM_PRICE = 0; // minimum acceptable price for Meal price
+	const double MAXIMUM_PRICE = 99; // maximum acceptable price for Meal price 
+	const unsigned int NAME_LENGTH = 40; // char limit for Tag and Meal names 
+	const unsigned int DESC_LENGTH = 80; // char limit for Tag descriptions
 
 	UIManager uim; 
-	MealManager mealManager;
+	MealManager mealManager(MINIMUM_PRICE, MAXIMUM_PRICE, NAME_LENGTH, DESC_LENGTH);
 
 	// used to construct UI elements, get user input, etc.
 	std::string tempStr;
@@ -26,7 +30,7 @@ int main()
 		// display main menu
 		uim.centeredText("Main Menu");
 		uim.skipLines(2);
-		uim.leftAllignedText("Select an option.");
+		uim.centeredText("Select an option.");
 		strVec = { "1Generate a Meal Schedule", "2View Meals", "3View Tags", "4Quit Program" };
 		uim.prompt_List(strVec);
 

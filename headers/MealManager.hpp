@@ -10,13 +10,21 @@ class MealManager
 	std::vector<Tag*> globalTags; // tags that override normal tags' settings
 	std::vector<Meal*> meals;
 
+	// initialized on object creation
+	double MINIMUM_PRICE;
+	double MAXIMUM_PRICE;
+	unsigned int NAME_LENGTH;
+	unsigned int DESC_LENGTH;
+
 	// HELPER FUNCTIONS
+	void createMeal(Meal* mealptr, UIManager& uim);
 	void createTag(Tag* tagPtr, UIManager& uim);
 	void editMealTags(Meal* mealPtr, UIManager& uim);
-	void editMeal(Meal* mealPtr, UIManager& uim, const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE, const int& NAME_LENGTH);
+	void editMeal(Meal* mealPtr, UIManager& uim);
 
 public:
-	MealManager();
+	MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE, 
+				const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH);
 	~MealManager();
 
 	void generateSchedule(std::string outputFile, std::ostream& oFile = std::cout);

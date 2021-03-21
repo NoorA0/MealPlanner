@@ -147,7 +147,7 @@ void UIManager::printLeftAllignedText(const std::string& input, const int& width
 
 std::string UIManager::validateInput(bool& isValid, std::ostream& out, std::istream& in)
 {
-	std::string userInput; // stores user's input
+	std::string userInput = ""; // stores user's input
 	isValid = false;
 
 	out << ':'; // prompts the user
