@@ -69,12 +69,16 @@
 *	displays a list of prompts for the user that look like: [<key>] - description
 *	at the bottom of the window. <key> is a single char that the user must type to choose an option.
 *	strings within prompts vector should follow this format: <key_char><description_text>.
-*	example, to show the user [1] - choice one, the string must look like "1choice one".
+*	example, to show the user "[1] - choice one", the string must look like: "1choice one".
 * 
 *	you may use characters and symbols as the <key>, they will be validated accordingly during output
+*	if <key> is a character, then user's input is case sensitive
 *	if the vector prompts is empty, UIManager will handle as if prompt_None() was called
 * 
 *	The passed in vector is cleared of data after processing.
+* 
+* prompt_List_Case_Insensitive(vector<string> prompts):
+*	same as above, but character <keys> are case insensitive.
 * 
 * prompt_FreeInt(int min, int max):
 *	lets the user type freely, accepted values are integers between and including min and max
@@ -159,7 +163,8 @@ class UIManager
 		PROMPT_FREEINT,
 		PROMPT_FREEDOUBLE,
 		PROMPT_FREESTRING,
-		PROMPT_LIST
+		PROMPT_LIST,
+		PROMPT_LIST_CASE_INSENSITIVE
 	};
 
 
@@ -193,6 +198,7 @@ public:
 
 	// PROMPT OPERATIONS
 	void prompt_List(std::vector<std::string>& prompts); 
+	void prompt_List_Case_Insensitive(std::vector<std::string>& prompts);
 	void prompt_FreeInt(const int& min, const int& max); 
 	void prompt_FreeDouble(const double& min, const double& max);
 	void prompt_FreeString(const unsigned int& maxLength); 
