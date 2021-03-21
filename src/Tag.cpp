@@ -1,12 +1,25 @@
 #include "../headers/Tag.hpp"
 
-Tag::Tag(const std::string& name, const std::string& description, const std::map<DaysOfTheWeek, bool>& enabledDays, const bool& hasPriority, const unsigned int& consecutiveLimit)
+Tag::Tag()
 {
-	this->name = name;
-	this->description = description;
+	this->name = "UNSET";
+	this->description = "UNSET";
+	this->hasPriority = false;
+	this->consecutiveLimit = 0;
+
+	std::map<DaysOfTheWeek, bool> enabledDays =
+	{ {MONDAY, false}, {TUESDAY, false}, {WEDNESDAY, false}, {THURSDAY, false}, {FRIDAY, false}, {SATURDAY, false}, {SUNDAY, false} };
+
 	this->enabledDays = enabledDays;
-	this->hasPriority = hasPriority;
-	this->consecutiveLimit = consecutiveLimit;
+}
+
+Tag::Tag(const std::string& _name, const std::string& _description, const std::map<DaysOfTheWeek, bool>& _enabledDays, const bool& _hasPriority, const unsigned int& _consecutiveLimit)
+{
+	name = _name;
+	description = _description;
+	enabledDays = _enabledDays;
+	hasPriority = _hasPriority;
+	consecutiveLimit = _consecutiveLimit;
 }
 
 Tag::~Tag()

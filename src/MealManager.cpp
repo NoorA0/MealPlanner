@@ -1,7 +1,7 @@
 #include "../headers/MealManager.hpp"
 
-MealManager::MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE, 
-						 const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH)
+MealManager::MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE,
+	const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH)
 {
 	// verify values
 	if (MINIMUM_PRICE >= 0)
@@ -90,7 +90,6 @@ void MealManager::createMeal(Meal* mealptr, UIManager& uim)
 			if (inputValid)
 			{
 				// make new meal and set name
-				mealptr = new Meal;
 				mealptr->setName(tempStr);
 				doneCreating = true; // exits section of creation
 			}
@@ -104,7 +103,6 @@ void MealManager::createMeal(Meal* mealptr, UIManager& uim)
 		}
 		else // add meal
 		{
-			mealptr = new Meal;
 			mealptr->setName(tempStr);
 			doneCreating = true;
 		}
@@ -144,7 +142,8 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 	uim.centeredText("Create Tag - Name");
 	uim.skipLines(2);
 
-	uim.centeredText("Enter a name (recommended 2-3 words).");
+	uim.centeredText("Enter a name:");
+	uim.centeredText("(recommended 2 - 3 words)");
 	uim.prompt_FreeString(NAME_LENGTH);
 	tagName = uim.display();
 
@@ -176,7 +175,7 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 	uim.centeredText("Create Tag - Consecutive Days Limit");
 	uim.skipLines(2);
 
-	uim.centeredText("How many consecutive days can a Meal with this Tag occurr in?");
+	uim.centeredText("How many consecutive days can a Meal with this Tag occurr for?");
 	uim.prompt_FreeInt(0, 1000);
 	consecutiveLimit = std::stoi(uim.display());
 
@@ -187,56 +186,57 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 		uim.centeredText("Create Tag - Enabled Days");
 		uim.skipLines(2);
 
-		uim.leftAllignedText("Choose days that Meals with this Tag may occurr on:");
+		uim.centeredText("Choose days that Meals with this Tag may occurr on:");
+		uim.skipLines(1);
 
 		tempStr = "MONDAY: ";
 		if (enabledDays.find(MONDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.leftAllignedText(tempStr);
+		uim.centeredText(tempStr);
 
 		tempStr = "TUESDAY: ";
 		if (enabledDays.find(TUESDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.leftAllignedText(tempStr);
+		uim.centeredText(tempStr);
 
 		tempStr = "WEDNESDAY: ";
 		if (enabledDays.find(WEDNESDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.leftAllignedText(tempStr);
+		uim.centeredText(tempStr);
 
 		tempStr = "THURSDAY: ";
 		if (enabledDays.find(THURSDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.leftAllignedText(tempStr);
+		uim.centeredText(tempStr);
 
 		tempStr = "FRIDAY: ";
 		if (enabledDays.find(FRIDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.leftAllignedText(tempStr);
+		uim.centeredText(tempStr);
 
 		tempStr = "SATURDAY: ";
 		if (enabledDays.find(SATURDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.leftAllignedText(tempStr);
+		uim.centeredText(tempStr);
 
 		tempStr = "SUNDAY: ";
 		if (enabledDays.find(SUNDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.leftAllignedText(tempStr);
+		uim.centeredText(tempStr);
 		break;
 
 		// print options
@@ -320,7 +320,11 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 	} // while (tempStr != "Q")
 
 	// create a tag with collected data
-	tagPtr = new Tag(tagName, tagDesc, enabledDays, hasPriority, consecutiveLimit);
+	tagPtr->setName(tagName);
+	tagPtr->setDescription(tagDesc);
+	tagPtr->setEnabledDays(enabledDays);
+	tagPtr->setPriority(hasPriority);
+	tagPtr->setConsecutiveLimit(consecutiveLimit);
 }
 
 void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
@@ -337,7 +341,7 @@ void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
 		uim.skipLines(2);
 
 		uim.centeredText("Meal has no Tags, do you want to assign some?");
-		
+
 		strVec = { "YYes", "NNo" };
 		uim.prompt_List_Case_Insensitive(strVec);
 
@@ -370,15 +374,17 @@ void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
 			// bypass editing tags
 			if (tempStr != "Y")
 				tempStr = "Q";
-			else 
+			else
 			{
 				// create a tag
-				Tag* tagPtr = nullptr;
+				Tag* tagPtr = new Tag;
 				createTag(tagPtr, uim);
 
 				// add tag to saved tags and to meal
 				normalTags.push_back(tagPtr);
 				mealPtr->addTag(tagPtr);
+
+				tagPtr = nullptr;
 			}
 		}
 		else if (normalTags.size() <= 10) // can print all tags in 1 page
@@ -608,8 +614,6 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 		tempStr = "Name: " + mealPtr->getName();
 		uim.leftAllignedText(tempStr);
 
-		uim.skipLines(1);
-
 		// display price 
 		tempStr = "Price: ";
 
@@ -628,7 +632,6 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 		}
 		uim.leftAllignedText(tempStr);
 		uim.skipLines(1);
-
 
 		// check if meal is disabled 
 		if (mealPtr->getIsDisabled())
@@ -740,7 +743,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 			case 1:
 				uim.centeredText("Edit Name");
 				uim.skipLines(2);
-				
+
 				// display original name
 				tempStr = "Original name: " + mealPtr->getName();
 				uim.leftAllignedText(tempStr);
@@ -749,7 +752,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 				// prompt and get input
 				uim.leftAllignedText("Enter a new name: ");
 				uim.prompt_FreeString(NAME_LENGTH);
-				
+
 				tempStr = uim.display();
 
 				//set new name
@@ -764,7 +767,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 				uim.prompt_None();
 				uim.display();
 				break;
-			case 2: 
+			case 2:
 				uim.centeredText("Edit Price");
 				uim.skipLines(2);
 
@@ -834,7 +837,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 				else
 					tempStr += "ENABLED.";
 
-				uim.leftAllignedText(tempStr);
+				uim.centeredText(tempStr);
 
 				// prompt user
 				tempStr = "Do you want to ";
@@ -845,7 +848,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 					tempStr += "disable";
 
 				tempStr += " it?";
-				uim.leftAllignedText(tempStr);
+				uim.centeredText(tempStr);
 
 				strVec = { "YYes", "NNo" };
 				uim.prompt_List_Case_Insensitive(strVec);
@@ -863,7 +866,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 						mealPtr->setIsDisabled(true);
 				}
 			}
-				break;
+			break;
 			case 4: // edit tags
 				editMealTags(mealPtr, uim);
 				tempStr = ""; // make sure menu will loop
@@ -906,7 +909,7 @@ void MealManager::mealEditor(UIManager& uim)
 		switch (tempInt)
 		{
 		case 1: // list all meals and allow editing
-			
+
 			// if there are meals to list
 			if (meals.size() > 0)
 			{
@@ -1060,8 +1063,8 @@ void MealManager::mealEditor(UIManager& uim)
 			}
 			break;
 		case 2: // create a new meal and add to meals stored
-			mealptr = nullptr;
-			
+			mealptr = new Meal;
+
 			createMeal(mealptr, uim);
 
 			// add meal to meals 

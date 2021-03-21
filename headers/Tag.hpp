@@ -17,15 +17,16 @@ enum DaysOfTheWeek
 
 class Tag
 {
-	std::string name; 
-	std::string description; 
+	std::string name;
+	std::string description;
 	std::map<DaysOfTheWeek, bool> enabledDays; // days of the week that meal is enabled on
 	bool hasPriority; // if tag has priority over any conflicting rules
 	unsigned int consecutiveLimit; // times a meal with a tag can occurr consecutively
 
 public:
-	Tag(const std::string& name, const std::string& description, const std::map<DaysOfTheWeek, bool>& enabledDays,
-		const bool& hasPriority, const unsigned int& consecutiveLimit);
+	Tag();
+	Tag(const std::string& _name, const std::string& _description, const std::map<DaysOfTheWeek, bool>& _enabledDays,
+		const bool& _hasPriority, const unsigned int& _consecutiveLimit);
 	~Tag();
 
 	// SETTERS
