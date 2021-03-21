@@ -2,12 +2,13 @@
 #define __MEALMANAGER_HPP__
 
 #include "Meal.hpp"
+#include "Multitag.hpp"
 #include "UIManager.hpp"
 
 class MealManager
 {
 	std::vector<Tag*> normalTags; // tags assigned to foods
-	std::vector<Tag*> multiTags; // special tags that are linked to normalTags
+	std::vector<Multitag*> multiTags; // special tags that are linked to normalTags
 	std::vector<Meal*> meals;
 
 	std::string DATAFILE; // name of file that stores program data
