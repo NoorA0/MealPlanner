@@ -40,7 +40,7 @@ TEST(MealTest, setTags_getTags)
 
 	EXPECT_EQ("Name", testMeal.getTags().at(0)->getName());
 	EXPECT_EQ("Desc", testMeal.getTags().at(0)->getDescription());
-	EXPECT_EQ(true, testMeal.getTags().at(0)->getPriority());
+	EXPECT_EQ(true, testMeal.getTags().at(0)->getDependency());
 }
 
 TEST(MealTest, addTag)
@@ -56,7 +56,7 @@ TEST(MealTest, addTag)
 
 	EXPECT_EQ("10101", testMeal.getTags().at(0)->getName());
 	EXPECT_EQ("000111", testMeal.getTags().at(0)->getDescription());
-	EXPECT_EQ(true, testMeal.getTags().at(0)->getPriority());
+	EXPECT_EQ(true, testMeal.getTags().at(0)->getDependency());
 	
 	delete newTag;
 }

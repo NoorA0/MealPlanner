@@ -4,7 +4,7 @@ Tag::Tag()
 {
 	this->name = "UNSET";
 	this->description = "UNSET";
-	this->hasPriority = false;
+	this->dependsOnMultiTag = false;
 	this->consecutiveLimit = 0;
 
 	std::map<DaysOfTheWeek, bool> enabledDays =
@@ -13,12 +13,12 @@ Tag::Tag()
 	this->enabledDays = enabledDays;
 }
 
-Tag::Tag(const std::string& _name, const std::string& _description, const std::map<DaysOfTheWeek, bool>& _enabledDays, const bool& _hasPriority, const unsigned int& _consecutiveLimit)
+Tag::Tag(const std::string& _name, const std::string& _description, const std::map<DaysOfTheWeek, bool>& _enabledDays, const bool& _dependsOnMultiTag, const unsigned int& _consecutiveLimit)
 {
 	name = _name;
 	description = _description;
 	enabledDays = _enabledDays;
-	hasPriority = _hasPriority;
+	dependsOnMultiTag = _dependsOnMultiTag;
 	consecutiveLimit = _consecutiveLimit;
 }
 
@@ -41,9 +41,9 @@ void Tag::setEnabledDays(const std::map<DaysOfTheWeek, bool> new_enabledDays)
 	enabledDays = new_enabledDays;
 }
 
-void Tag::setPriority(const bool& hasPriority)
+void Tag::setDependency(const bool& new_depenency)
 {
-	this->hasPriority = hasPriority;
+	this->dependsOnMultiTag = new_depenency;
 }
 
 void Tag::setConsecutiveLimit(const unsigned int& new_consecutiveLimit)
@@ -66,9 +66,9 @@ std::map<DaysOfTheWeek, bool> Tag::getEnabledDays() const
 	return enabledDays;
 }
 
-bool Tag::getPriority() const
+bool Tag::getDependency() const
 {
-	return hasPriority;
+	return dependsOnMultiTag;
 }
 
 unsigned int Tag::getConsecutiveLimit() const
