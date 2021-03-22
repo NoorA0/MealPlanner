@@ -35,7 +35,7 @@ public:
 	bool isEnabled() const { return enabled; }
 	bool hasPriority() const { return highestPriority; }
 	std::map<DaysOfTheWeek, bool> getEnabledDays() const { return enabledDays; }
-	std::map<Tag*, unsigned int> getLinkedTags() { return linkedTags; }
+	std::map<Tag*, unsigned int> getLinkedTags() const { return linkedTags; }
 
 	// OTHER
 	void addLinkedTag(Tag* new_tag, const unsigned int& amount) { linkedTags.emplace(new_tag, amount); }

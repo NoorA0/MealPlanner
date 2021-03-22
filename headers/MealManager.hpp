@@ -11,9 +11,6 @@ class MealManager
 	std::vector<MultiTag*> multiTags; // special tags that are linked to normalTags
 	std::vector<Meal*> meals;
 
-	std::string DATAFILE; // name of file that stores program data
-	std::string OUTPUTFILE; // name of file that stores generated meal list
-
 	// initialized on object creation
 	double MINIMUM_PRICE;
 	double MAXIMUM_PRICE;
@@ -44,6 +41,16 @@ class MealManager
 	void displayTagInfo(const Tag* tagPtr, UIManager& uim);
 	void displayMultiTagInfo(const MultiTag* mtagPtr, UIManager& uim);
 
+	// SAVING TO FILE
+	void writeMeal(const Meal* mealPtr, std::ofstream& oFile);
+	void writeTag(const Tag* tagPtr, std::ofstream& oFile);
+	void writeMultiTag(const MultiTag* mtagPtr, std::ofstream& oFile);
+
+	// READING FROM FILE
+	bool readMeal(Meal* mealPtr, std::ifstream& iFile);
+	bool readTag(Tag* tagPtr, std::ifstream& iFile);
+	bool readMultiTag(MultiTag* mtagPtr, std::ifstream& iFile);
+
 public:
 	MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE, 
 				const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH);
@@ -54,7 +61,7 @@ public:
 	void tagEditor(UIManager& uim);
 
 	// Save/Load >>>MAKE PRIVATE WHEN NOT TESTING<<< 
-	void saveState(std::ostream& oFile = std::cout);
-	void loadState(std::istream& iFile = std::cin);
+	void saveState(const std::string& dataFile, std::ofstream& oFile);
+	void loadState(const std::string& outputFile, std::ifstream& iFile);
 };
 #endif // !__MEALMANAGER_HPP__

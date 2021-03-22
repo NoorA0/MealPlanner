@@ -1,4 +1,5 @@
 #include "../headers/MealManager.hpp" // includes Tag, Meal, UIManager
+#include <fstream>
 
 void displayMealManual(UIManager& uim);
 void displayTagManual(UIManager& uim);
@@ -6,6 +7,9 @@ void displayMultiTagManual(UIManager& uim);
 
 int main()
 {
+	// default file names to store and store Meal Plans, respectively
+	const std::string DATAFILE = "ProgramData.txt";
+	const std::string OUTPUTFILE = "Generated_List.txt";
 	const int UI_WIDTH = 140;
 	const int UI_HEIGHT = 45;
 	const double MINIMUM_PRICE = 0; // minimum acceptable price for Meal price
@@ -57,6 +61,10 @@ int main()
 
 	UIManager uim; 
 	MealManager mealManager(MINIMUM_PRICE, MAXIMUM_PRICE, NAME_LENGTH, DESC_LENGTH);
+	
+	// used to write to file, load from file
+	std::ifstream iFile;
+	std::ofstream oFile;
 
 	// used to construct UI elements, get user input, etc.
 	std::string tempStr;
@@ -67,7 +75,8 @@ int main()
 	uim.setDimensions(UI_WIDTH, UI_HEIGHT);
 
 	// load existing data
-	mealManager.loadState();
+	mealManager.loadState(DATAFILE, iFile);
+
 
 	while (tempInt != 4)
 	{
@@ -169,7 +178,17 @@ int main()
 	}// WHILE (tempInt != 4)
 
 	// save data before exit
-	mealManager.saveState();
+	try
+	{
+		mealManager.saveState(DATAFILE, oFile);
+
+	}
+	catch (std::string& error)
+	{
+		std::cout << "\n\nERROR: Could not save program data.\n";
+		std::cout << "REASON: " << error << std::endl;
+		std::cout << "\nThis may be caused by insufficient write permissions or lack of drive space.";
+	}
 	return 0;
 }
 

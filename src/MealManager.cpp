@@ -1,4 +1,5 @@
 #include "../headers/MealManager.hpp"
+#include <fstream>
 
 MealManager::MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE,
 	const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH)
@@ -16,10 +17,6 @@ MealManager::MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRIC
 
 	this->NAME_LENGTH = NAME_LENGTH;
 	this->DESC_LENGTH = DESC_LENGTH;
-
-	// default file names
-	DATAFILE = "SavedData.txt";
-	OUTPUTFILE = "Generated_List.txt"; 
 }
 
 MealManager::~MealManager()
@@ -1399,7 +1396,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 				uim.centeredText("Success!");
 				uim.skipLines(2);
 
-				tempStr = "Duration changed to: " + mealPtr->getMealDuration() + " days.";
+				tempStr = "Duration changed to: " + std::to_string(mealPtr->getMealDuration()) + " days.";
 
 				uim.centeredText(tempStr);
 				uim.display();
@@ -1424,7 +1421,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 				uim.centeredText("Success!");
 				uim.skipLines(2);
 
-				tempStr = "Delay time changed to: " + mealPtr->getDaysBetweenOccurrences() + " days.";
+				tempStr = "Delay time changed to: " + std::to_string(mealPtr->getDaysBetweenOccurrences()) + " days.";
 
 				uim.centeredText(tempStr);
 				uim.display();
@@ -2658,6 +2655,497 @@ void MealManager::displayMultiTagInfo(const MultiTag* mtagPtr, UIManager& uim)
 	}
 }
 
+void MealManager::writeMeal(const Meal* mealPtr, std::ofstream& oFile)
+{
+	// name
+	oFile << "\t<Name>\n";
+	oFile << "\t" << mealPtr->getName() << "\n";
+	oFile << "\t</Name>";
+
+	oFile << "\n";
+
+	// price
+	oFile << "\t<Price>\n";
+	oFile << "\t" << formatPrice(mealPtr->getPrice()) << "\n";
+	oFile << "\t</Price>";
+
+	oFile << "\n";
+
+	// isDisabled
+	oFile << "\t<IsDisabled>\n";
+	oFile << "\t" << mealPtr->getIsDisabled() << "\n";
+	oFile << "\t</IsDisabled>";
+
+	oFile << "\n";
+
+	// mealDuration
+	oFile << "\t<MealDuration>\n";
+	oFile << "\t" << std::to_string(mealPtr->getMealDuration()) << "\n";
+	oFile << "\t</MealDuration>";
+
+	oFile << "\n";
+
+	// daysBetweenOccurrences
+	oFile << "\t<DaysBetweenOcurrences>\n";
+	oFile << "\t" << std::to_string(mealPtr->getDaysBetweenOccurrences()) << "\n";
+	oFile << "\t</DaysBetweenOccurrences>";
+
+	oFile << "\n";
+
+	// name of Tags assigned
+	oFile << "\t<MealTags>\n";
+
+	// loop to write all names
+	for (auto tagIter : mealPtr->getTags())
+	{
+		oFile << "\t\t<TagName>\n";
+		oFile << "\t\t" << tagIter->getName() << "\n";
+		oFile << "\t\t</TagName>\n";
+	}
+
+	oFile << "\t</MealTags>";
+
+}
+
+void MealManager::writeTag(const Tag* tagPtr, std::ofstream& oFile)
+{
+	// name
+	oFile << "\t<Name>\n";
+	oFile << "\t" << tagPtr->getName() << "\n";
+	oFile << "\t</Name>";
+
+	oFile << "\n";
+
+	// description
+	oFile << "\t<Description>\n";
+	oFile << "\t" << tagPtr->getDescription() << "\n";
+	oFile << "\t</Description>";
+
+	oFile << "\n";
+
+	// dependsOnMultitag
+	oFile << "\t<DependsOnMultiTag>\n";
+	oFile << "\t" << tagPtr->getDependency() << "\n";
+	oFile << "\t</DependsOnMultiTag>";
+
+	oFile << "\n";
+
+	// consecutiveLimit
+	oFile << "\t<ConsecutiveLimit>\n";
+	oFile << "\t" << std::to_string(tagPtr->getConsecutiveLimit()) << "\n";
+	oFile << "\t</ConsecutiveLimit>";
+
+	oFile << "\n";
+
+	// enabledDays
+	oFile << "\t<EnabledDays>\n";
+
+	// loop to write enabledDays
+	for (auto daysIter : tagPtr->getEnabledDays())
+	{
+		oFile << "\t" << daysIter.second << "\n";
+	}
+	oFile << "\t</EnabledDays>";
+}
+
+void MealManager::writeMultiTag(const MultiTag* mtagPtr, std::ofstream& oFile)
+{
+	// name
+	oFile << "\t<Name>\n";
+	oFile << "\t" << mtagPtr->getName() << "\n";
+	oFile << "\t</Name>";
+
+	oFile << "\n";
+
+	// description
+	oFile << "\t<Description>\n";
+	oFile << "\t" << mtagPtr->getDescription() << "\n";
+	oFile << "\t</Description>";
+
+	oFile << "\n";
+
+	// enabled
+	oFile << "\t<IsEnabled>\n";
+	oFile << "\t" << mtagPtr->isEnabled() << "\n";
+	oFile << "\t</IsEnabled>";
+
+	oFile << "\n";
+
+	// highestPriority
+	oFile << "\t<HasPriority>\n";
+	oFile << "\t" << mtagPtr->hasPriority() << "\n";
+	oFile << "\t</HasPriority>";
+
+	oFile << "\n";
+
+	// enabledDays
+	oFile << "\t<EnabledDays>\n";
+
+	// loop to write enabledDays
+	for (auto daysIter : mtagPtr->getEnabledDays())
+	{
+		oFile << "\t" << daysIter.second << "\n";
+	}
+	oFile << "\t</EnabledDays>";
+
+	oFile << "\n";
+
+	// linked Tags
+	oFile << "\t<LinkedTags>\n";
+
+	// loop to write linkedTags
+	for (auto linksIter : mtagPtr->getLinkedTags())
+	{
+		oFile << "\t\t<TagData>\n";
+		// name of tag
+		oFile << "\t\t" << linksIter.first->getName() << "\n";
+
+		// amount requested
+		oFile << "\t\t" << std::to_string(linksIter.second) << "\n";
+		oFile << "\t\t</TagData>\n";
+	}
+	oFile << "\t</LinkedTags>";
+}
+
+bool MealManager::readMeal(Meal* mealPtr, std::ifstream& iFile)
+{
+	return false;
+}
+
+bool MealManager::readTag(Tag* tagPtr, std::ifstream& iFile)
+{
+	bool error = false; // true when encountering a read error
+
+	// used for importing data
+	std::string tempStr;
+	std::vector<std::string> importedLines;
+	std::map<DaysOfTheWeek, bool> enabledDays;
+
+	// get name header
+	std::getline(iFile, tempStr);
+
+	if (tempStr == "<Name>")
+	{
+		// get name
+		std::getline(iFile, tempStr);
+		tagPtr->setName(tempStr);
+
+		// get close header
+		std::getline(iFile, tempStr);
+
+		if (tempStr != "</Name>") 
+			error = true;
+	}
+	else error = true;
+
+	// continue if no error
+	if (!error)
+	{
+		// get description header
+		std::getline(iFile, tempStr);
+
+		if (tempStr == "<Description>")
+		{
+			// get description
+			std::getline(iFile, tempStr);
+			tagPtr->setDescription(tempStr);
+
+			// get header
+			std::getline(iFile, tempStr);
+
+			if (tempStr != "</Description>")
+				error = true;
+		}
+		else
+			error = true;
+	}
+
+	// continue if no error
+	if (!error)
+	{
+		// get dependsOnMultiTag header
+		std::getline(iFile, tempStr);
+
+		if (tempStr == "<DependsOnMultiTag>")
+		{
+			// get flag
+			std::getline(iFile, tempStr);
+			tagPtr->setDependency(std::stoi(tempStr));
+
+			// get header
+			std::getline(iFile, tempStr);
+
+			if (tempStr != "</DependsOnMultiTag>")
+				error = true;
+		}
+		else error = true;
+	}
+
+	// continue if no error
+	if (!error)
+	{
+		// get consecutivelimit header
+		std::getline(iFile, tempStr);
+
+		if (tempStr == "<ConsecutiveLimit>")
+		{
+			// get value
+			std::getline(iFile, tempStr);
+			tagPtr->setConsecutiveLimit(std::stoi(tempStr));
+
+			// get header
+			std::getline(iFile, tempStr);
+
+			if (tempStr != "</ConsecutiveLimit>")
+				error = true;
+		}
+		else error = true;
+	}
+
+	// continue if no error
+	if (!error)
+	{
+		// get enabledDays header
+		std::getline(iFile, tempStr);
+
+		if (tempStr == "<EnabledDays>")
+		{
+			// loop for each day
+			for (int day = 0; day < 7; ++day)
+			{
+				// get value
+				std::getline(iFile, tempStr);
+
+				switch (day)
+				{
+				case 0: // monday
+					enabledDays.at(MONDAY) = std::stoi(tempStr);
+					break;
+				case 1: // tuesday
+					enabledDays.at(TUESDAY) = std::stoi(tempStr);
+					break;
+				case 2: // wednesday
+					enabledDays.at(WEDNESDAY) = std::stoi(tempStr);
+					break;
+				case 3: // thursday
+					enabledDays.at(THURSDAY) = std::stoi(tempStr);
+					break;
+				case 4: // friday
+					enabledDays.at(FRIDAY) = std::stoi(tempStr);
+					break;
+				case 5: // saturday
+					enabledDays.at(SATURDAY) = std::stoi(tempStr);
+					break;
+				case 6: // sunday
+					enabledDays.at(SUNDAY) = std::stoi(tempStr);
+					break;
+				default:
+					error = true;
+				}
+			}
+			tagPtr->setEnabledDays(enabledDays);
+
+			// get header
+			std::getline(iFile, tempStr);
+
+			if (tempStr != "</EnabledDays>")
+				error = true;
+		}
+		else error = true;
+	}
+	return error;
+}
+
+bool MealManager::readMultiTag(MultiTag* mtagPtr, std::ifstream& iFile)
+{
+	bool error = false; // true when encountering a read error
+
+	// used for importing data
+	std::string tempStr;
+	std::map<DaysOfTheWeek, bool> enabledDays;
+
+	// get name header
+	std::getline(iFile, tempStr);
+
+	if (tempStr == "<Name>")
+	{
+		// get name
+		std::getline(iFile, tempStr);
+		mtagPtr->setName(tempStr);
+
+		// get close header
+		std::getline(iFile, tempStr);
+
+		if (tempStr != "</Name>")
+			error = true;
+	}
+	else error = true;
+
+	// continue if no error
+	if (!error)
+	{
+		// get description header
+		std::getline(iFile, tempStr);
+
+		if (tempStr == "<Description>")
+		{
+			// get description
+			std::getline(iFile, tempStr);
+			mtagPtr->setDescription(tempStr);
+
+			// get header
+			std::getline(iFile, tempStr);
+
+			if (tempStr != "</Description>")
+				error = true;
+		}
+		else
+			error = true;
+	}
+
+	// continue if no error
+	if (!error)
+	{
+		// get isEnabled header
+		std::getline(iFile, tempStr);
+
+		if (tempStr == "<IsEnabled>")
+		{
+			// get flag
+			std::getline(iFile, tempStr);
+			mtagPtr->setEnabled(std::stoi(tempStr));
+
+			// get header
+			std::getline(iFile, tempStr);
+
+			if (tempStr != "</IsEnabled>")
+				error = true;
+		}
+		else error = true;
+	}
+
+	// continue if no error
+	if (!error)
+	{
+		// get hasPriority header
+		std::getline(iFile, tempStr);
+
+		if (tempStr == "<HasPriority>")
+		{
+			// get flag
+			std::getline(iFile, tempStr);
+			mtagPtr->setHighestPriority(std::stoi(tempStr));
+
+			// get header
+			std::getline(iFile, tempStr);
+
+			if (tempStr != "</HasPriority>")
+				error = true;
+		}
+		else error = true;
+	}
+
+	// continue if no error
+	if (!error)
+	{
+		// get enabledDays header
+		std::getline(iFile, tempStr);
+
+		if (tempStr == "<EnabledDays>")
+		{
+			// loop for each day
+			for (int day = 0; day < 7; ++day)
+			{
+				// get value
+				std::getline(iFile, tempStr);
+
+				switch (day)
+				{
+				case 0: // monday
+					enabledDays.at(MONDAY) = std::stoi(tempStr);
+					break;
+				case 1: // tuesday
+					enabledDays.at(TUESDAY) = std::stoi(tempStr);
+					break;
+				case 2: // wednesday
+					enabledDays.at(WEDNESDAY) = std::stoi(tempStr);
+					break;
+				case 3: // thursday
+					enabledDays.at(THURSDAY) = std::stoi(tempStr);
+					break;
+				case 4: // friday
+					enabledDays.at(FRIDAY) = std::stoi(tempStr);
+					break;
+				case 5: // saturday
+					enabledDays.at(SATURDAY) = std::stoi(tempStr);
+					break;
+				case 6: // sunday
+					enabledDays.at(SUNDAY) = std::stoi(tempStr);
+					break;
+				default:
+					error = true;
+				}
+			}
+			mtagPtr->setEnabledDays(enabledDays);
+
+			// get header
+			std::getline(iFile, tempStr);
+
+			if (tempStr != "</EnabledDays>")
+				error = true;
+		}
+		else error = true;
+	}
+
+	// continue if no error
+	if (!error)
+	{
+		// get linkedTags header
+		std::getline(iFile, tempStr);
+
+		if (tempStr == "<LinkedTags>")
+		{
+			// check if linkedTags exist to add
+			std::getline(iFile, tempStr);
+			if (tempStr != "</LinkedTags>")
+			{
+				std::map<Tag*, unsigned int> linkedTags;
+
+				// get name of tag
+				std::getline(iFile, tempStr);
+
+				// find tag with name
+				Tag* tagPtr = nullptr;
+				bool foundTag = false;
+				auto tagIter = normalTags.begin();
+
+				while (!foundTag && tagIter != normalTags.end())
+				{
+					// compare names
+					if (tempStr == (*tagIter)->getName())
+					{
+						foundTag = true;
+						tagPtr = *tagIter;
+					}
+				}
+
+				// if found successfully
+				if (foundTag)
+				{
+					// get value
+					std::getline(iFile, tempStr);
+
+					// create element in LinkedTags
+					linkedTags.emplace(tagPtr, std::stoi(tempStr));
+				}
+			}
+		}
+		else error = true;
+	}
+
+	return error;
+}
+
 void MealManager::generateSchedule(std::ostream& oFile)
 {
 }
@@ -3057,10 +3545,176 @@ void MealManager::tagEditor(UIManager& uim)
 	}// while (tempInt != 10)
 }
 
-void MealManager::saveState(std::ostream& oFile)
+void MealManager::saveState(const std::string& dataFile, std::ofstream& oFile)
 {
+	// open file for writing
+	oFile.open(dataFile);
+
+	// check if open
+	if (oFile.is_open())
+	{
+		// write tags
+		oFile << "<Tags>\n";
+
+		// check if tags exist to save
+		if (normalTags.size() > 0)
+		{
+			auto tagIter = normalTags.begin();
+
+			// write first tag(fixes formating with extra \n's)
+			writeTag(*tagIter, oFile);
+			++tagIter;
+
+			// loop to write rest of tags
+			while (tagIter != normalTags.end())
+			{
+				oFile << "\n\n";
+				writeTag(*tagIter, oFile);
+				++tagIter;
+			}
+			oFile << "\n";
+		}
+		oFile << "</Tags>\n\n";
+
+
+		// write muliTags
+		oFile << "<MultiTags>\n";
+
+		// check if multiTags exist to save
+		if (multiTags.size() > 0)
+		{
+			auto tagIter = multiTags.begin();
+
+			// write first tag(fixes formating with extra \n's)
+			writeMultiTag(*tagIter, oFile);
+			++tagIter;
+
+			// loop to write rest of tags
+			while (tagIter != multiTags.end())
+			{
+				oFile << "\n\n";
+				writeMultiTag(*tagIter, oFile);
+				++tagIter;
+			}
+			oFile << "\n";
+		}
+		oFile << "</MultiTags>\n\n";
+
+		// write meals
+		oFile << "<Meals>\n";
+
+		// check if meals exist to save
+		if (meals.size() > 0)
+		{
+			auto mealIter = meals.begin();
+
+			// write first tag(fixes formating with extra \n's)
+			writeMeal(*mealIter, oFile);
+			++mealIter;
+
+			// loop to write rest of tags
+			while (mealIter != meals.end())
+			{
+				oFile << "\n\n";
+				writeMeal(*mealIter, oFile);
+				++mealIter;
+			}
+			oFile << "\n";
+		}
+		oFile << "</Meals>\n\n";
+
+		// close file
+		oFile.close();
+	}
+	else
+		throw std::string("CANNOT OPEN FILE");
 }
 
-void MealManager::loadState(std::istream& iFile)
+void MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
 {
+	std::string tagError = "UNABLE TO READ FILE, TAG HEADERS MISSING";
+	std::string multiTagError = "UNABLE TO READ FILE, MULTITAG HEADERS MISSING";
+	std::string mealError = "UNABLE TO READ FILE, MEAL HEADERS MISING";
+
+	// open file
+	iFile.open(outputFile);
+
+	// check if failed
+	if (iFile.is_open())
+	{
+		std::string line; // line read
+
+		// get Tags header
+		std::getline(iFile, line);
+
+		// check if header is correct
+		if (line == "<Tags>")
+		{
+			// if there are tags to import, next line is not the ending header
+			std::getline(iFile, line);
+			if (line != "</Tags>")
+			{
+				bool doneReading = false;
+				do
+				{
+					Tag* tagPtr = nullptr;
+
+					// if imported with no errors
+					if (readTag(tagPtr, iFile) == 0)
+					{
+						normalTags.push_back(tagPtr);
+						tagPtr = nullptr;
+
+						// if not done reading, then this line is not the ending header
+						std::getline(iFile, line);
+						if (line == "</Tags>")
+							doneReading = true;
+					}
+					else throw tagError;
+				} while (!doneReading);
+			}
+		}
+		else throw tagError;
+
+		// get blank space
+		std::getline(iFile, line);
+		// get multiTags header
+		std::getline(iFile, line);
+
+		// check if header is correct
+		if (line == "<MultiTags>")
+		{
+			// if there are multitags to import, next line is not the ending header
+			std::getline(iFile, line);
+			if (line != "</MultiTags>")
+			{
+				bool doneReading = false;
+				do
+				{
+					MultiTag* mtagPtr = nullptr;
+
+					// if imported with no errors
+					if (readMultiTag(mtagPtr, iFile) == 0)
+					{
+						multiTags.push_back(mtagPtr);
+						mtagPtr = nullptr;
+
+						// if not done reading, then this line is not the ending header
+						std::getline(iFile, line);
+						if (line == "</MultiTags>")
+							doneReading = true;
+					}
+					else throw multiTagError;
+				} while (!doneReading);
+			}
+		}
+		else throw multiTagError;
+
+
+
+
+
+		iFile.close();
+	}
+
 }
