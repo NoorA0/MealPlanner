@@ -5,6 +5,8 @@ Meal::Meal()
 	name = "UNSET";
 	price = 0.0;
 	isDisabled = true;
+	mealDuration = 1;
+	daysBetweenOccurrences = 0;
 }
 
 Meal::~Meal()
@@ -40,6 +42,16 @@ void Meal::setIsDisabled(const bool& isDisabled)
 	this->isDisabled = isDisabled;
 }
 
+void Meal::setMealDuration(const unsigned int& mealDuration)
+{
+	this->mealDuration = mealDuration;
+}
+
+void Meal::setDaysBetweenOccurrences(const unsigned int& daysBetweenOccurrences)
+{
+	this->daysBetweenOccurrences = daysBetweenOccurrences;
+}
+
 std::string Meal::getName() const
 {
 	return name;
@@ -58,6 +70,16 @@ std::vector<Tag*> Meal::getTags() const
 bool Meal::getIsDisabled() const
 {
 	return isDisabled;
+}
+
+unsigned int Meal::getMealDuration() const
+{
+	return mealDuration;
+}
+
+unsigned int Meal::getDaysBetweenOccurrences() const
+{
+	return daysBetweenOccurrences;
 }
 
 std::map<DaysOfTheWeek, bool> Meal::getEnabledDays() const

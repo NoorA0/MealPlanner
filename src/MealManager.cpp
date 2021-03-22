@@ -120,6 +120,7 @@ void MealManager::createMeal(Meal* mealptr, UIManager& uim)
 
 	}// while (!doneCreating)
 
+	// price
 	uim.centeredText("New Meal - Price");
 	uim.skipLines(2);
 
@@ -129,6 +130,26 @@ void MealManager::createMeal(Meal* mealptr, UIManager& uim)
 	tempDouble = std::stod(uim.display());
 
 	mealptr->setPrice(tempDouble);
+
+	// mealDuration
+	uim.centeredText("New Meal - Duration");
+	uim.skipLines(2);
+	uim.centeredText("How many days does this meal last?");
+	uim.centeredText("(1 is typical, Meals in large batches may last multiple days)");
+	uim.prompt_FreeInt(1, 30);
+	tempInt = std::stoi(uim.display());
+
+	mealptr->setMealDuration(tempInt);
+
+	// daysBetweenOccurrences
+	uim.centeredText("New Meal - Days Between Occurrences");
+	uim.skipLines(2);
+	uim.centeredText("When this Meal is scheduled, how many days should pass before it can be scheduled again?");
+	uim.centeredText("(value of 0 will not delay scheduling, 1 will make it occur every other day)");
+	uim.prompt_FreeInt(0, 30);
+	tempInt = std::stoi(uim.display());
+
+	mealptr->setDaysBetweenOccurrences(tempInt);
 
 	// assign tags to meal
 	editMealTags(mealptr, uim);
@@ -1291,7 +1312,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 		displayMealInfo(mealPtr, uim);
 
 		// prompt user for attribute to edit or quit
-		strVec = { "1Edit Name", "2Edit Price", "3Enable/Disable Meal", "4Edit Tags", "QQuit Selection" };
+		strVec = { "1Edit Name", "2Edit Price", "3Edit Duration", "4Edit Days Between Occurrences", "5Enable/Disable Meal", "6Edit Tags", "QQuit Selection" };
 		uim.prompt_List_Case_Insensitive(strVec);
 
 		tempStr = uim.display();
@@ -1304,7 +1325,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 
 			switch (tempInt)
 			{
-			case 1:
+			case 1: // name
 				uim.centeredText("Edit Name");
 				uim.skipLines(2);
 
@@ -1331,7 +1352,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 				uim.prompt_None();
 				uim.display();
 				break;
-			case 2:
+			case 2: // price
 				uim.centeredText("Edit Price");
 				uim.skipLines(2);
 
@@ -1356,11 +1377,60 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 
 				tempStr = "Price changed to: " + formatPrice(mealPtr->getPrice());
 
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
+				uim.centeredText(tempStr);
 				uim.display();
 				break;
-			case 3:
+			case 3: // duration
+			{
+				unsigned int mealDuration = mealPtr->getMealDuration();
+
+				uim.centeredText("Edit Duration");
+				uim.skipLines(2);
+				
+				tempStr = "This Meal has a duration of " + std::to_string(mealDuration) + " days.";
+				uim.centeredText(tempStr);
+				uim.centeredText("Enter a new Duration:");
+				uim.prompt_FreeInt(1, 30);
+				tempInt = std::stoi(uim.display());
+
+				mealPtr->setMealDuration(tempInt);
+
+				// confirm to user
+				uim.centeredText("Success!");
+				uim.skipLines(2);
+
+				tempStr = "Duration changed to: " + mealPtr->getMealDuration() + " days.";
+
+				uim.centeredText(tempStr);
+				uim.display();
+			}
+				break;
+			case 4: // daysBetweenOccurrences
+			{
+				unsigned int occurrences = mealPtr->getDaysBetweenOccurrences();
+
+				uim.centeredText("Edit Days Between Occurrences");
+				uim.skipLines(2);
+
+				tempStr = "When this Meal is scheduled, it must wait " + std::to_string(occurrences) + " days before it can occur again.";
+				uim.centeredText(tempStr);
+				uim.centeredText("Enter a new delay time:");
+				uim.prompt_FreeInt(0, 30);
+				tempInt = std::stoi(uim.display());
+
+				mealPtr->setMealDuration(tempInt);
+
+				// confirm to user
+				uim.centeredText("Success!");
+				uim.skipLines(2);
+
+				tempStr = "Delay time changed to: " + mealPtr->getDaysBetweenOccurrences() + " days.";
+
+				uim.centeredText(tempStr);
+				uim.display();
+			}
+				break;
+			case 5: // enable/disable
 			{
 				bool mealDisabled = mealPtr->getIsDisabled();
 
@@ -1368,7 +1438,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 				uim.skipLines(2);
 
 				// report status
-				tempStr = "This meal is currently ";
+				tempStr = "This Meal is currently ";
 
 				if (mealDisabled)
 					tempStr += "DISABLED.";
@@ -1405,7 +1475,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 				}
 			}
 			break;
-			case 4: // edit tags
+			case 6: // edit tags
 				editMealTags(mealPtr, uim);
 				tempStr = ""; // make sure menu will loop
 				break;
