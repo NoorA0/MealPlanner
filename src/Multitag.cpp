@@ -1,33 +1,22 @@
-#include "../headers/Multitag.hpp"
+#include "../headers/MultiTag.hpp"
 
-Multitag::Multitag()
+MultiTag::MultiTag()
 {
+	enabled = false;
+	highestPriority = false;
+
+	name = "UNSET";
+	description = "UNSET";
+
+	// disable on all days
+	enabledDays = { {MONDAY, false}, {TUESDAY, false}, {WEDNESDAY, false}, {THURSDAY, false},
+		{FRIDAY, false}, {SATURDAY, false}, {SUNDAY, false} };
 }
 
-Multitag::~Multitag()
+MultiTag::~MultiTag()
 {
-	for (auto tagIter : linkedTags)
+	for (std::map<Tag*, unsigned int>::iterator tagIter = linkedTags.begin(); tagIter != linkedTags.end(); ++tagIter)
 	{
-		delete tagIter;
+		delete tagIter->first;
 	}
-}
-
-void Multitag::setLinkedTags(const std::vector<Tag*>& new_linkedTags)
-{
-	for (auto tagIter : linkedTags)
-	{
-		delete tagIter;
-	}
-
-	linkedTags = new_linkedTags;
-}
-
-void Multitag::addLinkedTag(Tag* new_tag)
-{
-	linkedTags.push_back(new_tag);
-}
-
-std::vector<Tag*> Multitag::getLinkedTags() const
-{
-	return linkedTags;
 }

@@ -2,13 +2,13 @@
 #define __MEALMANAGER_HPP__
 
 #include "Meal.hpp"
-#include "Multitag.hpp"
+#include "MultiTag.hpp"
 #include "UIManager.hpp"
 
 class MealManager
 {
 	std::vector<Tag*> normalTags; // tags assigned to foods
-	std::vector<Multitag*> multiTags; // special tags that are linked to normalTags
+	std::vector<MultiTag*> multiTags; // special tags that are linked to normalTags
 	std::vector<Meal*> meals;
 
 	std::string DATAFILE; // name of file that stores program data
@@ -23,7 +23,10 @@ class MealManager
 	// HELPER FUNCTIONS
 	void createMeal(Meal* mealptr, UIManager& uim);
 	void createTag(Tag* tagPtr, UIManager& uim);
+	void createMultiTag(MultiTag* mtagPtr, UIManager& uim);
 	void editMealTags(Meal* mealPtr, UIManager& uim);
+	void editMultiTag(MultiTag* mtagPtr, UIManager& uim);
+	void editMultiTagTags(MultiTag* mtagPtr, UIManager& uim);
 	void editMeal(Meal* mealPtr, UIManager& uim);
 	void editTag(Tag* tagPtr, UIManager& uim);
 	std::string formatPrice(const double& price); // return string of price without trailing zeros
@@ -34,10 +37,12 @@ class MealManager
 	// display all Meals/Tags, returns index for meals or normalTags(), return -1 if user chose to quit
 	int displayMeals(UIManager& uim);
 	int displayTags(UIManager& uim);
+	int displayMultiTags(UIManager& uim);
 
 	// queues information in UIM for one Meal/Tag
 	void displayMealInfo(const Meal* mealPtr, UIManager& uim);
 	void displayTagInfo(const Tag* tagPtr, UIManager& uim);
+	void displayMultiTagInfo(const MultiTag* mtagPtr, UIManager& uim);
 
 public:
 	MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE, 

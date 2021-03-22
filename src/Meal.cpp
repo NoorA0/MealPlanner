@@ -9,6 +9,10 @@ Meal::Meal()
 
 Meal::~Meal()
 {
+	for (auto tagIter : tags)
+	{
+		delete tagIter;
+	}
 }
 
 void Meal::setName(const std::string& new_name)

@@ -160,8 +160,8 @@ int main()
 						uim.skipLines(1);
 						uim.leftAllignedText("Tags can be set to \"Rely on MultiTag\"");
 						uim.leftAllignedText("When this is set, Meals assigned to the Tag will NOT be used for Meal Plans, UNLESS a MuliTag uses the Meal.");
-						uim.leftAllignedText("This is always true, even if the Tag allows Meals to occurr on days of the week.");
-						uim.leftAllignedText("(see MuliTag manual page for more info.");
+						uim.leftAllignedText("This is always true, even if the Tag allows Meals to occur on days of the week.");
+						uim.leftAllignedText("(see MuliTag manual page for more info.)");
 						uim.display();
 						break;
 					case 4: // MultiTag info
