@@ -91,11 +91,9 @@ int main()
 		{
 			// get system time 
 			auto now = std::chrono::system_clock::now();
-			std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-			char timeStr[50] = {};
-			ctime_s(timeStr, 50, &currentTime);
+			std::time_t currentTime = std::chrono::system_clock::to_time_t(now);;
 
-			errOut << timeStr;
+			errOut << ctime(&currentTime);
 			errOut << "ERROR: Could not load program data.\n";
 			errOut << "REASON: " << error << ".\n";
 			errOut << "Ignore this message if this is the program's first execution.\n\n";
@@ -219,10 +217,8 @@ int main()
 			// get system time 
 			auto now = std::chrono::system_clock::now();
 			std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-			char timeStr[50] = {};
-			ctime_s(timeStr, 50, &currentTime);
 
-			errOut << timeStr;
+			errOut << ctime(&currentTime);
 			errOut << "ERROR: Could not save program data.\n";
 			errOut << "REASON: " << error << ".\n";
 			errOut << "\nThis may be caused by insufficient write permissions or lack of drive space.\n\n";
@@ -239,7 +235,6 @@ void displayMealManual(UIManager& uim)
 	int totalPages = 2;
 	std::string tempStr = "";
 	std::vector<std::string> strVec;
-	int tempInt = 0;
 
 	// loop while user not quit
 	do
@@ -346,7 +341,6 @@ void displayTagManual(UIManager& uim)
 	int totalPages = 2;
 	std::string tempStr = "";
 	std::vector<std::string> strVec;
-	int tempInt = 0;
 
 	// loop while user not quit
 	do
@@ -443,7 +437,6 @@ void displayMultiTagManual(UIManager& uim)
 	int totalPages = 2;
 	std::string tempStr = "";
 	std::vector<std::string> strVec;
-	int tempInt = 0;
 
 	// loop while user not quit
 	do
