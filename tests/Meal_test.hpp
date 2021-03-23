@@ -32,15 +32,21 @@ TEST(MealTest, setTags_getTags)
 	{ {MONDAY, false}, {TUESDAY, true}, {WEDNESDAY, false}, {THURSDAY, true},
 	{FRIDAY, false}, {SATURDAY, true}, {SUNDAY, false} };
 
-	Tag newTag("Name", "Desc", enabledDays, true, 3);
-	std::vector<Tag*> newTags; newTags.push_back(&newTag);
+	Tag* newTag = new Tag("Name", "Desc", enabledDays, true, 3);
+	std::vector<Tag*> tagsVec; 
+	tagsVec.push_back(newTag);
 
 	Meal testMeal;
-	testMeal.setTags(newTags);
+	testMeal.setTags(tagsVec);
 
 	EXPECT_EQ("Name", testMeal.getTags().at(0)->getName());
 	EXPECT_EQ("Desc", testMeal.getTags().at(0)->getDescription());
 	EXPECT_EQ(true, testMeal.getTags().at(0)->getDependency());
+	
+	tagsVec.clear();
+	testMeal.setTags(tagsVec);
+	delete newTag;
+	newTag = nullptr;
 }
 
 TEST(MealTest, addTag)
@@ -58,7 +64,10 @@ TEST(MealTest, addTag)
 	EXPECT_EQ("000111", testMeal.getTags().at(0)->getDescription());
 	EXPECT_EQ(true, testMeal.getTags().at(0)->getDependency());
 	
+	std::vector<Tag*> tagsVec;
+	testMeal.setTags(tagsVec);
 	delete newTag;
+	newTag = nullptr;
 }
 
 TEST(MealTest, isDisabled)

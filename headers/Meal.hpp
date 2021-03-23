@@ -4,8 +4,6 @@
 #include "Tag.hpp"
 #include <vector>
 
-
-
 class Meal
 {
 	std::string name;
