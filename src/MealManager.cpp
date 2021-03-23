@@ -1780,7 +1780,7 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 			}
 				break;
 			case 5: // set consecutive occurrences
-				uim.centeredText("Set Consecutive Ocurrences");
+				uim.centeredText("Set Consecutive Occurrences");
 				uim.skipLines(2);
 
 				// display original value
@@ -2686,7 +2686,7 @@ void MealManager::writeMeal(const Meal* mealPtr, std::ofstream& oFile)
 	oFile << "\n";
 
 	// daysBetweenOccurrences
-	oFile << "\t<DaysBetweenOcurrences>\n";
+	oFile << "\t<DaysBetweenOccurrences>\n";
 	oFile << "\t" << std::to_string(mealPtr->getDaysBetweenOccurrences()) << "\n";
 	oFile << "\t</DaysBetweenOccurrences>";
 
@@ -2807,341 +2807,755 @@ void MealManager::writeMultiTag(const MultiTag* mtagPtr, std::ofstream& oFile)
 	oFile << "\t</LinkedTags>";
 }
 
-bool MealManager::readMeal(Meal* mealPtr, std::ifstream& iFile)
-{
-	return false;
-}
-
-bool MealManager::readTag(Tag* tagPtr, std::ifstream& iFile)
+bool MealManager::readMeals(std::ifstream& iFile)
 {
 	bool error = false; // true when encountering a read error
+	bool done = false; // when read all meals
+	Meal* mealPtr = nullptr; // for creating meals
+	std::string tempStr; // read lines from file
 
-	// used for importing data
-	std::string tempStr;
-	std::vector<std::string> importedLines;
-	std::map<DaysOfTheWeek, bool> enabledDays;
-
-	// get name header
-	std::getline(iFile, tempStr);
-
-	if (tempStr == "<Name>")
+	// while not done importing
+	while (!done)
 	{
-		// get name
+		// check if name exists
 		std::getline(iFile, tempStr);
-		tagPtr->setName(tempStr);
-
-		// get close header
-		std::getline(iFile, tempStr);
-
-		if (tempStr != "</Name>") 
-			error = true;
-	}
-	else error = true;
-
-	// continue if no error
-	if (!error)
-	{
-		// get description header
-		std::getline(iFile, tempStr);
-
-		if (tempStr == "<Description>")
+		if (tempStr == "\t<Name>")
 		{
-			// get description
+			mealPtr = new Meal;
+
+			// get name
 			std::getline(iFile, tempStr);
-			tagPtr->setDescription(tempStr);
+			// remove tab at beginning
+			tempStr.erase(0, 1);
+			// set name
+			mealPtr->setName(tempStr);
 
-			// get header
+			// read end header, verify
 			std::getline(iFile, tempStr);
-
-			if (tempStr != "</Description>")
-				error = true;
-		}
-		else
-			error = true;
-	}
-
-	// continue if no error
-	if (!error)
-	{
-		// get dependsOnMultiTag header
-		std::getline(iFile, tempStr);
-
-		if (tempStr == "<DependsOnMultiTag>")
-		{
-			// get flag
-			std::getline(iFile, tempStr);
-			tagPtr->setDependency(std::stoi(tempStr));
-
-			// get header
-			std::getline(iFile, tempStr);
-
-			if (tempStr != "</DependsOnMultiTag>")
-				error = true;
-		}
-		else error = true;
-	}
-
-	// continue if no error
-	if (!error)
-	{
-		// get consecutivelimit header
-		std::getline(iFile, tempStr);
-
-		if (tempStr == "<ConsecutiveLimit>")
-		{
-			// get value
-			std::getline(iFile, tempStr);
-			tagPtr->setConsecutiveLimit(std::stoi(tempStr));
-
-			// get header
-			std::getline(iFile, tempStr);
-
-			if (tempStr != "</ConsecutiveLimit>")
-				error = true;
-		}
-		else error = true;
-	}
-
-	// continue if no error
-	if (!error)
-	{
-		// get enabledDays header
-		std::getline(iFile, tempStr);
-
-		if (tempStr == "<EnabledDays>")
-		{
-			// loop for each day
-			for (int day = 0; day < 7; ++day)
+			if (tempStr != "\t</Name>")
 			{
-				// get value
-				std::getline(iFile, tempStr);
+				done = true;
+				error = true;
+			}
+		}
+		else if (tempStr == "</Meals>") // end of meals
+			done = true;
+		else // unknown position
+		{
+			done = true;
+			error = true;
+		}
 
-				switch (day)
+		// continue if no error and not done
+		if (!error && !done)
+		{
+			// check if price exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "\t<Price>")
+			{
+				// get price
+				std::getline(iFile, tempStr);
+				// remove tab at beginning
+				tempStr.erase(0, 1);
+				// set price
+				mealPtr->setPrice(std::stod(tempStr));
+
+				// read end header, verify
+				std::getline(iFile, tempStr);
+				if (tempStr != "\t</Price>")
 				{
-				case 0: // monday
-					enabledDays.at(MONDAY) = std::stoi(tempStr);
-					break;
-				case 1: // tuesday
-					enabledDays.at(TUESDAY) = std::stoi(tempStr);
-					break;
-				case 2: // wednesday
-					enabledDays.at(WEDNESDAY) = std::stoi(tempStr);
-					break;
-				case 3: // thursday
-					enabledDays.at(THURSDAY) = std::stoi(tempStr);
-					break;
-				case 4: // friday
-					enabledDays.at(FRIDAY) = std::stoi(tempStr);
-					break;
-				case 5: // saturday
-					enabledDays.at(SATURDAY) = std::stoi(tempStr);
-					break;
-				case 6: // sunday
-					enabledDays.at(SUNDAY) = std::stoi(tempStr);
-					break;
-				default:
+					done = true;
 					error = true;
 				}
 			}
-			tagPtr->setEnabledDays(enabledDays);
-
-			// get header
-			std::getline(iFile, tempStr);
-
-			if (tempStr != "</EnabledDays>")
+			else // error
+			{
+				done = true;
 				error = true;
+			}
 		}
-		else error = true;
-	}
+
+		// continue if no error and not done
+		if (!error && !done)
+		{
+			// check if isDisabled exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "\t<IsDisabled>")
+			{
+				// get value
+				std::getline(iFile, tempStr);
+				// remove tab at beginning
+				tempStr.erase(0, 1);
+				// set value
+				mealPtr->setIsDisabled(std::stoi(tempStr));
+
+				// read end header, verify
+				std::getline(iFile, tempStr);
+				if (tempStr != "\t</IsDisabled>")
+				{
+					done = true;
+					error = true;
+				}
+			}
+			else // error
+			{
+				done = true;
+				error = true;
+			}
+		}
+
+		// continue if no error and not done
+		if (!error && !done)
+		{
+			// check if mealDuration exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "\t<MealDuration>")
+			{
+				// get value
+				std::getline(iFile, tempStr);
+				// remove tab at beginning
+				tempStr.erase(0, 1);
+				// set value
+				mealPtr->setMealDuration(std::stoi(tempStr));
+
+				// read end header, verify
+				std::getline(iFile, tempStr);
+				if (tempStr != "\t</MealDuration>")
+				{
+					done = true;
+					error = true;
+				}
+			}
+			else // error
+			{
+				done = true;
+				error = true;
+			}
+		}
+
+		// continue if no error and not done
+		if (!error && !done)
+		{
+			// check if daysBetweenOccurrences exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "\t<DaysBetweenOccurrences>")
+			{
+				// get value
+				std::getline(iFile, tempStr);
+				// remove tab at beginning
+				tempStr.erase(0, 1);
+				// set value
+				mealPtr->setDaysBetweenOccurrences(std::stoi(tempStr));
+
+				// read end header, verify
+				std::getline(iFile, tempStr);
+				if (tempStr != "\t</DaysBetweenOccurrences>")
+				{
+					done = true;
+					error = true;
+				}
+			}
+			else // error
+			{
+				done = true;
+				error = true;
+			}
+		}
+
+		// continue if no error and not done
+		if (!error && !done)
+		{
+			// check if MealTags exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "\t<MealTags>")
+			{
+				bool doneGettingLinks = false;
+
+				do
+				{
+					// get start of tag data or end of assigned tags
+					std::getline(iFile, tempStr);
+					if (tempStr == "\t\t<TagName>")
+					{
+						bool matchFound = false;
+
+						// get name of tag
+						std::getline(iFile, tempStr);
+						// remove 2 tabs
+						tempStr.erase(0, 2);
+
+						// find a tag with this name
+						auto tagIter = normalTags.begin();
+						while (!matchFound && tagIter != normalTags.end())
+						{
+							// if match found, assign tag to meal
+							if (tempStr == (*tagIter)->getName())
+							{
+								matchFound = true;
+								mealPtr->addTag(*tagIter);
+							}
+							else
+								++tagIter;
+						}
+
+						// read end header, verify
+						std::getline(iFile, tempStr);
+						if (tempStr != "\t\t</TagName>")
+						{
+							doneGettingLinks = true;
+							done = true;
+							error = true;
+						}
+					}
+					else if (tempStr == "\t</MealTags>")
+						doneGettingLinks = true;
+					else // error
+					{
+						doneGettingLinks = true;
+						error = true;
+					}
+
+				} while (!doneGettingLinks);
+			}
+			else // error
+			{
+				done = true;
+				error = true;
+			}
+		}
+
+		// check if a meal was created
+		if (!error && mealPtr != nullptr)
+		{
+			// got all parameters, load into meals
+			meals.push_back(mealPtr);
+			mealPtr = nullptr;
+		}
+
+		if (!done)
+		{
+			// check if another meal exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "</Meals>")
+				done = true;
+		}
+
+	} // while (!done && !iFile.eof())
+
+	// if error, delete meal
+	if (error && mealPtr != nullptr)
+		delete mealPtr;
+
 	return error;
 }
 
-bool MealManager::readMultiTag(MultiTag* mtagPtr, std::ifstream& iFile)
+bool MealManager::readTags(std::ifstream& iFile)
 {
 	bool error = false; // true when encountering a read error
+	bool done = false; // when read all tags
+	Tag* tagPtr = nullptr; // for creating Tags
+	std::string tempStr; // read lines from file
+	std::map<DaysOfTheWeek, bool> enabledDays = // to create EnabledDays in Tags
+	{ {MONDAY, false}, {TUESDAY, false}, {WEDNESDAY, false}, {THURSDAY, false},
+		{FRIDAY, false}, {SATURDAY, false}, {SUNDAY, false} }; 
 
-	// used for importing data
-	std::string tempStr;
-	std::map<DaysOfTheWeek, bool> enabledDays;
-
-	// get name header
-	std::getline(iFile, tempStr);
-
-	if (tempStr == "<Name>")
+	// while not done importing or ran into end of file
+	while (!done && !iFile.eof())
 	{
-		// get name
+		// check if name exists
 		std::getline(iFile, tempStr);
-		mtagPtr->setName(tempStr);
-
-		// get close header
-		std::getline(iFile, tempStr);
-
-		if (tempStr != "</Name>")
-			error = true;
-	}
-	else error = true;
-
-	// continue if no error
-	if (!error)
-	{
-		// get description header
-		std::getline(iFile, tempStr);
-
-		if (tempStr == "<Description>")
+		if (tempStr == "\t<Name>")
 		{
-			// get description
+			tagPtr = new Tag;
+
+			// get name
 			std::getline(iFile, tempStr);
-			mtagPtr->setDescription(tempStr);
+			// remove tab at beginning
+			tempStr.erase(0, 1);
+			// set name
+			tagPtr->setName(tempStr);
 
-			// get header
+			// read end header, verify
 			std::getline(iFile, tempStr);
-
-			if (tempStr != "</Description>")
-				error = true;
-		}
-		else
-			error = true;
-	}
-
-	// continue if no error
-	if (!error)
-	{
-		// get isEnabled header
-		std::getline(iFile, tempStr);
-
-		if (tempStr == "<IsEnabled>")
-		{
-			// get flag
-			std::getline(iFile, tempStr);
-			mtagPtr->setEnabled(std::stoi(tempStr));
-
-			// get header
-			std::getline(iFile, tempStr);
-
-			if (tempStr != "</IsEnabled>")
-				error = true;
-		}
-		else error = true;
-	}
-
-	// continue if no error
-	if (!error)
-	{
-		// get hasPriority header
-		std::getline(iFile, tempStr);
-
-		if (tempStr == "<HasPriority>")
-		{
-			// get flag
-			std::getline(iFile, tempStr);
-			mtagPtr->setHighestPriority(std::stoi(tempStr));
-
-			// get header
-			std::getline(iFile, tempStr);
-
-			if (tempStr != "</HasPriority>")
-				error = true;
-		}
-		else error = true;
-	}
-
-	// continue if no error
-	if (!error)
-	{
-		// get enabledDays header
-		std::getline(iFile, tempStr);
-
-		if (tempStr == "<EnabledDays>")
-		{
-			// loop for each day
-			for (int day = 0; day < 7; ++day)
+			if (tempStr != "\t</Name>")
 			{
-				// get value
-				std::getline(iFile, tempStr);
+				done = true;
+				error = true;
+			}
+		}
+		else if (tempStr == "</Tags>") // end of tags 
+			done = true;
+		else // unknown position
+		{
+			done = true;
+			error = true;
+		}
 
-				switch (day)
+		// continue if no error and not done
+		if (!error && !done)
+		{
+			// check if description exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "\t<Description>")
+			{
+				// get description
+				std::getline(iFile, tempStr);
+				// remove tab at beginning
+				tempStr.erase(0, 1);
+				// set description
+				tagPtr->setDescription(tempStr);
+
+				// read end header, verify
+				std::getline(iFile, tempStr);
+				if (tempStr != "\t</Description>")
 				{
-				case 0: // monday
-					enabledDays.at(MONDAY) = std::stoi(tempStr);
-					break;
-				case 1: // tuesday
-					enabledDays.at(TUESDAY) = std::stoi(tempStr);
-					break;
-				case 2: // wednesday
-					enabledDays.at(WEDNESDAY) = std::stoi(tempStr);
-					break;
-				case 3: // thursday
-					enabledDays.at(THURSDAY) = std::stoi(tempStr);
-					break;
-				case 4: // friday
-					enabledDays.at(FRIDAY) = std::stoi(tempStr);
-					break;
-				case 5: // saturday
-					enabledDays.at(SATURDAY) = std::stoi(tempStr);
-					break;
-				case 6: // sunday
-					enabledDays.at(SUNDAY) = std::stoi(tempStr);
-					break;
-				default:
+					done = true;
 					error = true;
 				}
 			}
-			mtagPtr->setEnabledDays(enabledDays);
-
-			// get header
-			std::getline(iFile, tempStr);
-
-			if (tempStr != "</EnabledDays>")
-				error = true;
-		}
-		else error = true;
-	}
-
-	// continue if no error
-	if (!error)
-	{
-		// get linkedTags header
-		std::getline(iFile, tempStr);
-
-		if (tempStr == "<LinkedTags>")
-		{
-			// check if linkedTags exist to add
-			std::getline(iFile, tempStr);
-			if (tempStr != "</LinkedTags>")
+			else // error
 			{
-				std::map<Tag*, unsigned int> linkedTags;
+				done = true;
+				error = true;
+			}
+		}
 
-				// get name of tag
+		// continue if no error and not done
+		if (!error && !done)
+		{
+			// check if dependsOnMultiTag exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "\t<DependsOnMultiTag>")
+			{
+				// get value
 				std::getline(iFile, tempStr);
+				// remove tab at beginning
+				tempStr.erase(0, 1);
+				// set value
+				tagPtr->setDependency(std::stoi(tempStr));
 
-				// find tag with name
-				Tag* tagPtr = nullptr;
-				bool foundTag = false;
-				auto tagIter = normalTags.begin();
-
-				while (!foundTag && tagIter != normalTags.end())
+				// read end header, verify
+				std::getline(iFile, tempStr);
+				if (tempStr != "\t</DependsOnMultiTag>")
 				{
-					// compare names
-					if (tempStr == (*tagIter)->getName())
-					{
-						foundTag = true;
-						tagPtr = *tagIter;
-					}
+					done = true;
+					error = true;
 				}
+			}
+			else // error
+			{
+				done = true;
+				error = true;
+			}
+		}
 
-				// if found successfully
-				if (foundTag)
+		// continue if no error and not done
+		if (!error && !done)
+		{
+			// check if ConsecutiveLimit exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "\t<ConsecutiveLimit>")
+			{
+				// get value
+				std::getline(iFile, tempStr);
+				// remove tab at beginning
+				tempStr.erase(0, 1);
+				// set value
+				tagPtr->setConsecutiveLimit(std::stoi(tempStr));
+
+				// read end header, verify
+				std::getline(iFile, tempStr);
+				if (tempStr != "\t</ConsecutiveLimit>")
+				{
+					done = true;
+					error = true;
+				}
+			}
+			else // error
+			{
+				done = true;
+				error = true;
+			}
+		}
+
+		// continue if no error and not done
+		if (!error && !done)
+		{
+			// check if EnabledDays exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "\t<EnabledDays>")
+			{
+				// loop to get all days
+				for (int day = 0; day < 7; ++day)
 				{
 					// get value
 					std::getline(iFile, tempStr);
+					// remove tab at beginning
+					tempStr.erase(0, 1);
 
-					// create element in LinkedTags
-					linkedTags.emplace(tagPtr, std::stoi(tempStr));
+					// set value
+					switch (day)
+					{
+					case 0: // monday
+						enabledDays.at(MONDAY) = std::stoi(tempStr);
+						break;
+					case 1: // tuesday
+						enabledDays.at(TUESDAY) = std::stoi(tempStr);
+						break;
+					case 2: // wednesday
+						enabledDays.at(WEDNESDAY) = std::stoi(tempStr);
+						break;
+					case 3: // thursday
+						enabledDays.at(THURSDAY) = std::stoi(tempStr);
+						break;
+					case 4: // friday
+						enabledDays.at(FRIDAY) = std::stoi(tempStr);
+						break;
+					case 5: // saturday
+						enabledDays.at(SATURDAY) = std::stoi(tempStr);
+						break;
+					case 6: // sunday
+						enabledDays.at(SUNDAY) = std::stoi(tempStr);
+						break;
+					default:
+						error = true;
+						day = 10; // exit loop
+					}
+				}
+				tagPtr->setEnabledDays(enabledDays);
+
+				// read end header, verify
+				std::getline(iFile, tempStr);
+				if (tempStr != "\t</EnabledDays>")
+				{
+					done = true;
+					error = true;
 				}
 			}
+			else // error
+			{
+				done = true;
+				error = true;
+			}
 		}
-		else error = true;
-	}
+
+		// check if a tag was created
+		if (!error && tagPtr != nullptr)
+		{
+			// got all parameters, load into normalTags
+			normalTags.push_back(tagPtr);
+			tagPtr = nullptr;
+		}
+
+		if (!done)
+		{
+			// check if another tag exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "</Tags>")
+				done = true;
+		}
+
+	} // while (!done && !iFile.eof())
+
+	// if error, delete tagPtr
+	if (error && tagPtr != nullptr)
+		delete tagPtr;
+
+	// if met end of file, error
+	if (iFile.eof())
+		error = true;
+
+	return error;
+}
+
+bool MealManager::readMultiTags(std::ifstream& iFile)
+{
+	bool error = false; // true when encountering a read error
+	bool done = false; // when read all tags
+	MultiTag* mtagPtr = nullptr; // for creating MultiTags
+	std::string tempStr; // read lines from file
+	std::map<DaysOfTheWeek, bool> enabledDays = // to create EnabledDays in Tags
+	{ {MONDAY, false}, {TUESDAY, false}, {WEDNESDAY, false}, {THURSDAY, false},
+		{FRIDAY, false}, {SATURDAY, false}, {SUNDAY, false} };
+
+	// while not done importing or ran into end of file
+	while (!done && !iFile.eof())
+	{
+		// check if name exists
+		std::getline(iFile, tempStr);
+		if (tempStr == "\t<Name>")
+		{
+			mtagPtr = new MultiTag;
+
+			// get name
+			std::getline(iFile, tempStr);
+			// remove tab at beginning
+			tempStr.erase(0, 1);
+			// set name
+			mtagPtr->setName(tempStr);
+
+			// read end header, verify
+			std::getline(iFile, tempStr);
+			if (tempStr != "\t</Name>")
+			{
+				done = true;
+				error = true;
+			}
+		}
+		else if (tempStr == "</MultiTags>") // end of multitags 
+			done = true;
+		else // unknown position
+		{
+			done = true;
+			error = true;
+		}
+
+		// continue if no error and not done
+		if (!error && !done)
+		{
+			// check if description exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "\t<Description>")
+			{
+				// get description
+				std::getline(iFile, tempStr);
+				// remove tab at beginning
+				tempStr.erase(0, 1);
+				// set description
+				mtagPtr->setDescription(tempStr);
+
+				// read end header, verify
+				std::getline(iFile, tempStr);
+				if (tempStr != "\t</Description>")
+				{
+					done = true;
+					error = true;
+				}
+			}
+			else // error
+			{
+				done = true;
+				error = true;
+			}
+		}
+
+		// continue if no error and not done
+		if (!error && !done)
+		{
+			// check if isEnabled exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "\t<IsEnabled>")
+			{
+				// get value
+				std::getline(iFile, tempStr);
+				// remove tab at beginning
+				tempStr.erase(0, 1);
+				// set value
+				mtagPtr->setEnabled(std::stoi(tempStr));
+
+				// read end header, verify
+				std::getline(iFile, tempStr);
+				if (tempStr != "\t</IsEnabled>")
+				{
+					done = true;
+					error = true;
+				}
+			}
+			else // error
+			{
+				done = true;
+				error = true;
+			}
+		}
+
+		// continue if no error and not done
+		if (!error && !done)
+		{
+			// check if hasPriority exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "\t<HasPriority>")
+			{
+				// get value
+				std::getline(iFile, tempStr);
+				// remove tab at beginning
+				tempStr.erase(0, 1);
+				// set value
+				mtagPtr->setHighestPriority(std::stoi(tempStr));
+
+				// read end header, verify
+				std::getline(iFile, tempStr);
+				if (tempStr != "\t</HasPriority>")
+				{
+					done = true;
+					error = true;
+				}
+			}
+			else // error
+			{
+				done = true;
+				error = true;
+			}
+		}
+
+		// continue if no error and not done
+		if (!error && !done)
+		{
+			// check if EnabledDays exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "\t<EnabledDays>")
+			{
+				// loop to get all days
+				for (int day = 0; day < 7; ++day)
+				{
+					// get value
+					std::getline(iFile, tempStr);
+					// remove tab at beginning
+					tempStr.erase(0, 1);
+
+					// set value
+					switch (day)
+					{
+					case 0: // monday
+						enabledDays.at(MONDAY) = std::stoi(tempStr);
+						break;
+					case 1: // tuesday
+						enabledDays.at(TUESDAY) = std::stoi(tempStr);
+						break;
+					case 2: // wednesday
+						enabledDays.at(WEDNESDAY) = std::stoi(tempStr);
+						break;
+					case 3: // thursday
+						enabledDays.at(THURSDAY) = std::stoi(tempStr);
+						break;
+					case 4: // friday
+						enabledDays.at(FRIDAY) = std::stoi(tempStr);
+						break;
+					case 5: // saturday
+						enabledDays.at(SATURDAY) = std::stoi(tempStr);
+						break;
+					case 6: // sunday
+						enabledDays.at(SUNDAY) = std::stoi(tempStr);
+						break;
+					default:
+						error = true;
+						day = 10; // exit loop
+					}
+				}
+				mtagPtr->setEnabledDays(enabledDays);
+
+				// read end header, verify
+				std::getline(iFile, tempStr);
+				if (tempStr != "\t</EnabledDays>")
+				{
+					done = true;
+					error = true;
+				}
+			}
+			else // error
+			{
+				done = true;
+				error = true;
+			}
+		}
+
+		// continue if no error and not done
+		if (!error && !done)
+		{
+			// check if LinkedTags exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "\t<LinkedTags>")
+			{
+				bool doneGettingLinks = false; 
+
+				do
+				{
+					// get start of tag data or end of LinkedTags
+					std::getline(iFile, tempStr);
+					if (tempStr == "\t\t<TagData>")
+					{
+						Tag* tagPtr = nullptr;
+						bool matchFound = false;
+
+						// get name of tag
+						std::getline(iFile, tempStr);
+
+						// remove 2 tabs
+						tempStr.erase(0, 2);
+
+						// find a tag with this name
+						auto tagIter = normalTags.begin();
+						while (!matchFound && tagIter != normalTags.end())
+						{
+							// if match found, set tagPtr to this tag
+							if (tempStr == (*tagIter)->getName())
+							{
+								tagPtr = *tagIter;
+								matchFound = true;
+							}
+							else
+								++tagIter;
+						}
+
+						// get requested amount of meals for this tag
+						std::getline(iFile, tempStr);
+
+						// remove 2 tabs
+						tempStr.erase(0, 2);
+
+						// set values
+						mtagPtr->addLinkedTag(tagPtr, std::stoi(tempStr));
+
+						// read end header, verify
+						std::getline(iFile, tempStr);
+						if (tempStr != "\t\t</TagData>")
+						{
+							doneGettingLinks = true;
+							done = true;
+							error = true;
+						}
+					}
+					else if (tempStr == "\t</LinkedTags>")
+						doneGettingLinks = true;
+					else // error
+					{
+						doneGettingLinks = true;
+						error = true;
+					}
+
+				} while (!doneGettingLinks);
+			}
+			else // error
+			{
+				done = true;
+				error = true;
+			}
+		}
+
+
+		// check if a multiTag was created
+		if (!error && mtagPtr != nullptr)
+		{
+			// got all parameters, load into MultiTags
+			multiTags.push_back(mtagPtr);
+			mtagPtr = nullptr;
+		}
+
+		if (!done)
+		{
+			// check if another tag exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "</MultiTags>")
+				done = true;
+		}
+	} // while (!done && !iFile.eof())
+
+	// if error, delete tagPtr
+	if (error && mtagPtr != nullptr)
+		delete mtagPtr;
+
+	// if met end of file, error
+	if (iFile.eof())
+		error = true;
 
 	return error;
 }
@@ -3561,7 +3975,7 @@ void MealManager::saveState(const std::string& dataFile, std::ofstream& oFile)
 		{
 			auto tagIter = normalTags.begin();
 
-			// write first tag(fixes formating with extra \n's)
+			// write first tag
 			writeTag(*tagIter, oFile);
 			++tagIter;
 
@@ -3585,7 +3999,7 @@ void MealManager::saveState(const std::string& dataFile, std::ofstream& oFile)
 		{
 			auto tagIter = multiTags.begin();
 
-			// write first tag(fixes formating with extra \n's)
+			// write first tag
 			writeMultiTag(*tagIter, oFile);
 			++tagIter;
 
@@ -3608,7 +4022,7 @@ void MealManager::saveState(const std::string& dataFile, std::ofstream& oFile)
 		{
 			auto mealIter = meals.begin();
 
-			// write first tag(fixes formating with extra \n's)
+			// write first tag
 			writeMeal(*mealIter, oFile);
 			++mealIter;
 
@@ -3621,20 +4035,21 @@ void MealManager::saveState(const std::string& dataFile, std::ofstream& oFile)
 			}
 			oFile << "\n";
 		}
-		oFile << "</Meals>\n\n";
+		oFile << "</Meals>";
 
 		// close file
 		oFile.close();
 	}
 	else
-		throw std::string("CANNOT OPEN FILE");
+		throw std::string("Cannot open file");
 }
 
 void MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
 {
-	std::string tagError = "UNABLE TO READ FILE, TAG HEADERS MISSING";
-	std::string multiTagError = "UNABLE TO READ FILE, MULTITAG HEADERS MISSING";
-	std::string mealError = "UNABLE TO READ FILE, MEAL HEADERS MISING";
+	std::string tagError = "Error reading Tags";
+	std::string multiTagError = "Error reading MultiTags";
+	std::string mealError = "Error reading Meals";
+	std::string line; // lines read from file
 
 	// open file
 	iFile.open(outputFile);
@@ -3642,37 +4057,15 @@ void MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
 	// check if failed
 	if (iFile.is_open())
 	{
-		std::string line; // line read
-
 		// get Tags header
 		std::getline(iFile, line);
 
 		// check if header is correct
 		if (line == "<Tags>")
 		{
-			// if there are tags to import, next line is not the ending header
-			std::getline(iFile, line);
-			if (line != "</Tags>")
-			{
-				bool doneReading = false;
-				do
-				{
-					Tag* tagPtr = nullptr;
-
-					// if imported with no errors
-					if (readTag(tagPtr, iFile) == 0)
-					{
-						normalTags.push_back(tagPtr);
-						tagPtr = nullptr;
-
-						// if not done reading, then this line is not the ending header
-						std::getline(iFile, line);
-						if (line == "</Tags>")
-							doneReading = true;
-					}
-					else throw tagError;
-				} while (!doneReading);
-			}
+			// if tags imported with error
+			if (readTags(iFile) != 0)
+				throw tagError;
 		}
 		else throw tagError;
 
@@ -3684,37 +4077,26 @@ void MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
 		// check if header is correct
 		if (line == "<MultiTags>")
 		{
-			// if there are multitags to import, next line is not the ending header
-			std::getline(iFile, line);
-			if (line != "</MultiTags>")
-			{
-				bool doneReading = false;
-				do
-				{
-					MultiTag* mtagPtr = nullptr;
-
-					// if imported with no errors
-					if (readMultiTag(mtagPtr, iFile) == 0)
-					{
-						multiTags.push_back(mtagPtr);
-						mtagPtr = nullptr;
-
-						// if not done reading, then this line is not the ending header
-						std::getline(iFile, line);
-						if (line == "</MultiTags>")
-							doneReading = true;
-					}
-					else throw multiTagError;
-				} while (!doneReading);
-			}
+			// if MultiTags imported with error
+			if (readMultiTags(iFile) != 0)
+				throw multiTagError;
 		}
 		else throw multiTagError;
 
+		// get blank space
+		std::getline(iFile, line);
+		// get Meals header
+		std::getline(iFile, line);
 
-
-
+		// check if header is correct
+		if (line == "<Meals>")
+		{
+			// if meals imported with error
+			if (readMeals(iFile) != 0)
+				throw mealError;
+		}
+		else throw mealError;
 
 		iFile.close();
 	}
-
 }

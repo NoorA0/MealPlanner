@@ -47,9 +47,9 @@ class MealManager
 	void writeMultiTag(const MultiTag* mtagPtr, std::ofstream& oFile);
 
 	// READING FROM FILE
-	bool readMeal(Meal* mealPtr, std::ifstream& iFile);
-	bool readTag(Tag* tagPtr, std::ifstream& iFile);
-	bool readMultiTag(MultiTag* mtagPtr, std::ifstream& iFile);
+	bool readMeals(std::ifstream& iFile);
+	bool readTags(std::ifstream& iFile);
+	bool readMultiTags(std::ifstream& iFile);
 
 public:
 	MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE, 

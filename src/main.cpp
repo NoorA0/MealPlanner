@@ -1,5 +1,7 @@
 #include "../headers/MealManager.hpp" // includes Tag, Meal, UIManager
 #include <fstream>
+#include <chrono>
+#include <ctime>
 
 void displayMealManual(UIManager& uim);
 void displayTagManual(UIManager& uim);
@@ -10,6 +12,7 @@ int main()
 	// default file names to store and store Meal Plans, respectively
 	const std::string DATAFILE = "ProgramData.txt";
 	const std::string OUTPUTFILE = "Generated_List.txt";
+	const std::string LOGFILE = "Logs.txt";
 	const int UI_WIDTH = 140;
 	const int UI_HEIGHT = 45;
 	const double MINIMUM_PRICE = 0; // minimum acceptable price for Meal price
@@ -74,8 +77,32 @@ int main()
 	// set UI dimensions
 	uim.setDimensions(UI_WIDTH, UI_HEIGHT);
 
-	// load existing data
-	mealManager.loadState(DATAFILE, iFile);
+	try
+	{
+		// load existing data
+		mealManager.loadState(DATAFILE, iFile);
+	}
+	catch (std::string& error)
+	{
+		// write error to log
+		std::ofstream errOut(LOGFILE, std::ios::app);
+
+		if (errOut.is_open())
+		{
+			// get system time 
+			auto now = std::chrono::system_clock::now();
+			std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+			char timeStr[50] = {};
+			ctime_s(timeStr, 50, &currentTime);
+
+			errOut << timeStr;
+			errOut << "ERROR: Could not load program data.\n";
+			errOut << "REASON: " << error << ".\n";
+			errOut << "Ignore this message if this is the program's first execution.\n\n";
+		}
+		errOut.close();
+	}
+
 
 
 	while (tempInt != 4)
@@ -177,18 +204,32 @@ int main()
 		}
 	}// WHILE (tempInt != 4)
 
-	// save data before exit
 	try
 	{
+		// save data before exit
 		mealManager.saveState(DATAFILE, oFile);
-
 	}
 	catch (std::string& error)
 	{
-		std::cout << "\n\nERROR: Could not save program data.\n";
-		std::cout << "REASON: " << error << std::endl;
-		std::cout << "\nThis may be caused by insufficient write permissions or lack of drive space.";
+		// write error to log
+		std::ofstream errOut(LOGFILE, std::ios::app);
+
+		if (errOut.is_open())
+		{
+			// get system time 
+			auto now = std::chrono::system_clock::now();
+			std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+			char timeStr[50] = {};
+			ctime_s(timeStr, 50, &currentTime);
+
+			errOut << timeStr;
+			errOut << "ERROR: Could not save program data.\n";
+			errOut << "REASON: " << error << ".\n";
+			errOut << "\nThis may be caused by insufficient write permissions or lack of drive space.\n\n";
+		}
+		errOut.close();
 	}
+
 	return 0;
 }
 
