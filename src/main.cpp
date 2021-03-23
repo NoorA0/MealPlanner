@@ -200,8 +200,9 @@ int main()
 			break;
 		case 5: // credits
 			uim.centeredText("Meal Planner By Noor Alaghbar");
+			uim.centeredText("Github.com/NoorA0");
 			uim.skipLines(2);
-			uim.centeredText("Thanks for using this program, here's a cool galaxy:");
+			uim.centeredText("Thanks for using my program!");
 			uim.leftAllignedText(CREDITS_IMAGE);
 			uim.display();
 			break;

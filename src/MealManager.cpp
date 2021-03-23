@@ -520,7 +520,6 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	// prompt and get description
 	tempStr = "New MultiTag: \"" + mtagPtr->getName() + "\"";
 	uim.centeredText(tempStr);
-	uim.centeredText("Description");
 	uim.skipLines(2);
 
 	uim.centeredText("Enter a description:");
@@ -557,7 +556,8 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 		uim.centeredText("Enabled Days");
 		uim.skipLines(2);
 
-		uim.centeredText("Choose days that MuliTag is active on:");
+		tempStr = "Choose the days that you want \"" + mtagPtr->getName() + "\" to be active on:";
+		uim.centeredText(tempStr);
 		uim.skipLines(1);
 
 		tempStr = "MON: ";
@@ -1995,7 +1995,7 @@ int MealManager::displayMeals(UIManager& uim)
 			// loop while user has not quit menu
 			while (tempStr != "Q")
 			{
-				uim.centeredText("Meals");
+				uim.centeredText("Viewing Meals");
 				// display "Page x/y"
 				tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
 				uim.centeredText(tempStr);
@@ -2084,7 +2084,7 @@ int MealManager::displayMeals(UIManager& uim)
 			// while user has not chosen to quit 
 			while (tempStr != "Q")
 			{
-				uim.centeredText("Meals");
+				uim.centeredText("Viwing Meals");
 				uim.skipLines(2);
 				uim.centeredText("Choose a Meal:");
 
@@ -2139,7 +2139,7 @@ int MealManager::displayTags(UIManager& uim)
 	{
 		if (normalTags.size() <= 10) // can print all tags in 1 page
 		{
-			uim.centeredText("Tags");
+			uim.centeredText("Viewing Tags");
 			uim.skipLines(2);
 			uim.centeredText("Choose a Tag:");
 			uim.skipLines(1);
@@ -2192,7 +2192,7 @@ int MealManager::displayTags(UIManager& uim)
 			// loop while user has not quit menu
 			while (tempStr != "Q")
 			{
-				uim.centeredText("Tags");
+				uim.centeredText("Viewing Tags");
 				// display "Page x/y"
 				tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
 				uim.centeredText(tempStr);
@@ -2307,7 +2307,7 @@ int MealManager::displayMultiTags(UIManager& uim)
 		// can print all multitags in 1 page
 		if (multiTags.size() <= 10) 
 		{
-			uim.centeredText("Multi Tags");
+			uim.centeredText("Viewing MultiTags");
 			uim.skipLines(2);
 			uim.centeredText("Choose a MultiTag:");
 			uim.skipLines(1);
@@ -2354,7 +2354,7 @@ int MealManager::displayMultiTags(UIManager& uim)
 			// loop while user has not quit menu
 			while (tempStr != "Q")
 			{
-				uim.centeredText("MultiTags");
+				uim.centeredText("Viewing MultiTags");
 				// display "Page x/y"
 				tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
 				uim.centeredText(tempStr);
