@@ -21,20 +21,34 @@ MealManager::MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRIC
 
 MealManager::~MealManager()
 {
+	// delete all tags
 	for (auto tagsIter : normalTags)
 	{
 		delete tagsIter;
 	}
+	normalTags.clear();
 
-	for (auto tagsIter : multiTags)
-	{
-		delete tagsIter;
-	}
-
+	// delete all meals
 	for (auto mealsIter : meals)
 	{
+		// clear vector of tags
+		std::vector<Tag*> emptyVec;
+		mealsIter->setTags(emptyVec);
+
 		delete mealsIter;
 	}
+	meals.clear();
+
+	// delete all multiTags
+	for (auto tagsIter : multiTags)
+	{
+		// clear map of Tags
+		std::map<Tag*, unsigned int> emptyMap;
+		tagsIter->setLinkedTags(emptyMap);
+
+		delete tagsIter;
+	}
+	multiTags.clear();
 }
 
 void MealManager::createMeal(Meal* mealptr, UIManager& uim)
