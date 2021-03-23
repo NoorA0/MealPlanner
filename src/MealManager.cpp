@@ -63,7 +63,7 @@ void MealManager::createMeal(Meal* mealptr, UIManager& uim)
 	// loop while user is not done choosing a name
 	while (!doneCreating)
 	{
-		uim.centeredText("New Meal - Name");
+		uim.centeredText("New Meal");
 		uim.skipLines(2);
 
 		// prompt and get name
@@ -132,7 +132,8 @@ void MealManager::createMeal(Meal* mealptr, UIManager& uim)
 	}// while (!doneCreating)
 
 	// price
-	uim.centeredText("New Meal - Price");
+	tempStr = "New Meal: \"" + mealptr->getName() + "\"";
+	uim.centeredText(tempStr);
 	uim.skipLines(2);
 
 	// prompt and get price
@@ -143,17 +144,21 @@ void MealManager::createMeal(Meal* mealptr, UIManager& uim)
 	mealptr->setPrice(tempDouble);
 
 	// mealDuration
-	uim.centeredText("New Meal - Duration");
+	tempStr = "New Meal: \"" + mealptr->getName() + "\"";
+	uim.centeredText(tempStr);
+	uim.centeredText("Duration");
 	uim.skipLines(2);
 	uim.centeredText("How many days does this meal last?");
-	uim.centeredText("(1 is typical, Meals in large batches may last multiple days)");
+	uim.centeredText("(1 day is typical, Meals prepared in large batches may last longer)");
 	uim.prompt_FreeInt(1, 30);
 	tempInt = std::stoi(uim.display());
 
 	mealptr->setMealDuration(tempInt);
 
 	// daysBetweenOccurrences
-	uim.centeredText("New Meal - Days Between Occurrences");
+	tempStr = "New Meal: \"" + mealptr->getName() + "\"";
+	uim.centeredText(tempStr);
+	uim.centeredText("Days Between Occurrences");
 	uim.skipLines(2);
 	uim.centeredText("When this Meal is scheduled, how many days should pass before it can be scheduled again?");
 	uim.centeredText("(value of 0 will not delay scheduling, 1 will make it occur every other day)");
@@ -174,10 +179,6 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 	bool doneCreatingName = false;
 
 	// tag's params
-	std::string tagName = "";
-	std::string tagDesc = "";
-	bool dependsOnMultitag = false;
-	unsigned int consecutiveLimit = 0;
 	std::map<DaysOfTheWeek, bool> enabledDays =
 	{ {MONDAY, false}, {TUESDAY, false}, {WEDNESDAY, false}, {THURSDAY, false}, {FRIDAY, false},
 		{SATURDAY, false}, {SUNDAY, false} };
@@ -187,7 +188,7 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 	while (!doneCreatingName)
 	{
 		// prompt and get name
-		uim.centeredText("Create Tag - Name");
+		uim.centeredText("New Tag");
 		uim.skipLines(2);
 
 		uim.centeredText("Enter a name:");
@@ -249,19 +250,23 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 			doneCreatingName = true;
 	} // while (!doneCreatingName)
 
-	tagName = tempStr;;
+	tagPtr->setName(tempStr);
 
 	// prompt and get description
-	uim.centeredText("Create Tag - Description");
+	tempStr = "New Tag: \"" + tagPtr->getName() + "\"";
+	uim.centeredText(tempStr);
+	uim.centeredText("Description");
 	uim.skipLines(2);
 
 	uim.centeredText("Enter a description:");
 	uim.centeredText("(Press <enter> to skip)");
 	uim.prompt_FreeString(0, DESC_LENGTH);
-	tagDesc = uim.display();
+	tagPtr->setDescription(uim.display());
 
 	// prompt and get dependency
-	uim.centeredText("Create Tag - MultiTag Dependency");
+	tempStr = "New Tag: \"" + tagPtr->getName() + "\"";
+	uim.centeredText(tempStr);
+	uim.centeredText("MultiTag Dependency");
 	uim.skipLines(2);
 
 	uim.centeredText("Disable this Tag unless linked with a MultiTag?");
@@ -274,23 +279,27 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 
 	// set hasPriority depending on user choice
 	if (tempStr == "Y")
-		dependsOnMultitag = true;
+		tagPtr->setDependency(true);
 	else
-		dependsOnMultitag = false;
+		tagPtr->setDependency(false);
 
 	// prompt and get consecutiveLimit
-	uim.centeredText("Create Tag - Consecutive Days Limit");
+	tempStr = "New Tag: \"" + tagPtr->getName() + "\"";
+	uim.centeredText(tempStr);
+	uim.centeredText("Consecutive Days Limit");
 	uim.skipLines(2);
 
 	uim.centeredText("How many consecutive days can a Meal with this Tag occur for?");
 	uim.prompt_FreeInt(0, 1000);
-	consecutiveLimit = std::stoi(uim.display());
+	tagPtr->setConsecutiveLimit(std::stoi(uim.display()));
 
 	tempStr = "";
 	// let user set enabled days or quit
 	while (tempStr != "Q")
 	{
-		uim.centeredText("Create Tag - Enabled Days");
+		tempStr = "New Tag: \"" + tagPtr->getName() + "\"";
+		uim.centeredText(tempStr);
+		uim.centeredText("Enabled Days");
 		uim.skipLines(2);
 
 		uim.centeredText("Choose days that Meals with this Tag may occur on:");
@@ -425,13 +434,7 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 			}
 		}
 	} // while (tempStr != "Q")
-
-	// create a tag with collected data
-	tagPtr->setName(tagName);
-	tagPtr->setDescription(tagDesc);
 	tagPtr->setEnabledDays(enabledDays);
-	tagPtr->setDependency(dependsOnMultitag);
-	tagPtr->setConsecutiveLimit(consecutiveLimit);
 }
 
 void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
@@ -451,7 +454,7 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	while (!doneCreatingName)
 	{
 		// prompt and get name
-		uim.centeredText("Create MultiTag - Name");
+		uim.centeredText("New MultiTag");
 		uim.skipLines(2);
 
 		uim.centeredText("Enter a name:");
@@ -515,7 +518,9 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	mtagPtr->setName(tempStr);
 
 	// prompt and get description
-	uim.centeredText("Create MultiTag - Description");
+	tempStr = "New MultiTag: \"" + mtagPtr->getName() + "\"";
+	uim.centeredText(tempStr);
+	uim.centeredText("Description");
 	uim.skipLines(2);
 
 	uim.centeredText("Enter a description:");
@@ -524,7 +529,9 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	mtagPtr->setDescription(uim.display());
 
 	// prompt and get dependency
-	uim.centeredText("Create MultiTag - Priority Level");
+	tempStr = "New MultiTag: \"" + mtagPtr->getName() + "\"";
+	uim.centeredText(tempStr);
+	uim.centeredText("Priority Level");
 	uim.skipLines(2);
 
 	uim.centeredText("MultiTags can take priority over normal Tags when creating a Meal Plan.");
@@ -545,7 +552,9 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	// let user set enabled days or quit
 	while (tempStr != "Q")
 	{
-		uim.centeredText("Create MultiTag - Enabled Days");
+		tempStr = "New MultiTag: \"" + mtagPtr->getName() + "\"";
+		uim.centeredText(tempStr);
+		uim.centeredText("Enabled Days");
 		uim.skipLines(2);
 
 		uim.centeredText("Choose days that MuliTag is active on:");
@@ -688,8 +697,11 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	editMultiTagTags(mtagPtr, uim);
 
 	// set enabled/disabled
-	uim.centeredText("Create MultiTag - Enable/Disable");
+	tempStr = "New MultiTag: \"" + mtagPtr->getName() + "\"";
+	uim.centeredText(tempStr);
+	uim.centeredText("Enable/Disable");
 	uim.skipLines(2);
+
 	uim.centeredText("Do you want to Enable this MultiTag?");
 	strVec = { "YYes", "NNo" };
 	uim.prompt_List_Case_Insensitive(strVec);
@@ -718,7 +730,8 @@ void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
 		uim.centeredText("Assign Tags");
 		uim.skipLines(2);
 
-		uim.centeredText("Meal has no Tags assigned, do you want to assign some?");
+		tempStr = "\"" + mealPtr->getName() + "\" has no assigned Tags, do you want to assign some?";
+		uim.centeredText(tempStr);
 
 		strVec = { "YYes", "NNo" };
 		uim.prompt_List_Case_Insensitive(strVec);
@@ -831,7 +844,8 @@ void MealManager::editMultiTagTags(MultiTag* mtagPtr, UIManager& uim)
 		uim.centeredText("Link Tags");
 		uim.skipLines(2);
 
-		uim.centeredText("MultiTag has no linked Tags, do you want to link some?");
+		tempStr = "\"" + mtagPtr->getName() + "\" has no linked Tags, do you want to link some?";
+		uim.centeredText(tempStr);
 
 		strVec = { "YYes", "NNo" };
 		uim.prompt_List_Case_Insensitive(strVec);
@@ -874,7 +888,7 @@ void MealManager::editMultiTagTags(MultiTag* mtagPtr, UIManager& uim)
 			// prompt for number of Meals with this tag
 			uim.centeredText("Link Tags");
 			uim.skipLines(2);
-			uim.centeredText("How many unique Meals from this Tag do you require in one day?");
+			uim.centeredText("How many unique Meals from this Tag do you want to eat in one day?");
 			uim.prompt_FreeInt(0, 100);
 			tempInt = std::stoi(uim.display());
 
@@ -914,7 +928,8 @@ void MealManager::editMultiTagTags(MultiTag* mtagPtr, UIManager& uim)
 					// tell user the tag exists
 					uim.centeredText("Error");
 					uim.skipLines(2);
-					uim.leftAllignedText("Tag is already linked to MultiTag.");
+					tempStr = "\"" + compare->getName() + "\" is already linked to \"" + mtagPtr->getName() + "\".";
+					uim.centeredText(tempStr);
 					uim.display();
 				}
 				else
@@ -922,19 +937,24 @@ void MealManager::editMultiTagTags(MultiTag* mtagPtr, UIManager& uim)
 					// ask for amount
 					uim.centeredText("Link Tags");
 					uim.skipLines(2);
-					uim.centeredText("How many unique Meals from this Tag do you require in one day?");
+					tempStr = "How many meals from \"" + compare->getName() = "\" do you want to eat in one day?";
+					uim.centeredText(tempStr);
 					uim.prompt_FreeInt(0, 100);
 					tempInt = std::stoi(uim.display());
 
 					// link Tag to multitag
 					mtagPtr->addLinkedTag(compare, tempInt);
-					compare = nullptr;
 
 					// display confirmation
 					uim.centeredText("Success!");
 					uim.skipLines(2);
-					uim.centeredText("Tag linked to MultiTag.");
+
+					tempStr = "\"" + compare->getName() + "\" was linked to \"" + mtagPtr->getName() + "\".";
+					uim.centeredText(tempStr);
 					uim.display();
+
+					compare = nullptr;
+
 				}
 			}
 			else // user chose to quit
@@ -955,7 +975,8 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	while (tempStr != "Q")
 	{
 		// header
-		uim.centeredText("MultiTag Information");
+		tempStr = "Viewing \"" + mtagPtr->getName() + "\"";
+		uim.centeredText(tempStr);
 		uim.skipLines(2);
 
 		// display tag info
@@ -977,13 +998,10 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 			switch (tempInt)
 			{
 			case 1: // edit name
-				uim.centeredText("Edit Name");
+				tempStr = "Editing \"" + mtagPtr->getName() + "\"";
+				uim.centeredText(tempStr);
+				uim.centeredText("Name");
 				uim.skipLines(2);
-
-				// display original name
-				tempStr = "Original name: " + mtagPtr->getName();
-				uim.leftAllignedText(tempStr);
-				uim.skipLines(1);
 
 				// prompt and get input
 				uim.leftAllignedText("Enter a new name: ");
@@ -1004,7 +1022,9 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				uim.display();
 				break;
 			case 2: // edit description
-				uim.centeredText("Edit Description");
+				tempStr = "Editing \"" + mtagPtr->getName() + "\"";
+				uim.centeredText(tempStr);
+				uim.centeredText("Description");
 				uim.skipLines(2);
 
 				// display original description
@@ -1039,10 +1059,12 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				// let user set enabled days or quit
 				while (tempStr != "Q")
 				{
+					tempStr = "Editing " + mtagPtr->getName();
+					uim.centeredText(tempStr);
 					uim.centeredText("Enable/Disable Days");
 					uim.skipLines(2);
 
-					uim.centeredText("Choose days that MuliTag is active on:");
+					uim.centeredText("Choose the days that \"" + mtagPtr->getName() + "\" should be active on:");
 					uim.skipLines(1);
 
 					tempStr = "MON: ";
@@ -1187,7 +1209,9 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 			break;
 			case 4: // set priority
 			{
-				uim.centeredText("Set Priority Level");
+				tempStr = "Editing \"" + mtagPtr->getName() + "\"";
+				uim.centeredText(tempStr);
+				uim.centeredText("Priority Level");
 				uim.skipLines(2);
 
 				// report status
@@ -1241,16 +1265,18 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 			}
 			break;
 			case 5: // enable/diable
+				tempStr = "Editing \"" + mtagPtr->getName() + "\"";
+				uim.centeredText(tempStr);
 				uim.centeredText("Enable/Disable");
 				uim.skipLines(2);
 
 				// display original value
-				tempStr = "MultiTag is set to: ";
+				tempStr = "\"" + mtagPtr->getName() + "\" is currently ";
 
 				if (mtagPtr->isEnabled())
-					tempStr += "ENABLED";
+					tempStr += "ENABLED.";
 				else
-					tempStr += "DISABLED";
+					tempStr += "DISABLED.";
 
 				uim.leftAllignedText(tempStr);
 				uim.skipLines(1);
@@ -1286,7 +1312,7 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				uim.centeredText("Success!");
 				uim.skipLines(2);
 
-				tempStr = "MultiTag is now ";
+				tempStr = "\"" + mtagPtr->getName() + "\" is now ";
 
 				if (mtagPtr->isEnabled())
 					tempStr += "ENABLED.";
@@ -1319,7 +1345,8 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 	while (tempStr != "Q")
 	{
 		// header
-		uim.centeredText("Meal Information");
+		tempStr = "Viewing \"" + mealPtr->getName() + "\".";
+		uim.centeredText(tempStr);
 		uim.skipLines(2);
 
 		// display meal info
@@ -1340,13 +1367,10 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 			switch (tempInt)
 			{
 			case 1: // name
-				uim.centeredText("Edit Name");
+				tempStr = "Editing \"" + mealPtr->getName() + "\"";
+				uim.centeredText(tempStr);
+				uim.centeredText("Name");
 				uim.skipLines(2);
-
-				// display original name
-				tempStr = "Original name: " + mealPtr->getName();
-				uim.leftAllignedText(tempStr);
-				uim.skipLines(1);
 
 				// prompt and get input
 				uim.leftAllignedText("Enter a new name: ");
@@ -1367,7 +1391,9 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 				uim.display();
 				break;
 			case 2: // price
-				uim.centeredText("Edit Price");
+				tempStr = "Editing " + mealPtr->getName();
+				uim.centeredText(tempStr);
+				uim.centeredText("Price");
 				uim.skipLines(2);
 
 				// display original price
@@ -1398,10 +1424,12 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 			{
 				unsigned int mealDuration = mealPtr->getMealDuration();
 
-				uim.centeredText("Edit Duration");
+				tempStr = "Editing \"" + mealPtr->getName() + "\"";
+				uim.centeredText(tempStr);
+				uim.centeredText("Duration");
 				uim.skipLines(2);
 				
-				tempStr = "This Meal has a duration of " + std::to_string(mealDuration) + " days.";
+				tempStr = "\"" + mealPtr->getName() + "\" has a duration of " + std::to_string(mealDuration) + " days.";
 				uim.centeredText(tempStr);
 				uim.centeredText("Enter a new Duration:");
 				uim.prompt_FreeInt(1, 30);
@@ -1423,7 +1451,9 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 			{
 				unsigned int occurrences = mealPtr->getDaysBetweenOccurrences();
 
-				uim.centeredText("Edit Days Between Occurrences");
+				tempStr = "Editing \"" + mealPtr->getName() + "\"";
+				uim.centeredText(tempStr);
+				uim.centeredText("Days Between Occurrences");
 				uim.skipLines(2);
 
 				tempStr = "When this Meal is scheduled, it must wait " + std::to_string(occurrences) + " days before it can occur again.";
@@ -1448,11 +1478,13 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 			{
 				bool mealDisabled = mealPtr->getIsDisabled();
 
-				uim.centeredText("Enable/Disable Meal");
+				tempStr = "Editing \"" + mealPtr->getName() + "\"";
+				uim.centeredText(tempStr);
+				uim.centeredText("Enable/Disable");
 				uim.skipLines(2);
 
 				// report status
-				tempStr = "This Meal is currently ";
+				tempStr = "\"" + mealPtr->getName() + "\" is currently ";
 
 				if (mealDisabled)
 					tempStr += "DISABLED.";
@@ -1510,7 +1542,8 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 	while (tempStr != "Q")
 	{
 		// header
-		uim.centeredText("Tag Information");
+		tempStr = "Viewing \"" + tagPtr->getName() + "\"";
+		uim.centeredText(tempStr);
 		uim.skipLines(2);
 
 		// display tag info
@@ -1532,13 +1565,10 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 			switch (tempInt)
 			{
 			case 1: // edit name
-				uim.centeredText("Edit Name");
+				tempStr = "Editing \"" + tagPtr->getName() + "\"";
+				uim.centeredText(tempStr);
+				uim.centeredText("Name");
 				uim.skipLines(2);
-
-				// display original name
-				tempStr = "Original name: " + tagPtr->getName();
-				uim.leftAllignedText(tempStr);
-				uim.skipLines(1);
 
 				// prompt and get input
 				uim.leftAllignedText("Enter a new name: ");
@@ -1559,7 +1589,9 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 				uim.display();
 				break;
 			case 2: // edit description
-				uim.centeredText("Edit Description");
+				tempStr = "Editing \"" + tagPtr->getName() + "\"";
+				uim.centeredText(tempStr);
+				uim.centeredText("Description");
 				uim.skipLines(2);
 
 				// display original description
@@ -1594,10 +1626,12 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 				// let user set enabled days or quit
 				while (tempStr != "Q")
 				{
+					tempStr = "Editing \"" + tagPtr->getName() + "\"";
+					uim.centeredText(tempStr);
 					uim.centeredText("Enable/Disable Days");
 					uim.skipLines(2);
 
-					uim.centeredText("Choose days that Meals with this Tag may occur on:");
+					uim.centeredText("Choose days that Meals assigned to this Tag may occur on:");
 					uim.skipLines(1);
 
 					tempStr = "MON: ";
@@ -1744,7 +1778,9 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 			{
 				bool dependsOnMultitag = tagPtr->getDependency();
 
-				uim.centeredText("Set Dependency");
+				tempStr = "Editing \"" + tagPtr->getName() + "\"";
+				uim.centeredText(tempStr);
+				uim.centeredText("Dependency");
 				uim.skipLines(2);
 
 				// report status
@@ -1798,7 +1834,9 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 			}
 				break;
 			case 5: // set consecutive occurrences
-				uim.centeredText("Set Consecutive Occurrences");
+				tempStr = "Editing \"" + tagPtr->getName() + "\"";
+				uim.centeredText(tempStr);
+				uim.centeredText("Consecutive Occurrences");
 				uim.skipLines(2);
 
 				// display original value
