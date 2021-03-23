@@ -3582,10 +3582,7 @@ void MealManager::mealEditor(UIManager& uim)
 {
 	std::string tempStr;
 	int tempInt = 0;
-	double tempDouble = 0;
 	std::vector<std::string> strVec;
-	bool inputValid = true;
-	bool doneCreating = false;
 	Meal* mealPtr = nullptr;
 
 	while (tempInt != 4)

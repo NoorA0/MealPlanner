@@ -362,7 +362,7 @@ void UIManager::leftAllignedText(const std::string& newLine)
 void UIManager::skipLines(const unsigned int& linesToSkip)
 {
 	// create entry in bodyBuffer to skip line
-	for (int insertSkip = 0; insertSkip < linesToSkip; insertSkip++)
+	for (unsigned int insertSkip = 0; insertSkip < linesToSkip; insertSkip++)
 	{
 		std::string tempStr = "2SL_";
 		bodyBuffer.push_back(tempStr);
