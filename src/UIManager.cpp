@@ -21,7 +21,8 @@ UIManager::UIManager()
 	screenHeight = 5;
 	lowerLimit = 0;
 	upperLimit = 0;
-	inputLength = 0;
+	minInputLength = 0;
+	maxInputLength = 0;
 	promptType = PROMPT_NONE;
 	prompt_None();
 }
@@ -36,7 +37,8 @@ void UIManager::resetConfiguration()
 	promptBuffer.clear();
 	lowerLimit = 0;
 	upperLimit = 0;
-	inputLength = 0;
+	minInputLength = 0;
+	maxInputLength = 0;
 	promptType = PROMPT_NONE;
 	prompt_None();
 }
@@ -212,9 +214,9 @@ std::string UIManager::validateInput(bool& isValid, std::ostream& out, std::istr
 
 		break;
 	case PROMPT_FREESTRING:
-		if (userInput.length() >= 1 && userInput.length() <= inputLength)
+		if (userInput.length() >= minInputLength && userInput.length() <= maxInputLength)
 			isValid = true;
-		else if (userInput.length() == 0)
+		else if (userInput.length() < minInputLength)
 		{
 			out << "Invalid input! Your input was too short.\n(Press <enter> to continue)\n";
 			std::getline(in, userInput);
@@ -472,12 +474,13 @@ void UIManager::prompt_FreeDouble(const double& min, const double& max)
 	promptBuffer.push_back(tempStr);
 }
 
-void UIManager::prompt_FreeString(const unsigned int& maxLength)
+void UIManager::prompt_FreeString(const unsigned int& minLength, const unsigned int& maxLength)
 {
 	promptType = PROMPT_FREESTRING;
-	inputLength = maxLength;
+	minInputLength = minLength;
+	maxInputLength = maxLength;
 	promptBuffer.clear();
-	promptBuffer.push_back("(Enter no more than " + std::to_string(inputLength) + " characters)");
+	promptBuffer.push_back("(Enter between " + std::to_string(minInputLength) + " and " + std::to_string(maxInputLength) + " characters)");
 }
 
 void UIManager::prompt_None()

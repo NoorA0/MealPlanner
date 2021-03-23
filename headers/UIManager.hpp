@@ -92,8 +92,8 @@
 *		if they type "10.20abc", it will be regarded as the double 10.20
 *		if they type "abc10", is is regarded as an incorrect input
 * 
-* prompt_FreeString(int maxLength):
-*	lets the user type freely, as long as their input string is <= maxLength in length
+* prompt_FreeString(unsigned int minLength, unsigned int maxLength):
+*	lets the user type freely, as long as their input length is >= minLength and <= maxLength
 * 
 * prompt_None: tells the user to "(press <enter> to continue)" and waits for newline input
 * 
@@ -174,7 +174,8 @@ class UIManager
 	int screenHeight;
 	double lowerLimit;
 	double upperLimit;
-	unsigned int inputLength;
+	unsigned int minInputLength;
+	unsigned int maxInputLength;
 	Prompt promptType;
 
 	// HELPER FUNCTIONS
@@ -201,7 +202,7 @@ public:
 	void prompt_List_Case_Insensitive(std::vector<std::string>& prompts);
 	void prompt_FreeInt(const int& min, const int& max); 
 	void prompt_FreeDouble(const double& min, const double& max);
-	void prompt_FreeString(const unsigned int& maxLength); 
+	void prompt_FreeString(const unsigned int& minLength, const unsigned int& maxLength); 
 	void prompt_None();
 
 	// OTHER OPERATIONS

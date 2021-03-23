@@ -1276,7 +1276,7 @@ TEST(UIManagerTest, prompt_FreeString_outputSuccess)
 	iStream = std::stringstream("so_many_tests_\n");
 
 	uim.setDimensions(80, 20);
-	uim.prompt_FreeString(100);
+	uim.prompt_FreeString(0, 100);
 
 	uim.display(oStream, iStream);
 
@@ -1299,7 +1299,7 @@ TEST(UIManagerTest, prompt_FreeString_outputSuccess)
 		"|                                                                              |\n"
 		"|                                                                              |\n"
 		"|                                                                              |\n"
-		"|(Enter no more than 100 characters)                                           |\n"
+		"|(Enter between 0 and 100 characters)                                          |\n"
 		"--------------------------------------------------------------------------------\n"
 		":";
 
@@ -1313,7 +1313,7 @@ TEST(UIManagerTest, prompt_FreeString_outputFailures)
 	iStream = std::stringstream("so_many_tests_\n\n\n\nthisisOk?\n");
 
 	uim.setDimensions(80, 20);
-	uim.prompt_FreeString(10);
+	uim.prompt_FreeString(1, 10);
 
 	uim.display(oStream, iStream);
 
@@ -1336,7 +1336,7 @@ TEST(UIManagerTest, prompt_FreeString_outputFailures)
 		"|                                                                              |\n"
 		"|                                                                              |\n"
 		"|                                                                              |\n"
-		"|(Enter no more than 10 characters)                                            |\n"
+		"|(Enter between 1 and 10 characters)                                           |\n"
 		"--------------------------------------------------------------------------------\n"
 		":Invalid input! Your input was too long.\n"
 		"(Press <enter> to continue)\n\n\n"
@@ -1358,7 +1358,7 @@ TEST(UIManagerTest, prompt_FreeString_outputFailures)
 		"|                                                                              |\n"
 		"|                                                                              |\n"
 		"|                                                                              |\n"
-		"|(Enter no more than 10 characters)                                            |\n"
+		"|(Enter between 1 and 10 characters)                                           |\n"
 		"--------------------------------------------------------------------------------\n"
 		":Invalid input! Your input was too short.\n"
 		"(Press <enter> to continue)\n\n\n"
@@ -1380,7 +1380,7 @@ TEST(UIManagerTest, prompt_FreeString_outputFailures)
 		"|                                                                              |\n"
 		"|                                                                              |\n"
 		"|                                                                              |\n"
-		"|(Enter no more than 10 characters)                                            |\n"
+		"|(Enter between 1 and 10 characters)                                           |\n"
 		"--------------------------------------------------------------------------------\n"
 		":";
 
@@ -1391,13 +1391,13 @@ TEST(UIManagerTest, prompt_FreeString_inputSuccess)
 {
 	UIManager uim;
 	std::stringstream iStream, oStream;
-	iStream = std::stringstream("killmeeeeeeeee\n");
+	iStream = std::stringstream("\n");
 
 	std::string expected, userInput;
-	expected = "killmeeeeeeeee";
+	expected = "";
 
 	uim.setDimensions(80, 20);
-	uim.prompt_FreeString(50);
+	uim.prompt_FreeString(0, 50);
 
 	userInput = uim.display(oStream, iStream);
 
@@ -1414,7 +1414,7 @@ TEST(UIManagerTest, prompt_FreeString_inputFailures)
 	expected = "#just right";
 
 	uim.setDimensions(80, 20);
-	uim.prompt_FreeString(11);
+	uim.prompt_FreeString(1, 11);
 
 	userInput = uim.display(oStream, iStream);
 
