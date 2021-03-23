@@ -75,7 +75,7 @@ void MealManager::createMeal(Meal* mealptr, UIManager& uim)
 		uim.leftAllignedText("Tacos");
 		uim.leftAllignedText("Ceasar Salad");
 		uim.leftAllignedText("The Dijkstra Special");
-		uim.prompt_FreeString(NAME_LENGTH);
+		uim.prompt_FreeString(1, NAME_LENGTH);
 		tempStr = uim.display();
 
 		// if there are other meals stored, check if names conflict (case insensitive)
@@ -196,11 +196,11 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 		uim.leftAllignedText("Examples:"); 
 		uim.skipLines(1);
 		uim.leftAllignedText("Chicken");
-		uim.leftAllignedText("Vegatarian");
+		uim.leftAllignedText("Vegetarian");
 		uim.leftAllignedText("Takes long to cook");
-		uim.leftAllignedText("Desert");
+		uim.leftAllignedText("Dessert");
 		uim.leftAllignedText("Weekends Only");
-		uim.prompt_FreeString(NAME_LENGTH);
+		uim.prompt_FreeString(1, NAME_LENGTH);
 
 		tempStr = uim.display();
 
@@ -256,7 +256,8 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 	uim.skipLines(2);
 
 	uim.centeredText("Enter a description:");
-	uim.prompt_FreeString(DESC_LENGTH);
+	uim.centeredText("(Press <enter> to skip)");
+	uim.prompt_FreeString(0, DESC_LENGTH);
 	tagDesc = uim.display();
 
 	// prompt and get dependency
@@ -461,7 +462,7 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 		uim.leftAllignedText("Guest Meals");
 		uim.leftAllignedText("No Time");
 		uim.leftAllignedText("Birthday Party");
-		uim.prompt_FreeString(NAME_LENGTH);
+		uim.prompt_FreeString(1, NAME_LENGTH);
 
 		tempStr = uim.display();
 
@@ -518,7 +519,8 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	uim.skipLines(2);
 
 	uim.centeredText("Enter a description:");
-	uim.prompt_FreeString(DESC_LENGTH);
+	uim.centeredText("(Press <enter> to skip)");
+	uim.prompt_FreeString(0, DESC_LENGTH);
 	mtagPtr->setDescription(uim.display());
 
 	// prompt and get dependency
@@ -985,7 +987,7 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 
 				// prompt and get input
 				uim.leftAllignedText("Enter a new name: ");
-				uim.prompt_FreeString(NAME_LENGTH);
+				uim.prompt_FreeString(1, NAME_LENGTH);
 
 				tempStr = uim.display();
 
@@ -1012,7 +1014,8 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 
 				// prompt and get input
 				uim.leftAllignedText("Enter a new description: ");
-				uim.prompt_FreeString(DESC_LENGTH);
+				uim.centeredText("(Press <enter> to skip)");
+				uim.prompt_FreeString(0, DESC_LENGTH);
 
 				tempStr = uim.display();
 
@@ -1347,7 +1350,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 
 				// prompt and get input
 				uim.leftAllignedText("Enter a new name: ");
-				uim.prompt_FreeString(NAME_LENGTH);
+				uim.prompt_FreeString(1, NAME_LENGTH);
 
 				tempStr = uim.display();
 
@@ -1539,7 +1542,7 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 
 				// prompt and get input
 				uim.leftAllignedText("Enter a new name: ");
-				uim.prompt_FreeString(NAME_LENGTH);
+				uim.prompt_FreeString(1, NAME_LENGTH);
 
 				tempStr = uim.display();
 
@@ -1565,13 +1568,14 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 				uim.skipLines(1);
 
 				// prompt and get input
-				uim.leftAllignedText("Enter a new description: ");
-				uim.prompt_FreeString(DESC_LENGTH);
+				uim.centeredText("Enter a new description: ");
+				uim.centeredText("(Press <enter> to skip)");
+				uim.prompt_FreeString(0, DESC_LENGTH);
 
 				tempStr = uim.display();
 
 				//set new description
-				tagPtr->setName(tempStr);
+				tagPtr->setDescription(tempStr);
 
 				// confirm to user
 				uim.centeredText("Success!");

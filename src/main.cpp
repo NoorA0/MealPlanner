@@ -122,7 +122,15 @@ int main()
 
 		switch (tempInt)
 		{
-		case 1: // generate schedule
+		case 1: // generate plan
+			uim.centeredText("Create a Plan");
+			uim.skipLines(2);
+
+			// prompt for filename
+			uim.centeredText("Enter a file name:");
+			tempStr = "(press <enter> to use \"" + OUTPUTFILE + "\")";
+			uim.centeredText(tempStr);
+
 			mealManager.generateSchedule();
 			break;
 		case 2: // view Meals
@@ -160,7 +168,7 @@ int main()
 						uim.leftAllignedText("Meals also have a Price. When you want to create a Meal Plan, you can specify your budget for the Plan's period.");
 						uim.leftAllignedText("The program will ensure that the generated plan meets this budget, if possible.");
 						uim.skipLines(1);
-						uim.leftAllignedText("Use Tags to catagorize your meals, such as Deserts that should only be served on certain days of the week.");
+						uim.leftAllignedText("Use Tags to catagorize your meals, such as Desserts that should only be served on certain days of the week.");
 						uim.leftAllignedText("Sometimes a meal may take too long to make, and some days you only have time for a Quick Food.");
 						uim.leftAllignedText("In this case, create Tags called \"Takes Long\" or \"Quick to Make\", then enable the tag on the days that you want that food.");
 						uim.leftAllignedText("If you disabled Meals with \"Takes Long\" on Mondays, then foods assigned to that Tag will not occur on Mondays.");
