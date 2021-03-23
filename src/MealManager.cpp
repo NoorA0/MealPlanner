@@ -1020,7 +1020,7 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				tempStr = uim.display();
 
 				//set new description
-				mtagPtr->setName(tempStr);
+				mtagPtr->setDescription(tempStr);
 
 				// confirm to user
 				uim.centeredText("Success!");
