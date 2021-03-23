@@ -5,13 +5,7 @@
 #include <vector>
 #include <iostream>
 
-enum Prompt
-{
-	PROMPT_NONE,
-	PROMPT_FREEINT,
-	PROMPT_FREESTRING,
-	PROMPT_LIST
-};
+
 /* 
 * <<<<<<< UIManager >>>>>>>
 * Copied from UCR Winter 2021 CS100 final project
@@ -75,15 +69,27 @@ enum Prompt
 *	displays a list of prompts for the user that look like: [<key>] - description
 *	at the bottom of the window. <key> is a single char that the user must type to choose an option.
 *	strings within prompts vector should follow this format: <key_char><description_text>.
-*	example, to show the user [1] - choice one, the string must look like "1choice one".
+*	example, to show the user "[1] - choice one", the string must look like: "1choice one".
 * 
 *	you may use characters and symbols as the <key>, they will be validated accordingly during output
+*	if <key> is a character, then user's input is case sensitive
 *	if the vector prompts is empty, UIManager will handle as if prompt_None() was called
+* 
+*	The passed in vector is cleared of data after processing.
+* 
+* prompt_List_Case_Insensitive(vector<string> prompts):
+*	same as above, but character <keys> are case insensitive.
 * 
 * prompt_FreeInt(int min, int max):
 *	lets the user type freely, accepted values are integers between and including min and max
 *		if they type an empty string, it is regarded as an incorrect input
 *		if they type "10abc", it will be regarded as the integer 10
+*		if they type "abc10", is is regarded as an incorrect input
+* 
+* * prompt_FreeDouble(double min, double max):
+*	lets the user type freely, accepted values are doubles between and including min and max
+*		if they type an empty string, it is regarded as an incorrect input
+*		if they type "10.20abc", it will be regarded as the double 10.20
 *		if they type "abc10", is is regarded as an incorrect input
 * 
 * prompt_FreeString(int maxLength):
@@ -151,12 +157,23 @@ enum Prompt
 */
 class UIManager
 {
+	enum Prompt
+	{
+		PROMPT_NONE,
+		PROMPT_FREEINT,
+		PROMPT_FREEDOUBLE,
+		PROMPT_FREESTRING,
+		PROMPT_LIST,
+		PROMPT_LIST_CASE_INSENSITIVE
+	};
+
+
 	std::vector<std::string> bodyBuffer;
 	std::vector<std::string> promptBuffer;
 	int screenWidth;
 	int screenHeight;
-	int lowerLimit;
-	int upperLimit;
+	double lowerLimit;
+	double upperLimit;
 	unsigned int inputLength;
 	Prompt promptType;
 
@@ -180,8 +197,10 @@ public:
 	void skipLines(const unsigned int& linesToSkip); 
 
 	// PROMPT OPERATIONS
-	void prompt_List(const std::vector<std::string>& prompts); 
+	void prompt_List(std::vector<std::string>& prompts); 
+	void prompt_List_Case_Insensitive(std::vector<std::string>& prompts);
 	void prompt_FreeInt(const int& min, const int& max); 
+	void prompt_FreeDouble(const double& min, const double& max);
 	void prompt_FreeString(const unsigned int& maxLength); 
 	void prompt_None();
 

@@ -506,7 +506,7 @@ TEST(UIManagerTest, prompt_List_outputFailures1)
 {
 	UIManager uim;
 	std::stringstream iStream, oStream;
-	iStream = std::stringstream("f\n\n1\n");
+	iStream = std::stringstream("q\n\nQ\n");
 
 	uim.setDimensions(80, 20);
 	std::vector<std::string> prompts =
@@ -624,17 +624,235 @@ TEST(UIManagerTest, prompt_List_outputFailures2)
 	EXPECT_EQ(oStream.str(), reference);
 }
 
+TEST(UIManagerTest, prompt_List_Case_Insensitive_empty_success1)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("\n");
+
+	uim.setDimensions(80, 20);
+	std::vector<std::string> prompts;
+	uim.prompt_List_Case_Insensitive(prompts);
+
+	uim.display(oStream, iStream);
+
+	std::string reference =
+		"--------------------------------------------------------------------------------\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|(Press <enter> to continue)                                                   |\n"
+		"--------------------------------------------------------------------------------\n"
+		":";
+
+	EXPECT_EQ(oStream.str(), reference);
+}
+
+TEST(UIManagerTest, prompt_List_Case_Insensitive_empty_success2)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream(" \n");
+
+	uim.setDimensions(80, 20);
+	std::vector<std::string> prompts;
+	prompts.push_back(" ");
+	uim.prompt_List_Case_Insensitive(prompts);
+
+	uim.display(oStream, iStream);
+
+	std::string reference =
+		"--------------------------------------------------------------------------------\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|[ ] -                                                                         |\n"
+		"--------------------------------------------------------------------------------\n"
+		":";
+
+	EXPECT_EQ(oStream.str(), reference);
+}
+
+TEST(UIManagerTest, prompt_List_Case_Insensitive_outputFailures1)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("f\n\n1\n");
+
+	uim.setDimensions(80, 20);
+	std::vector<std::string> prompts =
+	{ "1choice one", "2choice two", "QQuit game" };
+
+	uim.prompt_List_Case_Insensitive(prompts);
+
+	uim.display(oStream, iStream);
+
+	std::string reference =
+		"--------------------------------------------------------------------------------\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|[1] - choice one                                                              |\n"
+		"|[2] - choice two                                                              |\n"
+		"|[Q] - Quit game                                                               |\n"
+		"--------------------------------------------------------------------------------\n"
+		":Invalid input! Please try again.\n(Press <enter> to continue)\n\n\n"
+		"--------------------------------------------------------------------------------\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|[1] - choice one                                                              |\n"
+		"|[2] - choice two                                                              |\n"
+		"|[Q] - Quit game                                                               |\n"
+		"--------------------------------------------------------------------------------\n"
+		":";
+
+	EXPECT_EQ(oStream.str(), reference);
+}
+
+TEST(UIManagerTest, prompt_List_Case_Insensitive_outputFailures2)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("11\n\n2\n");
+
+	uim.setDimensions(80, 20);
+	std::vector<std::string> prompts =
+	{ "1choice one", "2choice two", "QQuit game" };
+
+	uim.prompt_List_Case_Insensitive(prompts);
+
+	uim.display(oStream, iStream);
+
+	std::string reference =
+		"--------------------------------------------------------------------------------\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|[1] - choice one                                                              |\n"
+		"|[2] - choice two                                                              |\n"
+		"|[Q] - Quit game                                                               |\n"
+		"--------------------------------------------------------------------------------\n"
+		":Invalid input! Your input was too long.\n(Press <enter> to continue)\n\n\n"
+		"--------------------------------------------------------------------------------\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|[1] - choice one                                                              |\n"
+		"|[2] - choice two                                                              |\n"
+		"|[Q] - Quit game                                                               |\n"
+		"--------------------------------------------------------------------------------\n"
+		":";
+
+	EXPECT_EQ(oStream.str(), reference);
+}
+
 TEST(UIManagerTest, prompt_List_inputValidation_correctInput)
 {
 	UIManager uim;
 	std::stringstream iStream, oStream;
 	std::string expected, userInput;
-	expected = "q";
-	iStream = std::stringstream("q\n");
+	expected = "Q";
+	iStream = std::stringstream("Q\n");
 
 	uim.setDimensions(80, 20);
 	std::vector<std::string> prompts =
 	{ "1choice one", "2choice two", "QQuit game" };
+
+	uim.prompt_List(prompts);
+
+	userInput = uim.display(oStream, iStream);
+
+	EXPECT_EQ(expected, userInput);
+}
+
+TEST(UIManagerTest, prompt_List_inputValidation_correctInput2)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	std::string expected, userInput;
+	expected = "a";
+	iStream = std::stringstream("a\n");
+
+	uim.setDimensions(80, 20);
+	std::vector<std::string> prompts =
+	{ "1choice one", "achoice two", "QQuit game" };
 
 	uim.prompt_List(prompts);
 
@@ -656,6 +874,101 @@ TEST(UIManagerTest, prompt_List_inputValidation_badInput)
 	{ "#choice one", "2choice two", "QQuit game" };
 
 	uim.prompt_List(prompts);
+
+	userInput = uim.display(oStream, iStream);
+
+	EXPECT_EQ(expected, userInput);
+}
+
+TEST(UIManagerTest, prompt_List_inputValidation_badInput2)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	std::string expected, userInput;
+	expected = "Q";
+	iStream = std::stringstream("q\n\nQ\n");
+
+	uim.setDimensions(80, 20);
+	std::vector<std::string> prompts =
+	{ "#choice one", "2choice two", "QQuit game" };
+
+	uim.prompt_List(prompts);
+
+	userInput = uim.display(oStream, iStream);
+
+	EXPECT_EQ(expected, userInput);
+}
+
+TEST(UIManagerTest, prompt_List_Case_Insensitive_inputValidation_correctInput)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	std::string expected, userInput;
+	expected = "q";
+	iStream = std::stringstream("q\n");
+
+	uim.setDimensions(80, 20);
+	std::vector<std::string> prompts =
+	{ "1choice one", "2choice two", "QQuit game" };
+
+	uim.prompt_List_Case_Insensitive(prompts);
+
+	userInput = uim.display(oStream, iStream);
+
+	EXPECT_EQ(expected, userInput);
+}
+
+TEST(UIManagerTest, prompt_List_Case_Insensitive_inputValidation_correctInput2)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	std::string expected, userInput;
+	expected = "1";
+	iStream = std::stringstream("1\n");
+
+	uim.setDimensions(80, 20);
+	std::vector<std::string> prompts =
+	{ "1choice one", "achoice two", "QQuit game" };
+
+	uim.prompt_List_Case_Insensitive(prompts);
+
+	userInput = uim.display(oStream, iStream);
+
+	EXPECT_EQ(expected, userInput);
+}
+
+TEST(UIManagerTest, prompt_List_Case_Insensitive_inputValidation_badInput)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	std::string expected, userInput;
+	expected = "#";
+	iStream = std::stringstream("1\n\nE\n\n#\n");
+
+	uim.setDimensions(80, 20);
+	std::vector<std::string> prompts =
+	{ "#choice one", "2choice two", "QQuit game" };
+
+	uim.prompt_List_Case_Insensitive(prompts);
+
+	userInput = uim.display(oStream, iStream);
+
+	EXPECT_EQ(expected, userInput);
+}
+
+TEST(UIManagerTest, prompt_List_Case_Insensitive_inputValidation_badInput2)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	std::string expected, userInput;
+	expected = "Q";
+	iStream = std::stringstream("m\n\nQ\n");
+
+	uim.setDimensions(80, 20);
+	std::vector<std::string> prompts =
+	{ "#choice one", "2choice two", "QQuit game" };
+
+	uim.prompt_List_Case_Insensitive(prompts);
 
 	userInput = uim.display(oStream, iStream);
 
@@ -803,6 +1116,153 @@ TEST(UIManagerTest, prompt_FreeInt_inputChar)
 
 	uim.setDimensions(80, 20);
 	uim.prompt_FreeInt(0, 0);
+
+	userInput = uim.display(oStream, iStream);
+
+	EXPECT_EQ(expected, userInput);
+}
+
+TEST(UIManagerTest, prompt_FreeDouble_outputSuccess)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("3.99\n");
+
+	uim.setDimensions(80, 20);
+	uim.prompt_FreeDouble(1.23, 4.56);
+
+	uim.display(oStream, iStream);
+
+	std::string reference =
+		"--------------------------------------------------------------------------------\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|(Enter a value between 1.23 and 4.56)                                         |\n"
+		"--------------------------------------------------------------------------------\n"
+		":";
+
+	EXPECT_EQ(oStream.str(), reference);
+}
+
+TEST(UIManagerTest, prompt_FreeDouble_outputFailures)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("-1\n\n22.7\n");
+
+	uim.setDimensions(80, 20);
+	uim.prompt_FreeDouble(0, 255.5);
+
+	uim.display(oStream, iStream);
+
+	std::string reference =
+		"--------------------------------------------------------------------------------\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|(Enter a value between 0 and 255.5)                                           |\n"
+		"--------------------------------------------------------------------------------\n"
+		":Invalid input! Enter a value between 0 and 255.5.\n"
+		"(Press <enter> to continue)\n\n\n"
+		"--------------------------------------------------------------------------------\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|(Enter a value between 0 and 255.5)                                           |\n"
+		"--------------------------------------------------------------------------------\n"
+		":";
+
+	EXPECT_EQ(oStream.str(), reference);
+}
+
+TEST(UIManagerTest, prompt_FreeDouble_negativeInputSuccess)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("-100.9\n");
+
+	std::string expected, userInput;
+	expected = "-100.9";
+
+	uim.setDimensions(80, 20);
+	uim.prompt_FreeDouble(-200, -99);
+
+	userInput = uim.display(oStream, iStream);
+
+	EXPECT_EQ(expected, userInput);
+}
+
+TEST(UIManagerTest, prompt_FreeDouble_inputFailures)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("-100.99\n\n70.1000000\n\n0");
+
+	std::string expected, userInput;
+	expected = "0";
+
+	uim.setDimensions(80, 20);
+	uim.prompt_FreeDouble(0, 0);
+
+	userInput = uim.display(oStream, iStream);
+
+	EXPECT_EQ(expected, userInput);
+}
+
+TEST(UIManagerTest, prompt_FreeDouble_inputChar)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("E\n\n0");
+
+	std::string expected, userInput;
+	expected = "0";
+
+	uim.setDimensions(80, 20);
+	uim.prompt_FreeDouble(0, 0);
 
 	userInput = uim.display(oStream, iStream);
 

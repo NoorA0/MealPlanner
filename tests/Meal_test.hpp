@@ -3,6 +3,15 @@
 
 #include "../headers/Meal.hpp"
 
+TEST(MealTest, defaultConstructor)
+{
+	Meal testMeal;
+
+	EXPECT_EQ(testMeal.getName(), "UNSET");
+	EXPECT_DOUBLE_EQ(testMeal.getPrice(), 0.0);
+	EXPECT_EQ(testMeal.getIsDisabled(), true);
+}
+
 TEST(MealTest, setName_getName)
 {
 	Meal testMeal;
@@ -24,14 +33,14 @@ TEST(MealTest, setTags_getTags)
 	{FRIDAY, false}, {SATURDAY, true}, {SUNDAY, false} };
 
 	Tag newTag("Name", "Desc", enabledDays, true, 3);
-	std::vector<Tag> newTags; newTags.push_back(newTag);
+	std::vector<Tag*> newTags; newTags.push_back(&newTag);
 
 	Meal testMeal;
 	testMeal.setTags(newTags);
 
-	EXPECT_EQ("Name", testMeal.getTags().at(0).getName());
-	EXPECT_EQ("Desc", testMeal.getTags().at(0).getDescription());
-	EXPECT_EQ(true, testMeal.getTags().at(0).getPriority());
+	EXPECT_EQ("Name", testMeal.getTags().at(0)->getName());
+	EXPECT_EQ("Desc", testMeal.getTags().at(0)->getDescription());
+	EXPECT_EQ(true, testMeal.getTags().at(0)->getDependency());
 }
 
 TEST(MealTest, addTag)
@@ -40,35 +49,22 @@ TEST(MealTest, addTag)
 	{ {MONDAY, false}, {TUESDAY, true}, {WEDNESDAY, false}, {THURSDAY, true},
 	{FRIDAY, false}, {SATURDAY, true}, {SUNDAY, false} };
 
-	Tag newTag("10101", "000111", enabledDays, true, 3);
+	Tag* newTag = new Tag("10101", "000111", enabledDays, true, 3);
 
 	Meal testMeal;
 	testMeal.addTag(newTag);
 
-	EXPECT_EQ("10101", testMeal.getTags().at(0).getName());
-	EXPECT_EQ("000111", testMeal.getTags().at(0).getDescription());
-	EXPECT_EQ(true, testMeal.getTags().at(0).getPriority());
+	EXPECT_EQ("10101", testMeal.getTags().at(0)->getName());
+	EXPECT_EQ("000111", testMeal.getTags().at(0)->getDescription());
+	EXPECT_EQ(true, testMeal.getTags().at(0)->getDependency());
+	
+	delete newTag;
 }
 
-TEST(MealTest, setEnabledDays_getEnabledDays)
+TEST(MealTest, isDisabled)
 {
 	Meal testMeal;
-	std::map<DaysOfTheWeek, bool> testDOTW =
-	{ {MONDAY, false}, {TUESDAY, true}, {WEDNESDAY, false}, {THURSDAY, true},
-	{FRIDAY, false}, {SATURDAY, true}, {SUNDAY, false} };
-
-	testMeal.setEnabledDays(testDOTW);
-	std::map<DaysOfTheWeek, bool> returnDOTW = testMeal.getEnabledDays();
-
-	EXPECT_EQ(returnDOTW.find(MONDAY)->first, MONDAY);
-	EXPECT_EQ(returnDOTW.find(MONDAY)->second, false);
-	EXPECT_EQ(returnDOTW.find(TUESDAY)->second, true);
-	EXPECT_EQ(returnDOTW.find(WEDNESDAY)->second, false);
-	EXPECT_EQ(returnDOTW.find(THURSDAY)->second, true);
-	EXPECT_EQ(returnDOTW.find(FRIDAY)->second, false);
-	EXPECT_EQ(returnDOTW.find(SATURDAY)->second, true);
-	EXPECT_EQ(returnDOTW.find(SUNDAY)->second, false);
+	testMeal.setIsDisabled(false);
+	EXPECT_EQ(testMeal.getIsDisabled(), false);
 }
-
-
 #endif // !__MEAL_TEST_HPP__
