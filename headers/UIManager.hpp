@@ -101,6 +101,10 @@
 * ------- OTHER OPERATIONS -------
 * setDimensions(int width, int height): sets character dimensions of the output window
 *
+* unsigned int getHeight(): returns screenHeight
+* unsigned int getWidth(): returns screenWidth
+*
+* 
 * string display(ostream, istream): 
 *	outputs body text and prompt text to user with correct formatting,
 *	then gets user input according to the prompt type that was selected most recently.
@@ -207,6 +211,8 @@ public:
 
 	// OTHER OPERATIONS
 	void setDimensions(const unsigned int& width, const unsigned int& height);
+	unsigned int getHeight() const;
+	unsigned int getWidth() const;
 	std::string display(std::ostream& out = std::cout, std::istream& in = std::cin);
 };
 

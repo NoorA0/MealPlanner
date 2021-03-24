@@ -498,6 +498,16 @@ void UIManager::setDimensions(const unsigned int& width, const unsigned int& hei
 		screenHeight = height;
 }
 
+unsigned int UIManager::getHeight() const
+{
+	return screenHeight;
+}
+
+unsigned int UIManager::getWidth() const
+{
+	return screenWidth;
+}
+
 std::string UIManager::display(std::ostream& out, std::istream& in)
 {
 	int availBodyHeight; // available height to print bodyBuffer

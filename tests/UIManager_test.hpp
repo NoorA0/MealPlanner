@@ -1420,4 +1420,14 @@ TEST(UIManagerTest, prompt_FreeString_inputFailures)
 
 	EXPECT_EQ(expected, userInput);
 }
+
+TEST(UIManagerTest, getHeight_getWidth)
+{
+	UIManager uim;
+	uim.setDimensions(50, 29);
+
+	EXPECT_EQ(uim.getHeight(), 29);
+	EXPECT_EQ(uim.getWidth(), 50);
+}
+
 #endif // !__UIMANAGER_TEST_HPP__
