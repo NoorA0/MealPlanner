@@ -63,7 +63,7 @@ int main()
 	};
 
 	UIManager uim; 
-	MealManager mealManager(MINIMUM_PRICE, MAXIMUM_PRICE, NAME_LENGTH, DESC_LENGTH);
+	MealManager mealManager(MINIMUM_PRICE, MAXIMUM_PRICE, NAME_LENGTH, DESC_LENGTH, uim);
 	
 	// used to write to file, load from file
 	std::ifstream iFile;
@@ -134,10 +134,10 @@ int main()
 			mealManager.generateSchedule();
 			break;
 		case 2: // view Meals
-			mealManager.mealEditor(uim);
+			mealManager.mealEditor();
 			break;
 		case 3: // view Tags
-			mealManager.tagEditor(uim);
+			mealManager.tagEditor();
 			break;
 		case 4: // program manual
 			// main menu

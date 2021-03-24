@@ -2,7 +2,7 @@
 #include <fstream>
 
 MealManager::MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE,
-	const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH)
+	const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH, UIManager& uim)
 {
 	// verify values
 	if (MINIMUM_PRICE >= 0)
@@ -17,6 +17,8 @@ MealManager::MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRIC
 
 	this->NAME_LENGTH = NAME_LENGTH;
 	this->DESC_LENGTH = DESC_LENGTH;
+
+	this->uim = &uim;
 }
 
 MealManager::~MealManager()
@@ -49,9 +51,10 @@ MealManager::~MealManager()
 		delete tagsIter;
 	}
 	multiTags.clear();
+	uim = nullptr;
 }
 
-void MealManager::createMeal(Meal* mealptr, UIManager& uim)
+void MealManager::createMeal(Meal* mealptr)
 {
 	bool doneCreating = false;
 	bool inputValid = false;
@@ -63,20 +66,20 @@ void MealManager::createMeal(Meal* mealptr, UIManager& uim)
 	// loop while user is not done choosing a name
 	while (!doneCreating)
 	{
-		uim.centeredText("New Meal");
-		uim.skipLines(2);
+		uim->centeredText("New Meal");
+		uim->skipLines(2);
 
 		// prompt and get name
-		uim.centeredText("Enter a name.");
-		uim.skipLines(2);
-		uim.leftAllignedText("Examples:");
-		uim.skipLines(1);
-		uim.leftAllignedText("Hamburgers");
-		uim.leftAllignedText("Tacos");
-		uim.leftAllignedText("Ceasar Salad");
-		uim.leftAllignedText("The Dijkstra Special");
-		uim.prompt_FreeString(1, NAME_LENGTH);
-		tempStr = uim.display();
+		uim->centeredText("Enter a name.");
+		uim->skipLines(2);
+		uim->leftAllignedText("Examples:");
+		uim->skipLines(1);
+		uim->leftAllignedText("Hamburgers");
+		uim->leftAllignedText("Tacos");
+		uim->leftAllignedText("Ceasar Salad");
+		uim->leftAllignedText("The Dijkstra Special");
+		uim->prompt_FreeString(1, NAME_LENGTH);
+		tempStr = uim->display();
 
 		// if there are other meals stored, check if names conflict (case insensitive)
 		if (meals.size() > 0)
@@ -117,10 +120,10 @@ void MealManager::createMeal(Meal* mealptr, UIManager& uim)
 			}
 			else // invalid name, inform user
 			{
-				uim.centeredText("Error: Invalid Name");
-				uim.skipLines(2);
-				uim.leftAllignedText("The name you entered already exists. (case insensitive)");
-				uim.display();
+				uim->centeredText("Error: Invalid Name");
+				uim->skipLines(2);
+				uim->leftAllignedText("The name you entered already exists. (case insensitive)");
+				uim->display();
 			}
 		}
 		else // add meal
@@ -133,45 +136,45 @@ void MealManager::createMeal(Meal* mealptr, UIManager& uim)
 
 	// price
 	tempStr = "New Meal: \"" + mealptr->getName() + "\"";
-	uim.centeredText(tempStr);
-	uim.skipLines(2);
+	uim->centeredText(tempStr);
+	uim->skipLines(2);
 
 	// prompt and get price
-	uim.centeredText("Enter a price:");
-	uim.prompt_FreeDouble(MINIMUM_PRICE, MAXIMUM_PRICE);
-	tempDouble = std::stod(uim.display());
+	uim->centeredText("Enter a price:");
+	uim->prompt_FreeDouble(MINIMUM_PRICE, MAXIMUM_PRICE);
+	tempDouble = std::stod(uim->display());
 
 	mealptr->setPrice(tempDouble);
 
 	// mealDuration
 	tempStr = "New Meal: \"" + mealptr->getName() + "\"";
-	uim.centeredText(tempStr);
-	uim.centeredText("Duration");
-	uim.skipLines(2);
-	uim.centeredText("How many days does this meal last?");
-	uim.centeredText("(1 day is typical, Meals prepared in large batches may last longer)");
-	uim.prompt_FreeInt(1, 30);
-	tempInt = std::stoi(uim.display());
+	uim->centeredText(tempStr);
+	uim->centeredText("Duration");
+	uim->skipLines(2);
+	uim->centeredText("How many days does this meal last?");
+	uim->centeredText("(1 day is typical, Meals prepared in large batches may last longer)");
+	uim->prompt_FreeInt(1, 30);
+	tempInt = std::stoi(uim->display());
 
 	mealptr->setMealDuration(tempInt);
 
 	// daysBetweenOccurrences
 	tempStr = "New Meal: \"" + mealptr->getName() + "\"";
-	uim.centeredText(tempStr);
-	uim.centeredText("Days Between Occurrences");
-	uim.skipLines(2);
-	uim.centeredText("When this Meal is scheduled, how many days should pass before it can be scheduled again?");
-	uim.centeredText("(value of 0 will not delay scheduling, 1 will make it occur every other day)");
-	uim.prompt_FreeInt(0, 30);
-	tempInt = std::stoi(uim.display());
+	uim->centeredText(tempStr);
+	uim->centeredText("Days Between Occurrences");
+	uim->skipLines(2);
+	uim->centeredText("When this Meal is scheduled, how many days should pass before it can be scheduled again?");
+	uim->centeredText("(value of 0 will not delay scheduling, 1 will make it occur every other day)");
+	uim->prompt_FreeInt(0, 30);
+	tempInt = std::stoi(uim->display());
 
 	mealptr->setDaysBetweenOccurrences(tempInt);
 
 	// assign tags to meal
-	editMealTags(mealptr, uim);
+	editMealTags(mealptr);
 }
 
-void MealManager::createTag(Tag* tagPtr, UIManager& uim)
+void MealManager::createTag(Tag* tagPtr)
 {
 	std::string tempStr = "";
 	int tempInt;
@@ -188,22 +191,22 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 	while (!doneCreatingName)
 	{
 		// prompt and get name
-		uim.centeredText("New Tag");
-		uim.skipLines(2);
+		uim->centeredText("New Tag");
+		uim->skipLines(2);
 
-		uim.centeredText("Enter a name:");
-		uim.centeredText("(recommended 2 - 4 words)");
-		uim.skipLines(2);
-		uim.leftAllignedText("Examples:"); 
-		uim.skipLines(1);
-		uim.leftAllignedText("Chicken");
-		uim.leftAllignedText("Vegetarian");
-		uim.leftAllignedText("Takes long to cook");
-		uim.leftAllignedText("Dessert");
-		uim.leftAllignedText("Weekends Only");
-		uim.prompt_FreeString(1, NAME_LENGTH);
+		uim->centeredText("Enter a name:");
+		uim->centeredText("(recommended 2 - 4 words)");
+		uim->skipLines(2);
+		uim->leftAllignedText("Examples:"); 
+		uim->skipLines(1);
+		uim->leftAllignedText("Chicken");
+		uim->leftAllignedText("Vegetarian");
+		uim->leftAllignedText("Takes long to cook");
+		uim->leftAllignedText("Dessert");
+		uim->leftAllignedText("Weekends Only");
+		uim->prompt_FreeString(1, NAME_LENGTH);
 
-		tempStr = uim.display();
+		tempStr = uim->display();
 
 		// if there are other tags stored, check if names conflict (case insensitive)
 		if (normalTags.size() > 0)
@@ -240,10 +243,10 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 				doneCreatingName = true;
 			else // invalid name, inform user
 			{
-				uim.centeredText("Error: Invalid Name");
-				uim.skipLines(2);
-				uim.leftAllignedText("The name you entered already exists. (case insensitive)");
-				uim.display();
+				uim->centeredText("Error: Invalid Name");
+				uim->skipLines(2);
+				uim->leftAllignedText("The name you entered already exists. (case insensitive)");
+				uim->display();
 			}
 		}
 		else // no tags to compare
@@ -254,27 +257,27 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 
 	// prompt and get description
 	tempStr = "New Tag: \"" + tagPtr->getName() + "\"";
-	uim.centeredText(tempStr);
-	uim.centeredText("Description");
-	uim.skipLines(2);
+	uim->centeredText(tempStr);
+	uim->centeredText("Description");
+	uim->skipLines(2);
 
-	uim.centeredText("Enter a description:");
-	uim.centeredText("(Press <enter> to skip)");
-	uim.prompt_FreeString(0, DESC_LENGTH);
-	tagPtr->setDescription(uim.display());
+	uim->centeredText("Enter a description:");
+	uim->centeredText("(Press <enter> to skip)");
+	uim->prompt_FreeString(0, DESC_LENGTH);
+	tagPtr->setDescription(uim->display());
 
 	// prompt and get dependency
 	tempStr = "New Tag: \"" + tagPtr->getName() + "\"";
-	uim.centeredText(tempStr);
-	uim.centeredText("MultiTag Dependency");
-	uim.skipLines(2);
+	uim->centeredText(tempStr);
+	uim->centeredText("MultiTag Dependency");
+	uim->skipLines(2);
 
-	uim.centeredText("Disable this Tag unless linked with a MultiTag?");
-	uim.centeredText("(Recommended: No)");
+	uim->centeredText("Disable this Tag unless linked with a MultiTag?");
+	uim->centeredText("(Recommended: No)");
 	strVec = { "YYes", "NNo" };
-	uim.prompt_List_Case_Insensitive(strVec);
+	uim->prompt_List_Case_Insensitive(strVec);
 
-	tempStr = uim.display();
+	tempStr = uim->display();
 	tempStr = std::toupper(tempStr.at(0));
 
 	// set hasPriority depending on user choice
@@ -285,74 +288,74 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 
 	// prompt and get consecutiveLimit
 	tempStr = "New Tag: \"" + tagPtr->getName() + "\"";
-	uim.centeredText(tempStr);
-	uim.centeredText("Consecutive Days Limit");
-	uim.skipLines(2);
+	uim->centeredText(tempStr);
+	uim->centeredText("Consecutive Days Limit");
+	uim->skipLines(2);
 
-	uim.centeredText("How many consecutive days can a Meal with this Tag occur for?");
-	uim.prompt_FreeInt(0, 1000);
-	tagPtr->setConsecutiveLimit(std::stoi(uim.display()));
+	uim->centeredText("How many consecutive days can a Meal with this Tag occur for?");
+	uim->prompt_FreeInt(0, 1000);
+	tagPtr->setConsecutiveLimit(std::stoi(uim->display()));
 
 	tempStr = "";
 	// let user set enabled days or quit
 	while (tempStr != "Q")
 	{
 		tempStr = "New Tag: \"" + tagPtr->getName() + "\"";
-		uim.centeredText(tempStr);
-		uim.centeredText("Enabled Days");
-		uim.skipLines(2);
+		uim->centeredText(tempStr);
+		uim->centeredText("Enabled Days");
+		uim->skipLines(2);
 
-		uim.centeredText("Choose days that Meals with this Tag may occur on:");
-		uim.skipLines(1);
+		uim->centeredText("Choose days that Meals with this Tag may occur on:");
+		uim->skipLines(1);
 
 		tempStr = "MON: ";
 		if (enabledDays.find(MONDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "TUE: ";
 		if (enabledDays.find(TUESDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "WED: ";
 		if (enabledDays.find(WEDNESDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "THU: ";
 		if (enabledDays.find(THURSDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "FRI: ";
 		if (enabledDays.find(FRIDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "SAT: ";
 		if (enabledDays.find(SATURDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "SUN: ";
 		if (enabledDays.find(SUNDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		// print options
 		strVec.clear();
@@ -361,8 +364,8 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 				  "EEnable ALL", "DDisable ALL","- ", "QExit & Confirm Selection" };
 
 		// prompt and get input
-		uim.prompt_List_Case_Insensitive(strVec);
-		tempStr = uim.display();
+		uim->prompt_List_Case_Insensitive(strVec);
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
 		if (tempStr == "E")
@@ -437,7 +440,7 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 	tagPtr->setEnabledDays(enabledDays);
 }
 
-void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
+void MealManager::createMultiTag(MultiTag* mtagPtr)
 {
 	std::string tempStr = "";
 	int tempInt;
@@ -454,20 +457,20 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	while (!doneCreatingName)
 	{
 		// prompt and get name
-		uim.centeredText("New MultiTag");
-		uim.skipLines(2);
+		uim->centeredText("New MultiTag");
+		uim->skipLines(2);
 
-		uim.centeredText("Enter a name:");
-		uim.centeredText("(recommended 2 - 4 words)");
-		uim.skipLines(2);
-		uim.leftAllignedText("Examples:");
-		uim.skipLines(1);
-		uim.leftAllignedText("Guest Meals");
-		uim.leftAllignedText("No Time");
-		uim.leftAllignedText("Birthday Party");
-		uim.prompt_FreeString(1, NAME_LENGTH);
+		uim->centeredText("Enter a name:");
+		uim->centeredText("(recommended 2 - 4 words)");
+		uim->skipLines(2);
+		uim->leftAllignedText("Examples:");
+		uim->skipLines(1);
+		uim->leftAllignedText("Guest Meals");
+		uim->leftAllignedText("No Time");
+		uim->leftAllignedText("Birthday Party");
+		uim->prompt_FreeString(1, NAME_LENGTH);
 
-		tempStr = uim.display();
+		tempStr = uim->display();
 
 		// if there are other tags stored, check if names conflict (case insensitive)
 		if (multiTags.size() > 0)
@@ -504,10 +507,10 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				doneCreatingName = true;
 			else // invalid name, inform user
 			{
-				uim.centeredText("Error: Invalid Name");
-				uim.skipLines(2);
-				uim.leftAllignedText("The name you entered already exists. (case insensitive)");
-				uim.display();
+				uim->centeredText("Error: Invalid Name");
+				uim->skipLines(2);
+				uim->leftAllignedText("The name you entered already exists. (case insensitive)");
+				uim->display();
 			}
 		}
 		else // no tags to compare
@@ -519,27 +522,27 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 
 	// prompt and get description
 	tempStr = "New MultiTag: \"" + mtagPtr->getName() + "\"";
-	uim.centeredText(tempStr);
-	uim.skipLines(2);
+	uim->centeredText(tempStr);
+	uim->skipLines(2);
 
-	uim.centeredText("Enter a description:");
-	uim.centeredText("(Press <enter> to skip)");
-	uim.prompt_FreeString(0, DESC_LENGTH);
-	mtagPtr->setDescription(uim.display());
+	uim->centeredText("Enter a description:");
+	uim->centeredText("(Press <enter> to skip)");
+	uim->prompt_FreeString(0, DESC_LENGTH);
+	mtagPtr->setDescription(uim->display());
 
 	// prompt and get dependency
 	tempStr = "New MultiTag: \"" + mtagPtr->getName() + "\"";
-	uim.centeredText(tempStr);
-	uim.centeredText("Priority Level");
-	uim.skipLines(2);
+	uim->centeredText(tempStr);
+	uim->centeredText("Priority Level");
+	uim->skipLines(2);
 
-	uim.centeredText("MultiTags can take priority over normal Tags when creating a Meal Plan.");
-	uim.centeredText("Do you want to give this MultiTag elevated priority, or make it behave like normal Tag?");
+	uim->centeredText("MultiTags can take priority over normal Tags when creating a Meal Plan.");
+	uim->centeredText("Do you want to give this MultiTag elevated priority, or make it behave like normal Tag?");
 
 	strVec = { "1Elevated Priority", "2Behave like a normal Tag" };
-	uim.prompt_List_Case_Insensitive(strVec);
+	uim->prompt_List_Case_Insensitive(strVec);
 
-	tempStr = uim.display();
+	tempStr = uim->display();
 
 	// set priority depending on user choice
 	if (tempStr == "1")
@@ -552,62 +555,62 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	while (tempStr != "Q")
 	{
 		tempStr = "New MultiTag: \"" + mtagPtr->getName() + "\"";
-		uim.centeredText(tempStr);
-		uim.centeredText("Enabled Days");
-		uim.skipLines(2);
+		uim->centeredText(tempStr);
+		uim->centeredText("Enabled Days");
+		uim->skipLines(2);
 
 		tempStr = "Choose the days that you want \"" + mtagPtr->getName() + "\" to be active on:";
-		uim.centeredText(tempStr);
-		uim.skipLines(1);
+		uim->centeredText(tempStr);
+		uim->skipLines(1);
 
 		tempStr = "MON: ";
 		if (enabledDays.find(MONDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "TUE: ";
 		if (enabledDays.find(TUESDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "WED: ";
 		if (enabledDays.find(WEDNESDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "THU: ";
 		if (enabledDays.find(THURSDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "FRI: ";
 		if (enabledDays.find(FRIDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "SAT: ";
 		if (enabledDays.find(SATURDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "SUN: ";
 		if (enabledDays.find(SUNDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		// print options
 		strVec.clear();
@@ -616,8 +619,8 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				  "EEnable ALL", "DDisable ALL","- ", "QExit & Confirm Selection" };
 
 		// prompt and get input
-		uim.prompt_List_Case_Insensitive(strVec);
-		tempStr = uim.display();
+		uim->prompt_List_Case_Insensitive(strVec);
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
 		if (tempStr == "E")
@@ -694,19 +697,19 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	mtagPtr->setEnabledDays(enabledDays);
 
 	// link to other tags
-	editMultiTagTags(mtagPtr, uim);
+	editMultiTagTags(mtagPtr);
 
 	// set enabled/disabled
 	tempStr = "New MultiTag: \"" + mtagPtr->getName() + "\"";
-	uim.centeredText(tempStr);
-	uim.centeredText("Enable/Disable");
-	uim.skipLines(2);
+	uim->centeredText(tempStr);
+	uim->centeredText("Enable/Disable");
+	uim->skipLines(2);
 
-	uim.centeredText("Do you want to Enable this MultiTag?");
+	uim->centeredText("Do you want to Enable this MultiTag?");
 	strVec = { "YYes", "NNo" };
-	uim.prompt_List_Case_Insensitive(strVec);
+	uim->prompt_List_Case_Insensitive(strVec);
 
-	tempStr = uim.display();
+	tempStr = uim->display();
 	tempStr = std::toupper(tempStr.at(0));
 
 	// enable/disable according to choice
@@ -717,7 +720,7 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 
 }
 
-void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
+void MealManager::editMealTags(Meal* mealPtr)
 {
 	std::string tempStr = "";
 	int tempInt;
@@ -727,16 +730,16 @@ void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
 	if (mealPtr->getTags().size() == 0)
 	{
 		// ui title
-		uim.centeredText("Assign Tags");
-		uim.skipLines(2);
+		uim->centeredText("Assign Tags");
+		uim->skipLines(2);
 
 		tempStr = "\"" + mealPtr->getName() + "\" has no assigned Tags, do you want to assign some?";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		strVec = { "YYes", "NNo" };
-		uim.prompt_List_Case_Insensitive(strVec);
+		uim->prompt_List_Case_Insensitive(strVec);
 
-		tempStr = uim.display();
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
 		// bypass display tags
@@ -748,15 +751,15 @@ void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
 	if (normalTags.size() == 0 && tempStr != "Q")
 	{
 		// ui title
-		uim.centeredText("Assign Tags");
-		uim.skipLines(2);
+		uim->centeredText("Assign Tags");
+		uim->skipLines(2);
 
-		uim.centeredText("There are no saved Tags, do you want to create one?");
+		uim->centeredText("There are no saved Tags, do you want to create one?");
 
 		strVec = { "YYes", "NNo" };
-		uim.prompt_List_Case_Insensitive(strVec);
+		uim->prompt_List_Case_Insensitive(strVec);
 
-		tempStr = uim.display();
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
 		// bypass editing tags
@@ -766,7 +769,7 @@ void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
 		{
 			// create a tag
 			Tag* tagPtr = new Tag;
-			createTag(tagPtr, uim);
+			createTag(tagPtr);
 
 			// add tag to saved tags and to meal
 			normalTags.push_back(tagPtr);
@@ -782,7 +785,7 @@ void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
 		// prompt for tag, or quit
 		do
 		{
-			tempInt = displayTags(uim);
+			tempInt = displayTags();
 
 			// if user did not choose to quit
 			if (tempInt != -1)
@@ -805,10 +808,10 @@ void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
 				if (!isValid)
 				{
 					// tell user the tag exists
-					uim.centeredText("Error");
-					uim.skipLines(2);
-					uim.leftAllignedText("Tag is already assigned to Meal.");
-					uim.display();
+					uim->centeredText("Error");
+					uim->skipLines(2);
+					uim->leftAllignedText("Tag is already assigned to Meal.");
+					uim->display();
 				}
 				else
 				{
@@ -816,10 +819,10 @@ void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
 					mealPtr->addTag(compare);
 
 					// display confirmation
-					uim.centeredText("Success!");
-					uim.skipLines(2);
-					uim.centeredText("Tag assigned to Meal.");
-					uim.display();
+					uim->centeredText("Success!");
+					uim->skipLines(2);
+					uim->centeredText("Tag assigned to Meal.");
+					uim->display();
 				}
 			}
 			else // user chose to quit
@@ -831,7 +834,7 @@ void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
 	}// else if (tempStr != "Q")
 }
 
-void MealManager::editMultiTagTags(MultiTag* mtagPtr, UIManager& uim)
+void MealManager::editMultiTagTags(MultiTag* mtagPtr)
 {
 	std::string tempStr = "";
 	int tempInt;
@@ -841,16 +844,16 @@ void MealManager::editMultiTagTags(MultiTag* mtagPtr, UIManager& uim)
 	if (mtagPtr->getLinkedTags().size() == 0)
 	{
 		// ui title
-		uim.centeredText("Link Tags");
-		uim.skipLines(2);
+		uim->centeredText("Link Tags");
+		uim->skipLines(2);
 
 		tempStr = "\"" + mtagPtr->getName() + "\" has no linked Tags, do you want to link some?";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		strVec = { "YYes", "NNo" };
-		uim.prompt_List_Case_Insensitive(strVec);
+		uim->prompt_List_Case_Insensitive(strVec);
 
-		tempStr = uim.display();
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
 		// bypass display tags
@@ -862,15 +865,15 @@ void MealManager::editMultiTagTags(MultiTag* mtagPtr, UIManager& uim)
 	if (normalTags.size() == 0 && tempStr != "Q")
 	{
 		// ui title
-		uim.centeredText("Link Tags");
-		uim.skipLines(2);
+		uim->centeredText("Link Tags");
+		uim->skipLines(2);
 
-		uim.centeredText("There are no saved Tags, do you want to create one?");
+		uim->centeredText("There are no saved Tags, do you want to create one?");
 
 		strVec = { "YYes", "NNo" };
-		uim.prompt_List_Case_Insensitive(strVec);
+		uim->prompt_List_Case_Insensitive(strVec);
 
-		tempStr = uim.display();
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
 		// bypass editing tags
@@ -880,17 +883,17 @@ void MealManager::editMultiTagTags(MultiTag* mtagPtr, UIManager& uim)
 		{
 			// create a tag
 			Tag* tagPtr = new Tag;
-			createTag(tagPtr, uim);
+			createTag(tagPtr);
 
 			// add tag to saved tags
 			normalTags.push_back(tagPtr);
 
 			// prompt for number of Meals with this tag
-			uim.centeredText("Link Tags");
-			uim.skipLines(2);
-			uim.centeredText("How many unique Meals from this Tag do you want to eat in one day?");
-			uim.prompt_FreeInt(0, 100);
-			tempInt = std::stoi(uim.display());
+			uim->centeredText("Link Tags");
+			uim->skipLines(2);
+			uim->centeredText("How many unique Meals from this Tag do you want to eat in one day?");
+			uim->prompt_FreeInt(0, 100);
+			tempInt = std::stoi(uim->display());
 
 			// link Tag to MultiTag
 			mtagPtr->addLinkedTag(tagPtr, tempInt);
@@ -903,7 +906,7 @@ void MealManager::editMultiTagTags(MultiTag* mtagPtr, UIManager& uim)
 		// prompt for tag, or quit
 		do
 		{
-			tempInt = displayTags(uim);
+			tempInt = displayTags();
 
 			// if user did not choose to quit
 			if (tempInt != -1)
@@ -926,32 +929,32 @@ void MealManager::editMultiTagTags(MultiTag* mtagPtr, UIManager& uim)
 				if (!isValid)
 				{
 					// tell user the tag exists
-					uim.centeredText("Error");
-					uim.skipLines(2);
+					uim->centeredText("Error");
+					uim->skipLines(2);
 					tempStr = "\"" + compare->getName() + "\" is already linked to \"" + mtagPtr->getName() + "\".";
-					uim.centeredText(tempStr);
-					uim.display();
+					uim->centeredText(tempStr);
+					uim->display();
 				}
 				else
 				{
 					// ask for amount
-					uim.centeredText("Link Tags");
-					uim.skipLines(2);
+					uim->centeredText("Link Tags");
+					uim->skipLines(2);
 					tempStr = "How many meals from \"" + compare->getName() = "\" do you want to eat in one day?";
-					uim.centeredText(tempStr);
-					uim.prompt_FreeInt(0, 100);
-					tempInt = std::stoi(uim.display());
+					uim->centeredText(tempStr);
+					uim->prompt_FreeInt(0, 100);
+					tempInt = std::stoi(uim->display());
 
 					// link Tag to multitag
 					mtagPtr->addLinkedTag(compare, tempInt);
 
 					// display confirmation
-					uim.centeredText("Success!");
-					uim.skipLines(2);
+					uim->centeredText("Success!");
+					uim->skipLines(2);
 
 					tempStr = "\"" + compare->getName() + "\" was linked to \"" + mtagPtr->getName() + "\".";
-					uim.centeredText(tempStr);
-					uim.display();
+					uim->centeredText(tempStr);
+					uim->display();
 
 					compare = nullptr;
 
@@ -966,7 +969,7 @@ void MealManager::editMultiTagTags(MultiTag* mtagPtr, UIManager& uim)
 	}// else if (tempStr != "Q")
 }
 
-void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
+void MealManager::editMultiTag(MultiTag* mtagPtr)
 {
 	std::string tempStr = "";
 	int tempInt;
@@ -976,18 +979,18 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	{
 		// header
 		tempStr = "Viewing \"" + mtagPtr->getName() + "\"";
-		uim.centeredText(tempStr);
-		uim.skipLines(2);
+		uim->centeredText(tempStr);
+		uim->skipLines(2);
 
 		// display tag info
-		displayMultiTagInfo(mtagPtr, uim);
+		displayMultiTagInfo(mtagPtr);
 
 		// prompt user for attribute to edit or quit
 		strVec = { "1Edit Name", "2Edit Description", "3Set Enabled Days",
 					"4Set priority level", "5Enable/Disable", "6View/Edit Linked Tags", "QQuit Selection" };
-		uim.prompt_List_Case_Insensitive(strVec);
+		uim->prompt_List_Case_Insensitive(strVec);
 
-		tempStr = uim.display();
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
 		if (tempStr != "Q")
@@ -999,57 +1002,57 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 			{
 			case 1: // edit name
 				tempStr = "Editing \"" + mtagPtr->getName() + "\"";
-				uim.centeredText(tempStr);
-				uim.centeredText("Name");
-				uim.skipLines(2);
+				uim->centeredText(tempStr);
+				uim->centeredText("Name");
+				uim->skipLines(2);
 
 				// prompt and get input
-				uim.leftAllignedText("Enter a new name: ");
-				uim.prompt_FreeString(1, NAME_LENGTH);
+				uim->leftAllignedText("Enter a new name: ");
+				uim->prompt_FreeString(1, NAME_LENGTH);
 
-				tempStr = uim.display();
+				tempStr = uim->display();
 
 				//set new name
 				mtagPtr->setName(tempStr);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "Name changed to " + mtagPtr->getName();
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				uim->leftAllignedText(tempStr);
+				uim->prompt_None();
+				uim->display();
 				break;
 			case 2: // edit description
 				tempStr = "Editing \"" + mtagPtr->getName() + "\"";
-				uim.centeredText(tempStr);
-				uim.centeredText("Description");
-				uim.skipLines(2);
+				uim->centeredText(tempStr);
+				uim->centeredText("Description");
+				uim->skipLines(2);
 
 				// display original description
 				tempStr = "Original description: " + mtagPtr->getDescription();
-				uim.leftAllignedText(tempStr);
-				uim.skipLines(1);
+				uim->leftAllignedText(tempStr);
+				uim->skipLines(1);
 
 				// prompt and get input
-				uim.leftAllignedText("Enter a new description: ");
-				uim.centeredText("(Press <enter> to skip)");
-				uim.prompt_FreeString(0, DESC_LENGTH);
+				uim->leftAllignedText("Enter a new description: ");
+				uim->centeredText("(Press <enter> to skip)");
+				uim->prompt_FreeString(0, DESC_LENGTH);
 
-				tempStr = uim.display();
+				tempStr = uim->display();
 
 				//set new description
 				mtagPtr->setDescription(tempStr);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "Description changed to " + mtagPtr->getDescription();
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				uim->leftAllignedText(tempStr);
+				uim->prompt_None();
+				uim->display();
 				break;
 			case 3: // set enabled days
 			{
@@ -1060,61 +1063,61 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				while (tempStr != "Q")
 				{
 					tempStr = "Editing " + mtagPtr->getName();
-					uim.centeredText(tempStr);
-					uim.centeredText("Enable/Disable Days");
-					uim.skipLines(2);
+					uim->centeredText(tempStr);
+					uim->centeredText("Enable/Disable Days");
+					uim->skipLines(2);
 
-					uim.centeredText("Choose the days that \"" + mtagPtr->getName() + "\" should be active on:");
-					uim.skipLines(1);
+					uim->centeredText("Choose the days that \"" + mtagPtr->getName() + "\" should be active on:");
+					uim->skipLines(1);
 
 					tempStr = "MON: ";
 					if (enabledDays.find(MONDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "TUE: ";
 					if (enabledDays.find(TUESDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "WED: ";
 					if (enabledDays.find(WEDNESDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "THU: ";
 					if (enabledDays.find(THURSDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "FRI: ";
 					if (enabledDays.find(FRIDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "SAT: ";
 					if (enabledDays.find(SATURDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "SUN: ";
 					if (enabledDays.find(SUNDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					// print options
 					strVec.clear();
@@ -1123,8 +1126,8 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 							  "EEnable ALL", "DDisable ALL","- ", "QExit & Confirm Selection" };
 
 					// prompt and get input
-					uim.prompt_List_Case_Insensitive(strVec);
-					tempStr = uim.display();
+					uim->prompt_List_Case_Insensitive(strVec);
+					tempStr = uim->display();
 					tempStr = std::toupper(tempStr.at(0));
 
 					if (tempStr == "E")
@@ -1201,18 +1204,18 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				mtagPtr->setEnabledDays(enabledDays);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
-				uim.centeredText("Enabled Days set!");
-				uim.display();
+				uim->centeredText("Success!");
+				uim->skipLines(2);
+				uim->centeredText("Enabled Days set!");
+				uim->display();
 			}
 			break;
 			case 4: // set priority
 			{
 				tempStr = "Editing \"" + mtagPtr->getName() + "\"";
-				uim.centeredText(tempStr);
-				uim.centeredText("Priority Level");
-				uim.skipLines(2);
+				uim->centeredText(tempStr);
+				uim->centeredText("Priority Level");
+				uim->skipLines(2);
 
 				// report status
 				if (mtagPtr->hasPriority())
@@ -1220,7 +1223,7 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				else
 					tempStr = "This MultiTag has the same priority as Tags.";
 
-				uim.centeredText(tempStr);
+				uim->centeredText(tempStr);
 
 				// prompt user
 				tempStr = "Do you want to ";
@@ -1230,12 +1233,12 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				else
 					tempStr += "lower priority to be the same as Tags?";
 
-				uim.centeredText(tempStr);
+				uim->centeredText(tempStr);
 
 				strVec = { "YYes", "NNo" };
-				uim.prompt_List_Case_Insensitive(strVec);
+				uim->prompt_List_Case_Insensitive(strVec);
 
-				tempStr = uim.display();
+				tempStr = uim->display();
 				tempStr = std::toupper(tempStr.at(0));
 
 				// process user's input
@@ -1249,8 +1252,8 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				}
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "Priority changed to: ";
 
@@ -1259,16 +1262,16 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				else
 					tempStr += "PRIORITY OVER TAGS.";
 
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				uim->leftAllignedText(tempStr);
+				uim->prompt_None();
+				uim->display();
 			}
 			break;
 			case 5: // enable/diable
 				tempStr = "Editing \"" + mtagPtr->getName() + "\"";
-				uim.centeredText(tempStr);
-				uim.centeredText("Enable/Disable");
-				uim.skipLines(2);
+				uim->centeredText(tempStr);
+				uim->centeredText("Enable/Disable");
+				uim->skipLines(2);
 
 				// display original value
 				tempStr = "\"" + mtagPtr->getName() + "\" is currently ";
@@ -1278,8 +1281,8 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				else
 					tempStr += "DISABLED.";
 
-				uim.leftAllignedText(tempStr);
-				uim.skipLines(1);
+				uim->leftAllignedText(tempStr);
+				uim->skipLines(1);
 
 				// prompt and get input
 				tempStr = "Do you want to ";
@@ -1291,11 +1294,11 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 
 				tempStr += " it?";
 
-				uim.leftAllignedText(tempStr);
+				uim->leftAllignedText(tempStr);
 				strVec = { "YYes", "NNo" };
 
-				uim.prompt_List_Case_Insensitive(strVec);
-				tempStr = uim.display();
+				uim->prompt_List_Case_Insensitive(strVec);
+				tempStr = uim->display();
 				tempStr = std::toupper(tempStr.at(0));
 
 				// process input
@@ -1309,8 +1312,8 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				}
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "\"" + mtagPtr->getName() + "\" is now ";
 
@@ -1319,12 +1322,12 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				else
 					tempStr += "DISABLED.";
 
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				uim->leftAllignedText(tempStr);
+				uim->prompt_None();
+				uim->display();
 				break;
 			case 6: // view/edit linked tags
-				editMultiTagTags(mtagPtr, uim);
+				editMultiTagTags(mtagPtr);
 				tempStr = ""; // make sure menu will loop
 				break;
 			default:
@@ -1335,7 +1338,7 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	}// while (tempStr != "Q")
 }
 
-void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
+void MealManager::editMeal(Meal* mealPtr)
 {
 	std::string tempStr = "";
 	int tempInt;
@@ -1346,17 +1349,17 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 	{
 		// header
 		tempStr = "Viewing \"" + mealPtr->getName() + "\".";
-		uim.centeredText(tempStr);
-		uim.skipLines(2);
+		uim->centeredText(tempStr);
+		uim->skipLines(2);
 
 		// display meal info
-		displayMealInfo(mealPtr, uim);
+		displayMealInfo(mealPtr);
 
 		// prompt user for attribute to edit or quit
 		strVec = { "1Edit Name", "2Edit Price", "3Edit Duration", "4Edit Days Between Occurrences", "5Enable/Disable Meal", "6Edit Tags", "QQuit Selection" };
-		uim.prompt_List_Case_Insensitive(strVec);
+		uim->prompt_List_Case_Insensitive(strVec);
 
-		tempStr = uim.display();
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
 		if (tempStr != "Q")
@@ -1368,83 +1371,83 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 			{
 			case 1: // name
 				tempStr = "Editing \"" + mealPtr->getName() + "\"";
-				uim.centeredText(tempStr);
-				uim.centeredText("Name");
-				uim.skipLines(2);
+				uim->centeredText(tempStr);
+				uim->centeredText("Name");
+				uim->skipLines(2);
 
 				// prompt and get input
-				uim.leftAllignedText("Enter a new name: ");
-				uim.prompt_FreeString(1, NAME_LENGTH);
+				uim->leftAllignedText("Enter a new name: ");
+				uim->prompt_FreeString(1, NAME_LENGTH);
 
-				tempStr = uim.display();
+				tempStr = uim->display();
 
 				//set new name
 				mealPtr->setName(tempStr);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "Name changed to " + mealPtr->getName();
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				uim->leftAllignedText(tempStr);
+				uim->prompt_None();
+				uim->display();
 				break;
 			case 2: // price
 				tempStr = "Editing " + mealPtr->getName();
-				uim.centeredText(tempStr);
-				uim.centeredText("Price");
-				uim.skipLines(2);
+				uim->centeredText(tempStr);
+				uim->centeredText("Price");
+				uim->skipLines(2);
 
 				// display original price
 				tempStr = "Original price: " + formatPrice(mealPtr->getPrice());
 
-				uim.leftAllignedText(tempStr);
-				uim.skipLines(1);
+				uim->leftAllignedText(tempStr);
+				uim->skipLines(1);
 
 				// prompt and get input
-				uim.leftAllignedText("Enter a new price: ");
-				uim.prompt_FreeDouble(MINIMUM_PRICE, MAXIMUM_PRICE);
+				uim->leftAllignedText("Enter a new price: ");
+				uim->prompt_FreeDouble(MINIMUM_PRICE, MAXIMUM_PRICE);
 
-				tempDouble = std::stod(uim.display());
+				tempDouble = std::stod(uim->display());
 
 				// set new price
 				mealPtr->setPrice(tempDouble);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "Price changed to: " + formatPrice(mealPtr->getPrice());
 
-				uim.centeredText(tempStr);
-				uim.display();
+				uim->centeredText(tempStr);
+				uim->display();
 				break;
 			case 3: // duration
 			{
 				unsigned int mealDuration = mealPtr->getMealDuration();
 
 				tempStr = "Editing \"" + mealPtr->getName() + "\"";
-				uim.centeredText(tempStr);
-				uim.centeredText("Duration");
-				uim.skipLines(2);
+				uim->centeredText(tempStr);
+				uim->centeredText("Duration");
+				uim->skipLines(2);
 				
 				tempStr = "\"" + mealPtr->getName() + "\" has a duration of " + std::to_string(mealDuration) + " days.";
-				uim.centeredText(tempStr);
-				uim.centeredText("Enter a new Duration:");
-				uim.prompt_FreeInt(1, 30);
-				tempInt = std::stoi(uim.display());
+				uim->centeredText(tempStr);
+				uim->centeredText("Enter a new Duration:");
+				uim->prompt_FreeInt(1, 30);
+				tempInt = std::stoi(uim->display());
 
 				mealPtr->setMealDuration(tempInt);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "Duration changed to: " + std::to_string(mealPtr->getMealDuration()) + " days.";
 
-				uim.centeredText(tempStr);
-				uim.display();
+				uim->centeredText(tempStr);
+				uim->display();
 			}
 				break;
 			case 4: // daysBetweenOccurrences
@@ -1452,26 +1455,26 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 				unsigned int occurrences = mealPtr->getDaysBetweenOccurrences();
 
 				tempStr = "Editing \"" + mealPtr->getName() + "\"";
-				uim.centeredText(tempStr);
-				uim.centeredText("Days Between Occurrences");
-				uim.skipLines(2);
+				uim->centeredText(tempStr);
+				uim->centeredText("Days Between Occurrences");
+				uim->skipLines(2);
 
 				tempStr = "When this Meal is scheduled, it must wait " + std::to_string(occurrences) + " days before it can occur again.";
-				uim.centeredText(tempStr);
-				uim.centeredText("Enter a new delay time:");
-				uim.prompt_FreeInt(0, 30);
-				tempInt = std::stoi(uim.display());
+				uim->centeredText(tempStr);
+				uim->centeredText("Enter a new delay time:");
+				uim->prompt_FreeInt(0, 30);
+				tempInt = std::stoi(uim->display());
 
 				mealPtr->setMealDuration(tempInt);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "Delay time changed to: " + std::to_string(mealPtr->getDaysBetweenOccurrences()) + " days.";
 
-				uim.centeredText(tempStr);
-				uim.display();
+				uim->centeredText(tempStr);
+				uim->display();
 			}
 				break;
 			case 5: // enable/disable
@@ -1479,9 +1482,9 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 				bool mealDisabled = mealPtr->getIsDisabled();
 
 				tempStr = "Editing \"" + mealPtr->getName() + "\"";
-				uim.centeredText(tempStr);
-				uim.centeredText("Enable/Disable");
-				uim.skipLines(2);
+				uim->centeredText(tempStr);
+				uim->centeredText("Enable/Disable");
+				uim->skipLines(2);
 
 				// report status
 				tempStr = "\"" + mealPtr->getName() + "\" is currently ";
@@ -1491,7 +1494,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 				else
 					tempStr += "ENABLED.";
 
-				uim.centeredText(tempStr);
+				uim->centeredText(tempStr);
 
 				// prompt user
 				tempStr = "Do you want to ";
@@ -1502,12 +1505,12 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 					tempStr += "disable";
 
 				tempStr += " it?";
-				uim.centeredText(tempStr);
+				uim->centeredText(tempStr);
 
 				strVec = { "YYes", "NNo" };
-				uim.prompt_List_Case_Insensitive(strVec);
+				uim->prompt_List_Case_Insensitive(strVec);
 
-				tempStr = uim.display();
+				tempStr = uim->display();
 				tempStr = std::toupper(tempStr.at(0));
 
 				// process user's input
@@ -1522,7 +1525,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 			}
 			break;
 			case 6: // edit tags
-				editMealTags(mealPtr, uim);
+				editMealTags(mealPtr);
 				tempStr = ""; // make sure menu will loop
 				break;
 			default:
@@ -1533,7 +1536,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 	}// while (tempStr != "Q")
 }
 
-void MealManager::editTag(Tag* tagPtr, UIManager& uim)
+void MealManager::editTag(Tag* tagPtr)
 {
 	std::string tempStr = "";
 	int tempInt;
@@ -1543,18 +1546,18 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 	{
 		// header
 		tempStr = "Viewing \"" + tagPtr->getName() + "\"";
-		uim.centeredText(tempStr);
-		uim.skipLines(2);
+		uim->centeredText(tempStr);
+		uim->skipLines(2);
 
 		// display tag info
-		displayTagInfo(tagPtr, uim);
+		displayTagInfo(tagPtr);
 
 		// prompt user for attribute to edit or quit
 		strVec = { "1Edit Name", "2Edit Description", "3Set Enabled Days", 
 					"4Set Dependency on MultiTags", "5Set Consecutive Occurrences", "QQuit Selection" };
-		uim.prompt_List_Case_Insensitive(strVec);
+		uim->prompt_List_Case_Insensitive(strVec);
 
-		tempStr = uim.display();
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
 		if (tempStr != "Q")
@@ -1566,57 +1569,57 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 			{
 			case 1: // edit name
 				tempStr = "Editing \"" + tagPtr->getName() + "\"";
-				uim.centeredText(tempStr);
-				uim.centeredText("Name");
-				uim.skipLines(2);
+				uim->centeredText(tempStr);
+				uim->centeredText("Name");
+				uim->skipLines(2);
 
 				// prompt and get input
-				uim.leftAllignedText("Enter a new name: ");
-				uim.prompt_FreeString(1, NAME_LENGTH);
+				uim->leftAllignedText("Enter a new name: ");
+				uim->prompt_FreeString(1, NAME_LENGTH);
 
-				tempStr = uim.display();
+				tempStr = uim->display();
 
 				//set new name
 				tagPtr->setName(tempStr);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "Name changed to " + tagPtr->getName();
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				uim->leftAllignedText(tempStr);
+				uim->prompt_None();
+				uim->display();
 				break;
 			case 2: // edit description
 				tempStr = "Editing \"" + tagPtr->getName() + "\"";
-				uim.centeredText(tempStr);
-				uim.centeredText("Description");
-				uim.skipLines(2);
+				uim->centeredText(tempStr);
+				uim->centeredText("Description");
+				uim->skipLines(2);
 
 				// display original description
 				tempStr = "Original description: " + tagPtr->getDescription();
-				uim.leftAllignedText(tempStr);
-				uim.skipLines(1);
+				uim->leftAllignedText(tempStr);
+				uim->skipLines(1);
 
 				// prompt and get input
-				uim.centeredText("Enter a new description: ");
-				uim.centeredText("(Press <enter> to skip)");
-				uim.prompt_FreeString(0, DESC_LENGTH);
+				uim->centeredText("Enter a new description: ");
+				uim->centeredText("(Press <enter> to skip)");
+				uim->prompt_FreeString(0, DESC_LENGTH);
 
-				tempStr = uim.display();
+				tempStr = uim->display();
 
 				//set new description
 				tagPtr->setDescription(tempStr);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "Description changed to " + tagPtr->getDescription();
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				uim->leftAllignedText(tempStr);
+				uim->prompt_None();
+				uim->display();
 				break;
 			case 3: // set enabled days
 			{
@@ -1627,61 +1630,61 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 				while (tempStr != "Q")
 				{
 					tempStr = "Editing \"" + tagPtr->getName() + "\"";
-					uim.centeredText(tempStr);
-					uim.centeredText("Enable/Disable Days");
-					uim.skipLines(2);
+					uim->centeredText(tempStr);
+					uim->centeredText("Enable/Disable Days");
+					uim->skipLines(2);
 
-					uim.centeredText("Choose days that Meals assigned to this Tag may occur on:");
-					uim.skipLines(1);
+					uim->centeredText("Choose days that Meals assigned to this Tag may occur on:");
+					uim->skipLines(1);
 
 					tempStr = "MON: ";
 					if (enabledDays.find(MONDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "TUE: ";
 					if (enabledDays.find(TUESDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "WED: ";
 					if (enabledDays.find(WEDNESDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "THU: ";
 					if (enabledDays.find(THURSDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "FRI: ";
 					if (enabledDays.find(FRIDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "SAT: ";
 					if (enabledDays.find(SATURDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "SUN: ";
 					if (enabledDays.find(SUNDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					// print options
 					strVec.clear();
@@ -1690,8 +1693,8 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 							  "EEnable ALL", "DDisable ALL","- ", "QExit & Confirm Selection" };
 
 					// prompt and get input
-					uim.prompt_List_Case_Insensitive(strVec);
-					tempStr = uim.display();
+					uim->prompt_List_Case_Insensitive(strVec);
+					tempStr = uim->display();
 					tempStr = std::toupper(tempStr.at(0));
 
 					if (tempStr == "E")
@@ -1768,10 +1771,10 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 				tagPtr->setEnabledDays(enabledDays);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
-				uim.centeredText("Enabled Days set!");
-				uim.display();
+				uim->centeredText("Success!");
+				uim->skipLines(2);
+				uim->centeredText("Enabled Days set!");
+				uim->display();
 			}
 			break;
 			case 4: // set dependency
@@ -1779,9 +1782,9 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 				bool dependsOnMultitag = tagPtr->getDependency();
 
 				tempStr = "Editing \"" + tagPtr->getName() + "\"";
-				uim.centeredText(tempStr);
-				uim.centeredText("Dependency");
-				uim.skipLines(2);
+				uim->centeredText(tempStr);
+				uim->centeredText("Dependency");
+				uim->skipLines(2);
 
 				// report status
 				if (dependsOnMultitag)
@@ -1789,7 +1792,7 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 				else
 					tempStr = "This Tag does not rely on a MultiTag (default behavior).";
 
-				uim.centeredText(tempStr);
+				uim->centeredText(tempStr);
 
 				// prompt user
 				tempStr = "Do you want to ";
@@ -1799,12 +1802,12 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 				else
 					tempStr += "disable this Tag unless linked to a MultiTag? (advanced behavior)";
 
-				uim.centeredText(tempStr);
+				uim->centeredText(tempStr);
 
 				strVec = { "YYes", "NNo" };
-				uim.prompt_List_Case_Insensitive(strVec);
+				uim->prompt_List_Case_Insensitive(strVec);
 
-				tempStr = uim.display();
+				tempStr = uim->display();
 				tempStr = std::toupper(tempStr.at(0));
 
 				// process user's input
@@ -1818,8 +1821,8 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 				}
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "Dependency changed to: ";
 
@@ -1828,38 +1831,38 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 				else
 					tempStr += "DOES NOT REQUIRE MULTITAG.";
 
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				uim->leftAllignedText(tempStr);
+				uim->prompt_None();
+				uim->display();
 			}
 				break;
 			case 5: // set consecutive occurrences
 				tempStr = "Editing \"" + tagPtr->getName() + "\"";
-				uim.centeredText(tempStr);
-				uim.centeredText("Consecutive Occurrences");
-				uim.skipLines(2);
+				uim->centeredText(tempStr);
+				uim->centeredText("Consecutive Occurrences");
+				uim->skipLines(2);
 
 				// display original value
 				tempStr = "Original value: " + std::to_string(tagPtr->getConsecutiveLimit())
 					 + " consecutive occurrences allowed.";
-				uim.leftAllignedText(tempStr);
-				uim.skipLines(1);
+				uim->leftAllignedText(tempStr);
+				uim->skipLines(1);
 
 				// prompt and get input
-				uim.leftAllignedText("How many consecutive days can a Meal with this Tag occur for?");
-				uim.prompt_FreeInt(0, 1000);
+				uim->leftAllignedText("How many consecutive days can a Meal with this Tag occur for?");
+				uim->prompt_FreeInt(0, 1000);
 
 				// set new value
-				tagPtr->setConsecutiveLimit(std::stoi(uim.display()));
+				tagPtr->setConsecutiveLimit(std::stoi(uim->display()));
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "Consecutive occurrences set to " + std::to_string(tagPtr->getConsecutiveLimit());
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				uim->leftAllignedText(tempStr);
+				uim->prompt_None();
+				uim->display();
 				break;
 			default:
 				// do nothing
@@ -1971,7 +1974,7 @@ std::string MealManager::formatEnabledDays(const Meal* mealPtr)
 	return returnStr;
 }
 
-int MealManager::displayMeals(UIManager& uim)
+int MealManager::displayMeals()
 {
 	std::string tempStr = "";
 	std::vector<std::string> strVec;
@@ -1995,12 +1998,12 @@ int MealManager::displayMeals(UIManager& uim)
 			// loop while user has not quit menu
 			while (tempStr != "Q")
 			{
-				uim.centeredText("Viewing Meals");
+				uim->centeredText("Viewing Meals");
 				// display "Page x/y"
 				tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
-				uim.centeredText(tempStr);
-				uim.skipLines(2);
-				uim.centeredText("Choose a Meal:");
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
+				uim->centeredText("Choose a Meal:");
 
 				// start index for the current page
 				int startIndex = (10 * (currentPage - 1));
@@ -2044,8 +2047,8 @@ int MealManager::displayMeals(UIManager& uim)
 				strVec.push_back(tempStr);
 
 				// display UI and get input
-				uim.prompt_List_Case_Insensitive(strVec);
-				tempStr = uim.display();
+				uim->prompt_List_Case_Insensitive(strVec);
+				tempStr = uim->display();
 				tempStr = std::toupper(tempStr.at(0));
 
 				// check if choice is N, P, or Q
@@ -2084,9 +2087,9 @@ int MealManager::displayMeals(UIManager& uim)
 			// while user has not chosen to quit 
 			while (tempStr != "Q")
 			{
-				uim.centeredText("Viwing Meals");
-				uim.skipLines(2);
-				uim.centeredText("Choose a Meal:");
+				uim->centeredText("Viwing Meals");
+				uim->skipLines(2);
+				uim->centeredText("Choose a Meal:");
 
 				// create prompts
 				int choice = 0;
@@ -2100,8 +2103,8 @@ int MealManager::displayMeals(UIManager& uim)
 				tempStr = "QQuit Selection";
 				strVec.push_back(tempStr);
 
-				uim.prompt_List_Case_Insensitive(strVec);
-				tempStr = uim.display();
+				uim->prompt_List_Case_Insensitive(strVec);
+				tempStr = uim->display();
 				tempStr = std::toupper(tempStr.at(0));
 
 				// user chose a meal to edit
@@ -2118,17 +2121,17 @@ int MealManager::displayMeals(UIManager& uim)
 	}
 	else // display error
 	{
-		uim.centeredText("Error");
-		uim.skipLines(2);
-		uim.centeredText("You have no Meals to display.");
-		uim.prompt_None();
-		uim.display();
+		uim->centeredText("Error");
+		uim->skipLines(2);
+		uim->centeredText("You have no Meals to display.");
+		uim->prompt_None();
+		uim->display();
 	}
 	
 	return tempInt;
 }
 
-int MealManager::displayTags(UIManager& uim)
+int MealManager::displayTags()
 {
 	std::string tempStr = "";
 	std::vector<std::string> strVec;
@@ -2139,23 +2142,23 @@ int MealManager::displayTags(UIManager& uim)
 	{
 		if (normalTags.size() <= 10) // can print all tags in 1 page
 		{
-			uim.centeredText("Viewing Tags");
-			uim.skipLines(2);
-			uim.centeredText("Choose a Tag:");
-			uim.skipLines(1);
+			uim->centeredText("Viewing Tags");
+			uim->skipLines(2);
+			uim->centeredText("Choose a Tag:");
+			uim->skipLines(1);
 
 			// display tags with description and create prompt
 			int count = 0;
 			for (auto tagIter : normalTags)
 			{
-				displayTagInfo(tagIter, uim);
+				displayTagInfo(tagIter);
 				/*
 				tempStr = "Name: " + tagIter->getName();
-				uim.leftAllignedText(tempStr);
+				uim->leftAllignedText(tempStr);
 				tempStr = "Description: " + tagIter->getDescription();
-				uim.leftAllignedText(tempStr);
+				uim->leftAllignedText(tempStr);
 				*/
-				uim.skipLines(1);
+				uim->skipLines(1);
 
 				tempStr = std::to_string(count) + tagIter->getName();
 				strVec.push_back(tempStr);
@@ -2167,8 +2170,8 @@ int MealManager::displayTags(UIManager& uim)
 			strVec.push_back(tempStr);
 
 			// prompt and get input
-			uim.prompt_List_Case_Insensitive(strVec);
-			tempStr = uim.display();
+			uim->prompt_List_Case_Insensitive(strVec);
+			tempStr = uim->display();
 			tempStr = std::toupper(tempStr.at(0));
 
 			// if user did not quit
@@ -2192,12 +2195,12 @@ int MealManager::displayTags(UIManager& uim)
 			// loop while user has not quit menu
 			while (tempStr != "Q")
 			{
-				uim.centeredText("Viewing Tags");
+				uim->centeredText("Viewing Tags");
 				// display "Page x/y"
 				tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
-				uim.centeredText(tempStr);
-				uim.skipLines(2);
-				uim.centeredText("Choose a Tag:");
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
+				uim->centeredText("Choose a Tag:");
 
 				// start index for the current page
 				int startIndex = (10 * (currentPage - 1));
@@ -2211,10 +2214,10 @@ int MealManager::displayTags(UIManager& uim)
 					// display tag with description and create prompt
 					for (int count = 0; count < 10; ++count)
 					{
-						displayTagInfo(*tagIter, uim);
-						/*uim.centeredText((*tagIter)->getName());
-						uim.leftAllignedText((*tagIter)->getDescription());*/
-						uim.skipLines(1);
+						displayTagInfo(*tagIter);
+						/*uim->centeredText((*tagIter)->getName());
+						uim->leftAllignedText((*tagIter)->getDescription());*/
+						uim->skipLines(1);
 
 						tempStr = std::to_string(count) + (*tagIter)->getName();
 						strVec.push_back(tempStr);
@@ -2230,10 +2233,10 @@ int MealManager::displayTags(UIManager& uim)
 					// create prompts for the rest of the elements
 					while (tagIter != normalTags.end())
 					{
-						displayTagInfo(*tagIter, uim);
-						/*uim.centeredText((*tagIter)->getName());
-						uim.leftAllignedText((*tagIter)->getDescription());*/
-						uim.skipLines(1);
+						displayTagInfo(*tagIter);
+						/*uim->centeredText((*tagIter)->getName());
+						uim->leftAllignedText((*tagIter)->getDescription());*/
+						uim->skipLines(1);
 
 						tempStr = std::to_string(count) + (*tagIter)->getName();
 						strVec.push_back(tempStr);
@@ -2252,8 +2255,8 @@ int MealManager::displayTags(UIManager& uim)
 				strVec.push_back(tempStr);
 
 				// display UI and get input
-				uim.prompt_List_Case_Insensitive(strVec);
-				tempStr = uim.display();
+				uim->prompt_List_Case_Insensitive(strVec);
+				tempStr = uim->display();
 				tempStr = std::toupper(tempStr.at(0));
 
 				// check if choice is N, P, or Q
@@ -2287,15 +2290,15 @@ int MealManager::displayTags(UIManager& uim)
 	} // if more than 0 tags
 	else // display error 
 	{
-		uim.centeredText("Error");
-		uim.skipLines(2);
-		uim.centeredText("No Tags to display.");
-		uim.display();
+		uim->centeredText("Error");
+		uim->skipLines(2);
+		uim->centeredText("No Tags to display.");
+		uim->display();
 	}
 	return tempInt;
 }
 
-int MealManager::displayMultiTags(UIManager& uim)
+int MealManager::displayMultiTags()
 {
 	std::string tempStr = "";
 	std::vector<std::string> strVec;
@@ -2307,17 +2310,17 @@ int MealManager::displayMultiTags(UIManager& uim)
 		// can print all multitags in 1 page
 		if (multiTags.size() <= 10) 
 		{
-			uim.centeredText("Viewing MultiTags");
-			uim.skipLines(2);
-			uim.centeredText("Choose a MultiTag:");
-			uim.skipLines(1);
+			uim->centeredText("Viewing MultiTags");
+			uim->skipLines(2);
+			uim->centeredText("Choose a MultiTag:");
+			uim->skipLines(1);
 
 			// display multitags with description and create prompt
 			int count = 0;
 			for (auto tagIter : multiTags)
 			{
-				displayMultiTagInfo(tagIter, uim);
-				uim.skipLines(1);
+				displayMultiTagInfo(tagIter);
+				uim->skipLines(1);
 
 				tempStr = std::to_string(count) + tagIter->getName();
 				strVec.push_back(tempStr);
@@ -2329,8 +2332,8 @@ int MealManager::displayMultiTags(UIManager& uim)
 			strVec.push_back(tempStr);
 
 			// prompt and get input
-			uim.prompt_List_Case_Insensitive(strVec);
-			tempStr = uim.display();
+			uim->prompt_List_Case_Insensitive(strVec);
+			tempStr = uim->display();
 			tempStr = std::toupper(tempStr.at(0));
 
 			// if user did not quit
@@ -2354,12 +2357,12 @@ int MealManager::displayMultiTags(UIManager& uim)
 			// loop while user has not quit menu
 			while (tempStr != "Q")
 			{
-				uim.centeredText("Viewing MultiTags");
+				uim->centeredText("Viewing MultiTags");
 				// display "Page x/y"
 				tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
-				uim.centeredText(tempStr);
-				uim.skipLines(2);
-				uim.centeredText("Choose a MultiTag:");
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
+				uim->centeredText("Choose a MultiTag:");
 
 				// start index for the current page
 				int startIndex = (10 * (currentPage - 1));
@@ -2373,10 +2376,10 @@ int MealManager::displayMultiTags(UIManager& uim)
 					// display tag with description and create prompt
 					for (int count = 0; count < 10; ++count)
 					{
-						displayMultiTagInfo(*tagIter, uim);
-						/*uim.centeredText((*tagIter)->getName());
-						uim.leftAllignedText((*tagIter)->getDescription());*/
-						uim.skipLines(1);
+						displayMultiTagInfo(*tagIter);
+						/*uim->centeredText((*tagIter)->getName());
+						uim->leftAllignedText((*tagIter)->getDescription());*/
+						uim->skipLines(1);
 
 						tempStr = std::to_string(count) + (*tagIter)->getName();
 						strVec.push_back(tempStr);
@@ -2392,10 +2395,10 @@ int MealManager::displayMultiTags(UIManager& uim)
 					// create prompts for the rest of the elements
 					while (tagIter != multiTags.end())
 					{
-						displayMultiTagInfo(*tagIter, uim);
-						/*uim.centeredText((*tagIter)->getName());
-						uim.leftAllignedText((*tagIter)->getDescription());*/
-						uim.skipLines(1);
+						displayMultiTagInfo(*tagIter);
+						/*uim->centeredText((*tagIter)->getName());
+						uim->leftAllignedText((*tagIter)->getDescription());*/
+						uim->skipLines(1);
 
 						tempStr = std::to_string(count) + (*tagIter)->getName();
 						strVec.push_back(tempStr);
@@ -2414,8 +2417,8 @@ int MealManager::displayMultiTags(UIManager& uim)
 				strVec.push_back(tempStr);
 
 				// display UI and get input
-				uim.prompt_List_Case_Insensitive(strVec);
-				tempStr = uim.display();
+				uim->prompt_List_Case_Insensitive(strVec);
+				tempStr = uim->display();
 				tempStr = std::toupper(tempStr.at(0));
 
 				// check if choice is N, P, or Q
@@ -2449,67 +2452,67 @@ int MealManager::displayMultiTags(UIManager& uim)
 	} // if more than 0 tags
 	else // display error 
 	{
-		uim.centeredText("Error");
-		uim.skipLines(2);
-		uim.centeredText("No MultiTags to display.");
-		uim.display();
+		uim->centeredText("Error");
+		uim->skipLines(2);
+		uim->centeredText("No MultiTags to display.");
+		uim->display();
 	}
 	return tempInt;
 }
 
-void MealManager::displayMealInfo(const Meal* mealPtr, UIManager& uim)
+void MealManager::displayMealInfo(const Meal* mealPtr)
 {
 	std::string tempStr = "";
 	
 	// name
 	tempStr = "Name: " + mealPtr->getName();
-	uim.leftAllignedText(tempStr);
+	uim->leftAllignedText(tempStr);
 
 	// price
 	tempStr = "Price: " + formatPrice(mealPtr->getPrice());
-	uim.leftAllignedText(tempStr);
+	uim->leftAllignedText(tempStr);
 
 	// tags
-	uim.skipLines(1);
-	uim.leftAllignedText("Tags:");
-	uim.skipLines(1);
+	uim->skipLines(1);
+	uim->leftAllignedText("Tags:");
+	uim->skipLines(1);
 
 	for (auto tagIter : mealPtr->getTags())
 	{
-		uim.leftAllignedText(tagIter->getName());
+		uim->leftAllignedText(tagIter->getName());
 	}
 
 	// enabledDays
-	uim.skipLines(1);
+	uim->skipLines(1);
 	if (mealPtr->getIsDisabled())
-		uim.leftAllignedText("Is disabled.");
+		uim->leftAllignedText("Is disabled.");
 	else
 	{
 		tempStr = "Enabled on: " + formatEnabledDays(mealPtr);
 
 		// check if disabled by tags
 		if (tempStr == "Enabled on: []")
-			uim.leftAllignedText("Is disabled by Tags.");
+			uim->leftAllignedText("Is disabled by Tags.");
 		else
-			uim.leftAllignedText(tempStr);
+			uim->leftAllignedText(tempStr);
 	}
 }
 
-void MealManager::displayTagInfo(const Tag* tagPtr, UIManager& uim)
+void MealManager::displayTagInfo(const Tag* tagPtr)
 {
 	std::string tempStr = "";
 
 	// name
 	tempStr = "Name: " + tagPtr->getName();
-	uim.leftAllignedText(tempStr);
+	uim->leftAllignedText(tempStr);
 
 	// description
 	tempStr = "Description: " + tagPtr->getDescription();
-	uim.leftAllignedText(tempStr);
+	uim->leftAllignedText(tempStr);
 
 	// consecutiveLimit
 	tempStr = "Consecutive Meals allowed: " + std::to_string(tagPtr->getConsecutiveLimit());
-	uim.leftAllignedText(tempStr);
+	uim->leftAllignedText(tempStr);
 
 	// hasPriority
 	tempStr = "Depends on MultiTag: ";
@@ -2518,7 +2521,7 @@ void MealManager::displayTagInfo(const Tag* tagPtr, UIManager& uim)
 		tempStr += "YES";
 	else
 		tempStr += "NO";
-	uim.leftAllignedText(tempStr);
+	uim->leftAllignedText(tempStr);
 
 	// enabledDays
 	std::map<DaysOfTheWeek, bool> enabledDays = tagPtr->getEnabledDays();
@@ -2596,22 +2599,22 @@ void MealManager::displayTagInfo(const Tag* tagPtr, UIManager& uim)
 
 	// check if any days were enabled
 	if (hasADayEnabled)
-		uim.leftAllignedText(tempStr);
+		uim->leftAllignedText(tempStr);
 	else
-		uim.leftAllignedText("Tag disables all days.");
+		uim->leftAllignedText("Tag disables all days.");
 }
 
-void MealManager::displayMultiTagInfo(const MultiTag* mtagPtr, UIManager& uim)
+void MealManager::displayMultiTagInfo(const MultiTag* mtagPtr)
 {
 	std::string tempStr = "";
 
 	// name
 	tempStr = "Name: " + mtagPtr->getName();
-	uim.leftAllignedText(tempStr);
+	uim->leftAllignedText(tempStr);
 
 	// description
 	tempStr = "Description: " + mtagPtr->getDescription();
-	uim.leftAllignedText(tempStr);
+	uim->leftAllignedText(tempStr);
 
 	// hasPriority
 	tempStr = "Has priority over Tags: ";
@@ -2620,7 +2623,7 @@ void MealManager::displayMultiTagInfo(const MultiTag* mtagPtr, UIManager& uim)
 		tempStr += "YES";
 	else
 		tempStr += "NO";
-	uim.leftAllignedText(tempStr);
+	uim->leftAllignedText(tempStr);
 
 	// check if disabled
 	if (mtagPtr->isEnabled())
@@ -2701,13 +2704,13 @@ void MealManager::displayMultiTagInfo(const MultiTag* mtagPtr, UIManager& uim)
 
 		// check if any days were enabled
 		if (hasADayEnabled)
-			uim.leftAllignedText(tempStr);
+			uim->leftAllignedText(tempStr);
 		else
-			uim.leftAllignedText("MultiTag disables all days.");
+			uim->leftAllignedText("MultiTag disables all days.");
 	}
 	else // tag is disabled 
 	{
-		uim.leftAllignedText("MultiTag is disabled.");
+		uim->leftAllignedText("MultiTag is disabled.");
 	}
 }
 
@@ -3620,7 +3623,7 @@ void MealManager::generateSchedule(std::ostream& oFile)
 {
 }
 
-void MealManager::mealEditor(UIManager& uim)
+void MealManager::mealEditor()
 {
 	std::string tempStr;
 	int tempInt = 0;
@@ -3629,16 +3632,16 @@ void MealManager::mealEditor(UIManager& uim)
 
 	while (tempInt != 4)
 	{
-		uim.centeredText("Meal Menu");
-		uim.skipLines(2);
+		uim->centeredText("Meal Menu");
+		uim->skipLines(2);
 
 		tempStr = "You have " + std::to_string(meals.size()) + " meals saved.";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		strVec = { "1View/Edit Meals", "2Create Meal", "3Delete Meal", "QQuit to Main Menu" };
-		uim.prompt_List_Case_Insensitive(strVec);
+		uim->prompt_List_Case_Insensitive(strVec);
 
-		tempStr = uim.display();
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
 		// check if user wants to quit
@@ -3653,14 +3656,14 @@ void MealManager::mealEditor(UIManager& uim)
 			// display meals and get user's choice, or quit
 			do
 			{
-				tempInt = displayMeals(uim);
+				tempInt = displayMeals();
 
 				// if user did not quit
 				if (tempInt != -1)
 				{
 					// get meal and call editor
 					Meal* mealPtr = meals.at(tempInt);
-					editMeal(mealPtr, uim);
+					editMeal(mealPtr);
 				}
 				else // force quit
 					tempStr = "Q";
@@ -3670,23 +3673,23 @@ void MealManager::mealEditor(UIManager& uim)
 		case 2: // create a new meal and add to meals stored
 			mealPtr = new Meal;
 
-			createMeal(mealPtr, uim);
+			createMeal(mealPtr);
 
 			// add meal to meals 
 			meals.push_back(mealPtr);
 			mealPtr = nullptr;
 
 			// confirm to user
-			uim.centeredText("Success!");
-			uim.skipLines(2);
-			uim.centeredText("Meal creation successful!");
-			uim.display();
+			uim->centeredText("Success!");
+			uim->skipLines(2);
+			uim->centeredText("Meal creation successful!");
+			uim->display();
 			break;
 		case 3: // delete meals
 			// display meals and get user's choice, or quit
 			do
 			{
-				tempInt = displayMeals(uim);
+				tempInt = displayMeals();
 
 				// if user did not quit
 				if (tempInt != -1)
@@ -3695,18 +3698,18 @@ void MealManager::mealEditor(UIManager& uim)
 					mealPtr = meals.at(tempInt);
 
 					// confirm deletion
-					uim.centeredText("Confirm Deletion");
-					uim.skipLines(2);
-					uim.centeredText("Are you sure you want to delete this Meal?");
-					uim.skipLines(1);
+					uim->centeredText("Confirm Deletion");
+					uim->skipLines(2);
+					uim->centeredText("Are you sure you want to delete this Meal?");
+					uim->skipLines(1);
 
 					// display meal info
-					displayMealInfo(mealPtr, uim);
+					displayMealInfo(mealPtr);
 
 					strVec = { "YYes", "NNo" };
 					
-					uim.prompt_List_Case_Insensitive(strVec);
-					tempStr = uim.display();
+					uim->prompt_List_Case_Insensitive(strVec);
+					tempStr = uim->display();
 					tempStr = std::toupper(tempStr.at(0));
 
 					// check user's choice
@@ -3735,10 +3738,10 @@ void MealManager::mealEditor(UIManager& uim)
 						mealPtr = nullptr;
 						
 						// confirm to user
-						uim.centeredText("Success!");
-						uim.skipLines(2);
-						uim.centeredText("Meal deleted!");
-						uim.display();
+						uim->centeredText("Success!");
+						uim->skipLines(2);
+						uim->centeredText("Meal deleted!");
+						uim->display();
 
 						// exit loop
 						tempStr = "Q";
@@ -3755,7 +3758,7 @@ void MealManager::mealEditor(UIManager& uim)
 	}
 }
 
-void MealManager::tagEditor(UIManager& uim)
+void MealManager::tagEditor()
 {
 	std::string tempStr = "";
 	int tempInt = 0;
@@ -3767,19 +3770,19 @@ void MealManager::tagEditor(UIManager& uim)
 	// while user has not quit menu
 	while (tempInt != 10)
 	{
-		uim.centeredText("Tag Menu");
-		uim.skipLines(2);
+		uim->centeredText("Tag Menu");
+		uim->skipLines(2);
 
 		tempStr = "You have " + std::to_string(normalTags.size()) + " normal Tags and "
 			+ std::to_string(multiTags.size()) + " MultiTags saved.";
-		uim.centeredText(tempStr);
-		uim.skipLines(2);
+		uim->centeredText(tempStr);
+		uim->skipLines(2);
 
 		// prompt menu
 		strVec = { "1View/Edit Tags", "2View/Edit MultiTags","3Create a Tag", "4Delete a Tag", "QQuit to Main Menu" };
-		uim.prompt_List_Case_Insensitive(strVec);
+		uim->prompt_List_Case_Insensitive(strVec);
 
-		tempStr = uim.display();
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
 		// check if user wants to quit
@@ -3794,14 +3797,14 @@ void MealManager::tagEditor(UIManager& uim)
 			//display tags and get user's choice or quit
 			do
 			{
-				tempInt = displayTags(uim);
+				tempInt = displayTags();
 
 				// if usser did not quit
 				if (tempInt != -1)
 				{
 					// get tag and call editor
 					tagPtr = normalTags.at(tempInt);
-					editTag(tagPtr, uim);
+					editTag(tagPtr);
 				}
 
 			} while (tempInt != -1);
@@ -3810,67 +3813,67 @@ void MealManager::tagEditor(UIManager& uim)
 			//display multitags and get user's choice or quit
 			do
 			{
-				tempInt = displayMultiTags(uim);
+				tempInt = displayMultiTags();
 
 				// if user did not quit
 				if (tempInt != -1)
 				{
 					// get tag and call editor
 					mtagPtr = multiTags.at(tempInt);
-					editMultiTag(mtagPtr, uim);
+					editMultiTag(mtagPtr);
 				}
 
 			} while (tempInt != -1);
 			break;
 		case 3: // create tag
-			uim.centeredText("Choose a type of Tag to create:");
+			uim->centeredText("Choose a type of Tag to create:");
 			
 			strVec = { "1Tag", "2MultiTag" };
-			uim.prompt_List_Case_Insensitive(strVec);
+			uim->prompt_List_Case_Insensitive(strVec);
 
-			tempStr = uim.display();
+			tempStr = uim->display();
 			
 			// if user chose to create a Tag
 			if (tempStr == "1")
 			{
 				tagPtr = new Tag;
 
-				createTag(tagPtr, uim);
+				createTag(tagPtr);
 
 				// add tag to normalTags
 				normalTags.push_back(tagPtr);
 				tagPtr = nullptr;
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
-				uim.centeredText("Tag creation successful!");
-				uim.display();
+				uim->centeredText("Success!");
+				uim->skipLines(2);
+				uim->centeredText("Tag creation successful!");
+				uim->display();
 			}
 			else // user wants to create a MultiTag
 			{
 				mtagPtr = new MultiTag;
 
-				createMultiTag(mtagPtr, uim);
+				createMultiTag(mtagPtr);
 
 				// add multitag to multitags
 				multiTags.push_back(mtagPtr);
 				mtagPtr = nullptr;
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
-				uim.centeredText("MultiTag creation successful!");
-				uim.display();
+				uim->centeredText("Success!");
+				uim->skipLines(2);
+				uim->centeredText("MultiTag creation successful!");
+				uim->display();
 			}
 			break;
 		case 4: // delete tag
-			uim.centeredText("Choose a type of Tag to delete:");
+			uim->centeredText("Choose a type of Tag to delete:");
 
 			strVec = { "1Tag", "2MultiTag" };
-			uim.prompt_List_Case_Insensitive(strVec);
+			uim->prompt_List_Case_Insensitive(strVec);
 
-			tempStr = uim.display();
+			tempStr = uim->display();
 
 			// user wants to delete a Tag
 			if (tempStr == "1")
@@ -3878,7 +3881,7 @@ void MealManager::tagEditor(UIManager& uim)
 				// display tags and get user's choice, or quit
 				do
 				{
-					tempInt = displayTags(uim);
+					tempInt = displayTags();
 
 					// if user did not quit
 					if (tempInt != -1)
@@ -3887,18 +3890,18 @@ void MealManager::tagEditor(UIManager& uim)
 						tagPtr = normalTags.at(tempInt);
 
 						// confirm deletion
-						uim.centeredText("Confirm Deletion");
-						uim.skipLines(2);
-						uim.centeredText("Are you sure you want to delete this Tag?");
-						uim.skipLines(1);
+						uim->centeredText("Confirm Deletion");
+						uim->skipLines(2);
+						uim->centeredText("Are you sure you want to delete this Tag?");
+						uim->skipLines(1);
 
 						// display meal info
-						displayTagInfo(tagPtr, uim);
+						displayTagInfo(tagPtr);
 
 						strVec = { "YYes", "NNo" };
 
-						uim.prompt_List_Case_Insensitive(strVec);
-						tempStr = uim.display();
+						uim->prompt_List_Case_Insensitive(strVec);
+						tempStr = uim->display();
 						tempStr = std::toupper(tempStr.at(0));
 
 						// check user's choice
@@ -3923,10 +3926,10 @@ void MealManager::tagEditor(UIManager& uim)
 							tagPtr = nullptr;
 
 							// confirm to user
-							uim.centeredText("Success!");
-							uim.skipLines(2);
-							uim.centeredText("Tag deleted!");
-							uim.display();
+							uim->centeredText("Success!");
+							uim->skipLines(2);
+							uim->centeredText("Tag deleted!");
+							uim->display();
 
 							// exit loop
 							tempStr = "Q";
@@ -3942,7 +3945,7 @@ void MealManager::tagEditor(UIManager& uim)
 				// display multitags and get user's choice, or quit
 				do
 				{
-					tempInt = displayMultiTags(uim);
+					tempInt = displayMultiTags();
 
 					// if user did not quit
 					if (tempInt != -1)
@@ -3951,18 +3954,18 @@ void MealManager::tagEditor(UIManager& uim)
 						mtagPtr = multiTags.at(tempInt);
 
 						// confirm deletion
-						uim.centeredText("Confirm Deletion");
-						uim.skipLines(2);
-						uim.centeredText("Are you sure you want to delete this MultiTag?");
-						uim.skipLines(1);
+						uim->centeredText("Confirm Deletion");
+						uim->skipLines(2);
+						uim->centeredText("Are you sure you want to delete this MultiTag?");
+						uim->skipLines(1);
 
 						// display meal info
-						displayMultiTagInfo(mtagPtr, uim);
+						displayMultiTagInfo(mtagPtr);
 
 						strVec = { "YYes", "NNo" };
 
-						uim.prompt_List_Case_Insensitive(strVec);
-						tempStr = uim.display();
+						uim->prompt_List_Case_Insensitive(strVec);
+						tempStr = uim->display();
 						tempStr = std::toupper(tempStr.at(0));
 
 						// check user's choice
@@ -3991,10 +3994,10 @@ void MealManager::tagEditor(UIManager& uim)
 							mtagPtr = nullptr;
 
 							// confirm to user
-							uim.centeredText("Success!");
-							uim.skipLines(2);
-							uim.centeredText("MultiTag deleted!");
-							uim.display();
+							uim->centeredText("Success!");
+							uim->skipLines(2);
+							uim->centeredText("MultiTag deleted!");
+							uim->display();
 
 							// exit loop
 							tempStr = "Q";

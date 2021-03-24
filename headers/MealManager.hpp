@@ -10,6 +10,7 @@ class MealManager
 	std::vector<Tag*> normalTags; // tags assigned to foods
 	std::vector<MultiTag*> multiTags; // special tags that are linked to normalTags
 	std::vector<Meal*> meals;
+	UIManager* uim; // used to create and display UI to user
 
 	// initialized on object creation
 	double MINIMUM_PRICE;
@@ -18,28 +19,34 @@ class MealManager
 	unsigned int DESC_LENGTH;
 
 	// HELPER FUNCTIONS
-	void createMeal(Meal* mealptr, UIManager& uim);
-	void createTag(Tag* tagPtr, UIManager& uim);
-	void createMultiTag(MultiTag* mtagPtr, UIManager& uim);
-	void editMealTags(Meal* mealPtr, UIManager& uim);
-	void editMultiTag(MultiTag* mtagPtr, UIManager& uim);
-	void editMultiTagTags(MultiTag* mtagPtr, UIManager& uim);
-	void editMeal(Meal* mealPtr, UIManager& uim);
-	void editTag(Tag* tagPtr, UIManager& uim);
+	/* createMeal
+	* INPUTS: 
+	*	Meal* mealptr: pointer to Meal object, should be instantiated to nullptr
+	*	UIManager&
+	* 
+	*/
+	void createMeal(Meal* mealptr);
+	void createTag(Tag* tagPtr);
+	void createMultiTag(MultiTag* mtagPtr);
+	void editMealTags(Meal* mealPtr);
+	void editMultiTag(MultiTag* mtagPtr);
+	void editMultiTagTags(MultiTag* mtagPtr);
+	void editMeal(Meal* mealPtr);
+	void editTag(Tag* tagPtr);
 	std::string formatPrice(const double& price); // return string of price without trailing zeros
 
 	// return string of enabledDays, if no days enabled, then will return "[]"
 	std::string formatEnabledDays(const Meal* mealPtr);
 
 	// display all Meals/Tags, returns index for meals or normalTags(), return -1 if user chose to quit
-	int displayMeals(UIManager& uim);
-	int displayTags(UIManager& uim);
-	int displayMultiTags(UIManager& uim);
+	int displayMeals();
+	int displayTags();
+	int displayMultiTags();
 
 	// queues information in UIM for one Meal/Tag
-	void displayMealInfo(const Meal* mealPtr, UIManager& uim);
-	void displayTagInfo(const Tag* tagPtr, UIManager& uim);
-	void displayMultiTagInfo(const MultiTag* mtagPtr, UIManager& uim);
+	void displayMealInfo(const Meal* mealPtr);
+	void displayTagInfo(const Tag* tagPtr);
+	void displayMultiTagInfo(const MultiTag* mtagPtr);
 
 	// SAVING TO FILE
 	void writeMeal(const Meal* mealPtr, std::ofstream& oFile);
@@ -53,12 +60,12 @@ class MealManager
 
 public:
 	MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE, 
-				const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH);
+				const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH, UIManager& uim);
 	~MealManager();
 
 	void generateSchedule(std::ostream& oFile = std::cout);
-	void mealEditor(UIManager& uim);
-	void tagEditor(UIManager& uim);
+	void mealEditor();
+	void tagEditor();
 
 	// Save/Load >>>MAKE PRIVATE WHEN NOT TESTING<<< 
 	void saveState(const std::string& dataFile, std::ofstream& oFile);
