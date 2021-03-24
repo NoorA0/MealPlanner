@@ -6,7 +6,6 @@
 
 class MultiTag
 {
-	bool enabled; // can turn off multiTags
 	bool highestPriority; // default to true, but can be lowered to that of a normal Tag
 	std::string name;
 	std::string description;
@@ -24,7 +23,6 @@ public:
 	// SETTERS
 	void setName(const std::string& _name) { name = _name; }
 	void setDescription(const std::string& _description) { description = _description; }
-	void setEnabled(const bool& _enabled) { enabled = _enabled; }
 	void setHighestPriority(const bool& _priority) { highestPriority = _priority; }
 	void setEnabledDays(const std::map<DaysOfTheWeek, bool>& _enabledDays) { enabledDays = _enabledDays; }
 	void setLinkedTags(const std::map<Tag*, unsigned int>& _linkedTags) { linkedTags = _linkedTags; }
@@ -32,7 +30,7 @@ public:
 	// GETTERS
 	std::string getName() const { return name; }
 	std::string getDescription() const { return description; }
-	bool isEnabled() const { return enabled; }
+	bool isDisabled() const;
 	bool hasPriority() const { return highestPriority; }
 	std::map<DaysOfTheWeek, bool> getEnabledDays() const { return enabledDays; }
 	std::map<Tag*, unsigned int> getLinkedTags() const { return linkedTags; }

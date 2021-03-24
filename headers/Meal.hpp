@@ -12,6 +12,7 @@ class Meal
 	bool isDisabled;
 	unsigned int mealDuration; // how long this meal lasts in days (useful for large batches)
 	unsigned int daysBetweenOccurrences; // how many days before this meal can be rescheduled
+	unsigned int dayScheduled; // number of the day this meal was last scheduled
 
 public:
 	Meal();
@@ -25,6 +26,7 @@ public:
 	void setIsDisabled(const bool& isDisabled);
 	void setMealDuration(const unsigned int& mealDuration);
 	void setDaysBetweenOccurrences(const unsigned int& daysBetweenOccurrences);
+	void setDayScheduled(const unsigned int& dayScheduled);
 
 	// GETTERS
 	std::string getName() const;
@@ -33,6 +35,7 @@ public:
 	bool getIsDisabled() const;
 	unsigned int getMealDuration() const;
 	unsigned int getDaysBetweenOccurrences() const;
+	unsigned int getDayScheduled() const;
 
 	// OTHER FUNCTIONS
 	std::map<DaysOfTheWeek, bool> getEnabledDays() const;

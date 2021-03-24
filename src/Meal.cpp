@@ -7,6 +7,7 @@ Meal::Meal()
 	isDisabled = true;
 	mealDuration = 1;
 	daysBetweenOccurrences = 0;
+	dayScheduled = 0;
 }
 
 Meal::~Meal()
@@ -52,6 +53,11 @@ void Meal::setDaysBetweenOccurrences(const unsigned int& daysBetweenOccurrences)
 	this->daysBetweenOccurrences = daysBetweenOccurrences;
 }
 
+void Meal::setDayScheduled(const unsigned int& dayScheduled)
+{
+	this->dayScheduled = dayScheduled;
+}
+
 std::string Meal::getName() const
 {
 	return name;
@@ -80,6 +86,11 @@ unsigned int Meal::getMealDuration() const
 unsigned int Meal::getDaysBetweenOccurrences() const
 {
 	return daysBetweenOccurrences;
+}
+
+unsigned int Meal::getDayScheduled() const
+{
+	return dayScheduled;
 }
 
 std::map<DaysOfTheWeek, bool> Meal::getEnabledDays() const
