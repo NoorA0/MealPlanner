@@ -810,7 +810,8 @@ void MealManager::editMealTags(Meal* mealPtr)
 					// tell user the tag exists
 					uim->centeredText("Error");
 					uim->skipLines(2);
-					uim->leftAllignedText("Tag is already assigned to Meal.");
+					tempStr = "\"" + compare->getName() + "\" is already assigned to \"" + mealPtr->getName() = "\".";
+					uim->leftAllignedText(tempStr);
 					uim->display();
 				}
 				else
@@ -821,7 +822,8 @@ void MealManager::editMealTags(Meal* mealPtr)
 					// display confirmation
 					uim->centeredText("Success!");
 					uim->skipLines(2);
-					uim->centeredText("Tag assigned to Meal.");
+					tempStr = "\"" + compare->getName() + "\" assigned to \"" + mealPtr->getName() = "\".";
+					uim->centeredText(tempStr);
 					uim->display();
 				}
 			}
@@ -1288,9 +1290,9 @@ void MealManager::editMultiTag(MultiTag* mtagPtr)
 				tempStr = "Do you want to ";
 
 				if (mtagPtr->isEnabled())
-					tempStr += "enable";
-				else
 					tempStr += "disable";
+				else
+					tempStr += "enable";
 
 				tempStr += " it?";
 
@@ -1886,15 +1888,10 @@ std::string MealManager::formatPrice(const double& price)
 	return formatStr;
 }
 
-std::string MealManager::formatEnabledDays(const Meal* mealPtr)
+std::string MealManager::formatEnabledDays(const std::map<DaysOfTheWeek, bool>& enabledDays)
 {
-	std::string returnStr = "";
+	std::string returnStr = "[";
 	bool oneDayEnabled = false; // used to determine format between days
-
-	// get enabled days
-	std::map<DaysOfTheWeek, bool> enabledDays = mealPtr->getEnabledDays();
-
-	returnStr = "[";
 
 	// check days that are disabled by tags
 	if (enabledDays.at(MONDAY))
@@ -2488,7 +2485,7 @@ void MealManager::displayMealInfo(const Meal* mealPtr)
 		uim->leftAllignedText("Is disabled.");
 	else
 	{
-		tempStr = "Enabled on: " + formatEnabledDays(mealPtr);
+		tempStr = "Enabled on: " + formatEnabledDays(mealPtr->getEnabledDays());
 
 		// check if disabled by tags
 		if (tempStr == "Enabled on: []")
@@ -2524,84 +2521,13 @@ void MealManager::displayTagInfo(const Tag* tagPtr)
 	uim->leftAllignedText(tempStr);
 
 	// enabledDays
-	std::map<DaysOfTheWeek, bool> enabledDays = tagPtr->getEnabledDays();
-	bool hasADayEnabled = false; // changes formatting if at least one day is enabled
+	tempStr = "Enabled on: " + formatEnabledDays(tagPtr->getEnabledDays());
 
-	tempStr = "Enabled on: [";
-
-	if (enabledDays.at(MONDAY))
-	{
-		tempStr += "M";
-		hasADayEnabled = true;
-	}
-
-	if (enabledDays.at(TUESDAY))
-	{
-		if (hasADayEnabled)
-			tempStr += ", ";
-		else
-			hasADayEnabled = true;
-
-		tempStr += "T";
-	}
-
-	if (enabledDays.at(WEDNESDAY))
-	{
-		if (hasADayEnabled)
-			tempStr += ", ";
-		else
-			hasADayEnabled = true;
-
-		tempStr += "W";
-	}
-
-	if (enabledDays.at(THURSDAY))
-	{
-		if (hasADayEnabled)
-			tempStr += ", ";
-		else
-			hasADayEnabled = true;
-
-		tempStr += "Th";
-	}
-
-	if (enabledDays.at(FRIDAY))
-	{
-		if (hasADayEnabled)
-			tempStr += ", ";
-		else
-			hasADayEnabled = true;
-
-		tempStr += "F";
-	}
-
-	if (enabledDays.at(SATURDAY))
-	{
-		if (hasADayEnabled)
-			tempStr += ", ";
-		else
-			hasADayEnabled = true;
-
-		tempStr += "Sa";
-	}
-
-	if (enabledDays.at(SUNDAY))
-	{
-		if (hasADayEnabled)
-			tempStr += ", ";
-		else
-			hasADayEnabled = true;
-
-		tempStr += "Su";
-	}
-
-	tempStr += "]";
-
-	// check if any days were enabled
-	if (hasADayEnabled)
-		uim->leftAllignedText(tempStr);
+	// check if disabled by tags
+	if (tempStr == "Enabled on: []")
+		uim->leftAllignedText("Tag disabled all days.");
 	else
-		uim->leftAllignedText("Tag disables all days.");
+		uim->leftAllignedText(tempStr);
 }
 
 void MealManager::displayMultiTagInfo(const MultiTag* mtagPtr)
@@ -2625,88 +2551,18 @@ void MealManager::displayMultiTagInfo(const MultiTag* mtagPtr)
 		tempStr += "NO";
 	uim->leftAllignedText(tempStr);
 
+	// enabledDays
+
 	// check if disabled
 	if (mtagPtr->isEnabled())
 	{
-		// enabledDays
-		std::map<DaysOfTheWeek, bool> enabledDays = mtagPtr->getEnabledDays();
-		bool hasADayEnabled = false; // changes formatting if at least one day is enabled
+		tempStr = "Enabled on: " + formatEnabledDays(mtagPtr->getEnabledDays());
 
-		tempStr = "Enabled on: [";
-
-		if (enabledDays.at(MONDAY))
-		{
-			tempStr += "M";
-			hasADayEnabled = true;
-		}
-
-		if (enabledDays.at(TUESDAY))
-		{
-			if (hasADayEnabled)
-				tempStr += ", ";
-			else
-				hasADayEnabled = true;
-
-			tempStr += "T";
-		}
-
-		if (enabledDays.at(WEDNESDAY))
-		{
-			if (hasADayEnabled)
-				tempStr += ", ";
-			else
-				hasADayEnabled = true;
-
-			tempStr += "W";
-		}
-
-		if (enabledDays.at(THURSDAY))
-		{
-			if (hasADayEnabled)
-				tempStr += ", ";
-			else
-				hasADayEnabled = true;
-
-			tempStr += "Th";
-		}
-
-		if (enabledDays.at(FRIDAY))
-		{
-			if (hasADayEnabled)
-				tempStr += ", ";
-			else
-				hasADayEnabled = true;
-
-			tempStr += "F";
-		}
-
-		if (enabledDays.at(SATURDAY))
-		{
-			if (hasADayEnabled)
-				tempStr += ", ";
-			else
-				hasADayEnabled = true;
-
-			tempStr += "Sa";
-		}
-
-		if (enabledDays.at(SUNDAY))
-		{
-			if (hasADayEnabled)
-				tempStr += ", ";
-			else
-				hasADayEnabled = true;
-
-			tempStr += "Su";
-		}
-
-		tempStr += "]";
-
-		// check if any days were enabled
-		if (hasADayEnabled)
-			uim->leftAllignedText(tempStr);
+		// check if MultiTag has all days disabled
+		if (tempStr == "Enabled on: []")
+			uim->leftAllignedText("All days are disabled.");
 		else
-			uim->leftAllignedText("MultiTag disables all days.");
+			uim->leftAllignedText(tempStr);
 	}
 	else // tag is disabled 
 	{
