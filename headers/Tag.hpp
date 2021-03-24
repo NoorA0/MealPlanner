@@ -15,6 +15,9 @@ enum DaysOfTheWeek
 	SUNDAY
 };
 
+DaysOfTheWeek nextDay(const DaysOfTheWeek& day);
+DaysOfTheWeek previousDay(const DaysOfTheWeek& day);
+
 class Tag
 {
 	std::string name;

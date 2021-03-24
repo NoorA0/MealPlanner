@@ -75,3 +75,31 @@ unsigned int Tag::getConsecutiveLimit() const
 {
 	return consecutiveLimit;
 }
+
+DaysOfTheWeek nextDay(const DaysOfTheWeek& day)
+{
+	switch (day)
+	{
+	case MONDAY: return TUESDAY;
+	case TUESDAY: return WEDNESDAY;
+	case WEDNESDAY: return THURSDAY;
+	case THURSDAY: return FRIDAY;
+	case FRIDAY: return SATURDAY;
+	case SATURDAY: return SUNDAY;
+	case SUNDAY: return MONDAY;
+	}
+}
+
+DaysOfTheWeek previousDay(const DaysOfTheWeek& day)
+{
+	switch (day)
+	{
+	case MONDAY: return SUNDAY;
+	case TUESDAY: return MONDAY;
+	case WEDNESDAY: return TUESDAY;
+	case THURSDAY: return WEDNESDAY;
+	case FRIDAY: return THURSDAY;
+	case SATURDAY: return FRIDAY;
+	case SUNDAY: return SATURDAY;
+	}
+}
