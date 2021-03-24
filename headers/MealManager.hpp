@@ -122,6 +122,14 @@ class MealManager
 	*/
 	std::string formatEnabledDays(const std::map<DaysOfTheWeek, bool>& enabledDays);
 
+	/* optimizeData
+	* Populates passed params with only enabled Tags/MultiTags/Meals to speed calculations
+	*/
+	void optimizeData(std::map<DaysOfTheWeek, std::vector<MultiTag*>>& highPriorityMultiTags,
+		std::map<DaysOfTheWeek, std::vector<MultiTag*>>& normalPriorityMultiTags,
+		std::map<DaysOfTheWeek, std::vector<Tag*>> normalPriorityTags,
+		std::map<Tag*, std::vector<Meal*>> availableMeals);
+
 	// display all Meals/Tags, returns index for meals or normalTags(), return -1 if user chose to quit
 	int displayMeals();
 	int displayTags();
@@ -147,7 +155,7 @@ public:
 				const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH, UIManager& uim);
 	~MealManager();
 
-	void generateSchedule(std::ostream& oFile = std::cout);
+	void generateSchedule(const std::string& fileName, std::ofstream& oFile);
 	void mealEditor();
 	void tagEditor();
 

@@ -2,8 +2,10 @@
 #define __TAG_HPP__
 
 #include <map>
+#include <vector>
 #include <string>
 
+class Meal;
 enum DaysOfTheWeek
 {
 	MONDAY,
@@ -23,6 +25,7 @@ class Tag
 	std::string name;
 	std::string description;
 	std::map<DaysOfTheWeek, bool> enabledDays; // days of the week that meal is enabled on
+	std::vector<Meal*> linkedMeals; // meals that are linked to this tag
 	bool dependsOnMultiTag; // if tag is only used when a MultiTag uses it
 	unsigned int consecutiveLimit; // times a meal with a tag can occurr consecutively
 
@@ -38,6 +41,9 @@ public:
 	void setEnabledDays(const std::map<DaysOfTheWeek, bool> new_enabledDays);
 	void setDependency(const bool& new_dependency);
 	void setConsecutiveLimit(const unsigned int& new_consecutiveLimit);
+	void addMeal(Meal* mealPtr);
+	void clearLinkedMeals();
+	bool removeMeal(const Meal* mealPtr);
 
 	// GETTERS
 	std::string getName() const;
@@ -45,5 +51,8 @@ public:
 	std::map<DaysOfTheWeek, bool> getEnabledDays() const;
 	bool getDependency() const;
 	unsigned int getConsecutiveLimit() const;
+	bool isDisabled() const;
+	std::vector<Meal*> getLinkedMeals() const;
+
 };
 #endif // !__TAG_HPP__

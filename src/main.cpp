@@ -7,12 +7,20 @@ void displayMealManual(UIManager& uim);
 void displayTagManual(UIManager& uim);
 void displayMultiTagManual(UIManager& uim);
 
+// ensures input has .txt extension, otherwise adds .txt to input and returns it
+std::string verifyFileName(const std::string& input);
+
 int main()
 {
 	// default file names to store and store Meal Plans, respectively
 	const std::string DATAFILE = "ProgramData.txt";
-	const std::string OUTPUTFILE = "Generated_List.txt";
+	const std::string OUTPUTFILE = "Generated_Plan.txt";
 	const std::string LOGFILE = "Logs.txt";
+
+	// min filename length for generated plans, length of 0 indicates to use OUTPUTFILE
+	const unsigned int MIN_OUTFILE_LENGTH = 0; 
+	// max filename length for generated plans
+	const unsigned int MAX_OUTFILE_LENGTH = 50; 
 	const int UI_WIDTH = 140;
 	const int UI_HEIGHT = 45;
 	const double MINIMUM_PRICE = 0; // minimum acceptable price for Meal price
@@ -130,8 +138,16 @@ int main()
 			uim.centeredText("Enter a file name:");
 			tempStr = "(press <enter> to use \"" + OUTPUTFILE + "\")";
 			uim.centeredText(tempStr);
+			uim.prompt_FreeString(MIN_OUTFILE_LENGTH, MAX_OUTFILE_LENGTH);
+			tempStr = uim.display();
 
-			mealManager.generateSchedule();
+			// check if using default name
+			if (tempStr.length() == 0)
+				tempStr = OUTPUTFILE;
+			else // verify file extension is correct
+				tempStr = verifyFileName(tempStr);
+
+			mealManager.generateSchedule(tempStr, oFile);
 			break;
 		case 2: // view Meals
 			mealManager.mealEditor();
@@ -173,9 +189,9 @@ int main()
 						uim.leftAllignedText("In this case, create Tags called \"Takes Long\" or \"Quick to Make\", then enable the tag on the days that you want that food.");
 						uim.leftAllignedText("If you disabled Meals with \"Takes Long\" on Mondays, then foods assigned to that Tag will not occur on Mondays.");
 						uim.skipLines(1);
-						uim.leftAllignedText("When you want to create a Meal Plan, it will generate a text file in the same place that you ran this program from.");
-						uim.leftAllignedText("If you can't find the file, you can tell the program to output the Meal Plan to your screen.");
-						uim.leftAllignedText("But be warned, it will probably look really ugly, it's best to use it as last-resort.");
+						uim.leftAllignedText("When you want to create a Meal Plan, you will specify a file name, time period in weeks, and a budget over this period.");
+						uim.leftAllignedText("The program will compute a suitable Plan, then create a file with the plan written to it.");
+						uim.leftAllignedText("You can find this file in the same place as where you launched this program from.");
 						uim.display();
 						break;
 					case 2: // Meal info
@@ -521,4 +537,24 @@ void displayMultiTagManual(UIManager& uim)
 	uim.skipLines(1);
 	uim.leftAllignedText("So, instead of a single Meal from MondayMeal being planned, 3 individual meals will be planned on the days that NoTime is enabled.");
 	uim.display();
+}
+
+std::string verifyFileName(const std::string& input)
+{
+	std::string extension = ".txt"; // extension to add
+	std::string returnStr = "";
+
+	// if input is long enough to have extension
+	if (input.length() >= extension.length())
+	{
+		// check if last 4 chars has extension
+		if (input.substr(input.length() - extension.length()) == extension)
+			returnStr = input; // input is correct
+		else
+			returnStr = input + extension; // append extension
+	}
+	else // append extension
+		returnStr = input + extension;
+
+	return returnStr;
 }

@@ -37,6 +37,5 @@ bool MultiTag::isDisabled() const
 		}
 		++daysIter;
 	}
-
 	return isDisabled;
 }

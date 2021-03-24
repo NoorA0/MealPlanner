@@ -2,7 +2,6 @@
 #define __MEAL_HPP__
 
 #include "Tag.hpp"
-#include <vector>
 
 class Meal
 {

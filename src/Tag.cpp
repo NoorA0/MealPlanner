@@ -1,4 +1,5 @@
 #include "../headers/Tag.hpp"
+#include "../headers/Meal.hpp"
 
 Tag::Tag()
 {
@@ -24,6 +25,10 @@ Tag::Tag(const std::string& _name, const std::string& _description, const std::m
 
 Tag::~Tag()
 {
+	for (auto mealIter : linkedMeals)
+	{
+		delete mealIter;
+	}
 }
 
 void Tag::setName(const std::string& new_name)
@@ -51,6 +56,37 @@ void Tag::setConsecutiveLimit(const unsigned int& new_consecutiveLimit)
 	consecutiveLimit = new_consecutiveLimit;
 }
 
+void Tag::addMeal(Meal* mealPtr)
+{
+	linkedMeals.push_back(mealPtr);
+}
+
+void Tag::clearLinkedMeals()
+{
+	linkedMeals.clear();
+}
+
+bool Tag::removeMeal(const Meal* mealPtr)
+{
+	bool notFound = true;
+	
+	// find mealPtr
+	auto mealIter = linkedMeals.begin();
+	while (notFound && mealIter != linkedMeals.end())
+	{
+		// if found, erase from vector
+		if (*mealIter == mealPtr)
+		{
+			notFound = false;
+			linkedMeals.erase(mealIter);
+		}
+		++mealIter;
+	}
+
+	// if nothing found, return error value
+	return notFound;
+}
+
 std::string Tag::getName() const
 {
 	return name;
@@ -74,6 +110,31 @@ bool Tag::getDependency() const
 unsigned int Tag::getConsecutiveLimit() const
 {
 	return consecutiveLimit;
+}
+
+bool Tag::isDisabled() const
+{
+	bool isDisabled = true;
+	bool done = false;
+	auto daysIter = enabledDays.begin();
+
+	// check each day
+	while (!done && daysIter != enabledDays.end())
+	{
+		// if day is enabled
+		if (daysIter->second)
+		{
+			isDisabled = false;
+			done = true;
+		}
+		++daysIter;
+	}
+	return isDisabled;
+}
+
+std::vector<Meal*> Tag::getLinkedMeals() const
+{
+	return linkedMeals;
 }
 
 DaysOfTheWeek nextDay(const DaysOfTheWeek& day)
