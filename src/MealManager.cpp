@@ -65,6 +65,10 @@ void MealManager::createMeal(Meal* mealptr)
 	double tempDouble;
 	std::vector<std::string> strVec;
 
+	// ensure mealPtr is instantiated
+	if (mealptr == nullptr)
+		mealptr = new Meal();
+
 	// loop while user is not done choosing a name
 	while (!doneCreating)
 	{
@@ -84,43 +88,54 @@ void MealManager::createMeal(Meal* mealptr)
 		tempStr = uim->display();
 
 		// if there are other meals stored, check if names conflict (case insensitive)
+		// also try to find place to insert into (alphabetical order)
 		if (meals.size() > 0)
 		{
 			// get uppercase version of tempStr
 			std::string upperStr = tempStr;
 			for (int i = 0; i < upperStr.size(); ++i)
 			{
-				char makeUpper = std::toupper(upperStr.at(i));
-				upperStr.at(i) = makeUpper;
+				upperStr.at(i) = std::toupper(upperStr.at(i));
 			}
 
 			// compare with names of all meals until a match is found
+			// also find a place to insert into (alphabetical order)
+			bool placeFound = false;
 			inputValid = true;
 			auto mealsIter = meals.begin();
-			while (inputValid && mealsIter != meals.end())
+			while (inputValid && !placeFound && mealsIter != meals.end())
 			{
 				// get uppercase version of meal's name
-				std::string mealName = (*mealsIter)->getName();
-				for (int i = 0; i < mealName.size(); ++i)
+				std::string compareName = (*mealsIter)->getName();
+				for (int i = 0; i < compareName.size(); ++i)
 				{
-					char makeUpper = std::toupper(mealName.at(i));
-					mealName.at(i) = makeUpper;
+					compareName.at(i) = std::toupper(compareName.at(i));
 				}
 
 				// check if names match
-				if (upperStr == mealName)
+				if (upperStr == compareName)
 					inputValid = false;
-				++mealsIter;
+				else if (upperStr < compareName) // check if is this a good place to insert
+				{
+					// insert here
+					placeFound = true;
+					mealptr->setName(tempStr);
+					meals.emplace(mealsIter, mealptr);
+					doneCreating = true;
+				}
+				else // keep looking
+					++mealsIter;
 			}
 
-			// check if name is valid
-			if (inputValid)
+			// check if name is valid but place not found
+			if (inputValid && !placeFound)
 			{
-				// make new meal and set name
+				// set name and place at back of meals
 				mealptr->setName(tempStr);
+				meals.push_back(mealptr);
 				doneCreating = true; // exits section of creation
 			}
-			else // invalid name, inform user
+			else if (!inputValid) // invalid name, inform user
 			{
 				uim->centeredText("Error: Invalid Name");
 				uim->skipLines(2);
@@ -128,12 +143,12 @@ void MealManager::createMeal(Meal* mealptr)
 				uim->display();
 			}
 		}
-		else // add name to meal
+		else // name is ok, push to back of meals
 		{
 			mealptr->setName(tempStr);
+			meals.push_back(mealptr);
 			doneCreating = true;
 		}
-
 	}// while (!doneCreating)
 
 	// price
@@ -182,7 +197,7 @@ void MealManager::createMeal(Meal* mealptr)
 void MealManager::createTag(Tag* tagPtr)
 {
 	std::string tempStr = "";
-	int tempInt;
+	int tempInt = 0;
 	std::vector<std::string> strVec;
 	bool doneCreatingName = false;
 
@@ -191,6 +206,12 @@ void MealManager::createTag(Tag* tagPtr)
 	{ {MONDAY, false}, {TUESDAY, false}, {WEDNESDAY, false}, {THURSDAY, false}, {FRIDAY, false},
 		{SATURDAY, false}, {SUNDAY, false} };
 
+
+	// ensure pointer is instantiated
+	if (tagPtr == nullptr)
+	{
+		tagPtr = new Tag();
+	}
 
 	// loop while user is not done choosing a name
 	while (!doneCreatingName)
@@ -220,33 +241,47 @@ void MealManager::createTag(Tag* tagPtr)
 			std::string upperStr = tempStr;
 			for (int i = 0; i < upperStr.size(); ++i)
 			{
-				char makeUpper = std::toupper(upperStr.at(i));
-				upperStr.at(i) = makeUpper;
+				upperStr.at(i) = std::toupper(upperStr.at(i));
 			}
 
 			// compare with names of all tags until a match is found
+			// also find a place to insert into (alphabetical order)
+			bool placeFound = false;
 			bool inputValid = true;
 			auto tagsIter = normalTags.begin();
-			while (inputValid && tagsIter != normalTags.end())
+			while (inputValid && !placeFound && tagsIter != normalTags.end())
 			{
 				// get uppercase version of tag's name
-				std::string tagName = (*tagsIter)->getName();
-				for (int i = 0; i < tagName.size(); ++i)
+				std::string compareName = (*tagsIter)->getName();
+				for (int i = 0; i < compareName.size(); ++i)
 				{
-					char makeUpper = std::toupper(tagName.at(i));
-					tagName.at(i) = makeUpper;
+					compareName.at(i) = std::toupper(compareName.at(i));
 				}
 
 				// check if names match
-				if (upperStr == tagName)
+				if (upperStr == compareName)
 					inputValid = false;
-				++tagsIter;
+				else if (upperStr < compareName) // check if this is a good place to insert
+				{
+					// insert here
+					placeFound = true;
+					tagPtr->setName(tempStr);
+					normalTags.emplace(tagsIter, tagPtr);
+					doneCreatingName = true;
+				}
+				else // keep searching
+					++tagsIter;
 			}
 
-			// check if name is valid
-			if (inputValid)
+			// check if name is valid but place not found
+			if (inputValid && !placeFound)
+			{
+				// set name and place at back of normalTags
+				tagPtr->setName(tempStr);
+				normalTags.push_back(tagPtr);
 				doneCreatingName = true;
-			else // invalid name, inform user
+			}
+			else if (!inputValid) // invalid name, inform user
 			{
 				uim->centeredText("Error: Invalid Name");
 				uim->skipLines(2);
@@ -254,11 +289,13 @@ void MealManager::createTag(Tag* tagPtr)
 				uim->display();
 			}
 		}
-		else // no tags to compare
+		else // no tags to compare so push to back of meals
+		{
+			tagPtr->setName(tempStr);
+			normalTags.push_back(tagPtr);
 			doneCreatingName = true;
+		}
 	} // while (!doneCreatingName)
-
-	tagPtr->setName(tempStr);
 
 	// prompt and get description
 	tempStr = "New Tag: \"" + tagPtr->getName() + "\"";
@@ -452,6 +489,10 @@ void MealManager::createMultiTag(MultiTag* mtagPtr)
 	std::vector<std::string> strVec;
 	bool doneCreatingName = false;
 
+	// ensure pointer is instantiated to an object
+	if (mtagPtr == nullptr)
+		mtagPtr = new MultiTag();
+
 	// multitag's params
 	std::map<DaysOfTheWeek, bool> enabledDays =
 	{ {MONDAY, false}, {TUESDAY, false}, {WEDNESDAY, false}, {THURSDAY, false}, {FRIDAY, false},
@@ -485,33 +526,46 @@ void MealManager::createMultiTag(MultiTag* mtagPtr)
 			std::string upperStr = tempStr;
 			for (int i = 0; i < upperStr.size(); ++i)
 			{
-				char makeUpper = std::toupper(upperStr.at(i));
-				upperStr.at(i) = makeUpper;
+				upperStr.at(i) = std::toupper(upperStr.at(i));
 			}
 
 			// compare with names of all tags until a match is found
+			bool placeFound = false;
 			bool inputValid = true;
 			auto tagsIter = multiTags.begin();
-			while (inputValid && tagsIter != multiTags.end())
+			while (inputValid && !placeFound && tagsIter != multiTags.end())
 			{
 				// get uppercase version of tag's name
-				std::string tagName = (*tagsIter)->getName();
-				for (int i = 0; i < tagName.size(); ++i)
+				std::string compareName = (*tagsIter)->getName();
+				for (int i = 0; i < compareName.size(); ++i)
 				{
-					char makeUpper = std::toupper(tagName.at(i));
-					tagName.at(i) = makeUpper;
+					compareName.at(i) = std::toupper(compareName.at(i));
 				}
 
 				// check if names match
-				if (upperStr == tagName)
+				if (upperStr == compareName)
 					inputValid = false;
-				++tagsIter;
+				else if (upperStr < compareName) // check if this is a good place to insert
+				{
+					// insert here
+					placeFound = true;
+					mtagPtr->setName(tempStr);
+					multiTags.emplace(tagsIter, mtagPtr);
+					doneCreatingName = true;
+				}
+				else // keep looking
+					++tagsIter;
 			}
 
-			// check if name is valid
-			if (inputValid)
+			// check if name is valid but place not found
+			if (inputValid && !placeFound)
+			{
+				// set name and place at back of multitags
+				mtagPtr->setName(tempStr);
+				multiTags.push_back(mtagPtr);
 				doneCreatingName = true;
-			else // invalid name, inform user
+			}
+			else if (!inputValid) // invalid name, inform user
 			{
 				uim->centeredText("Error: Invalid Name");
 				uim->skipLines(2);
@@ -519,12 +573,13 @@ void MealManager::createMultiTag(MultiTag* mtagPtr)
 				uim->display();
 			}
 		}
-		else // no tags to compare
+		else // no tags to compare so push to back of meals
+		{
+			mtagPtr->setName(tempStr);
+			multiTags.push_back(mtagPtr);
 			doneCreatingName = true;
+		}
 	} // while (!doneCreatingName)
-
-	// assign name
-	mtagPtr->setName(tempStr);
 
 	// prompt and get description
 	tempStr = "New MultiTag: \"" + mtagPtr->getName() + "\"";
@@ -2084,6 +2139,7 @@ int MealManager::displayMeals()
 				for (auto mealIter : meals)
 				{
 					displayMealInfo(mealIter);
+					uim->skipLines(1);
 					tempStr = std::to_string(choice) + mealIter->getName();
 					strVec.push_back(tempStr);
 					++choice;
@@ -3561,13 +3617,11 @@ void MealManager::mealEditor()
 
 			} while (tempStr != "Q");
 			break;
-		case 2: // create a new meal and add to meals stored
+		case 2: // create a new meal
 			mealPtr = new Meal;
 
 			createMeal(mealPtr);
 
-			// add meal to meals 
-			meals.push_back(mealPtr);
 			mealPtr = nullptr;
 
 			// confirm to user
@@ -3731,8 +3785,6 @@ void MealManager::tagEditor()
 
 				createTag(tagPtr);
 
-				// add tag to normalTags
-				normalTags.push_back(tagPtr);
 				tagPtr = nullptr;
 
 				// confirm to user
@@ -3747,8 +3799,6 @@ void MealManager::tagEditor()
 
 				createMultiTag(mtagPtr);
 
-				// add multitag to multitags
-				multiTags.push_back(mtagPtr);
 				mtagPtr = nullptr;
 
 				// confirm to user

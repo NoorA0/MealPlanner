@@ -26,31 +26,31 @@ class MealManager
 	// HELPER FUNCTIONS
 	/* createMeal
 	* INPUTS: 
-	*	Meal* mealptr: pointer to Meal object, should be instantiated to nullptr
+	*	Meal* mealptr: pointer to instantiated Meal object
 	*
 	* RETURN: none
 	* 
-	* CHANGES: mealPtr: creates a new Meal and sets parameters according to user input
+	* CHANGES: mealPtr: sets parameters according to user input, adds meal to meals in alphabetical order
 	*/
 	void createMeal(Meal* mealptr);
 
 	/* createTag
 	* INPUTS:
-	*	Tag* TagPtr: should be instantiated to nullptr
+	*	Tag* TagPtr: pointer to instantiated Tag object
 	*
 	* RETURN: none
 	*
-	* CHANGES: tagPtr: creates a new Tag and sets parameters according to user input
+	* CHANGES: tagPtr: sets parameters according to user input, adds Tag to normalTags in alphabetical order
 	*/
 	void createTag(Tag* tagPtr);
 
 	/* createMultiTag
 	* INPUTS:
-	*	MultiTag* mTagPtr: should be instantiated to nullptr
+	*	MultiTag* mTagPtr: pointer to instantiated MultiTag object
 	*
 	* RETURN: none
 	*
-	* CHANGES: mTagPtr: creates a new MultiTag and sets parameters according to user input
+	* CHANGES: mTagPtr: sets parameters according to user input, adds MultiTag to MultiTags in alphabetical order
 	*/
 	void createMultiTag(MultiTag* mtagPtr);
 
