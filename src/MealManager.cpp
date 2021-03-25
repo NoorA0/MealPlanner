@@ -173,7 +173,7 @@ void MealManager::createMeal(Meal* mealptr)
 	mealptr->setDaysBetweenOccurrences(tempInt);
 
 	// enable meal
-	mealptr->setIsDisabled(false);
+	mealptr->setDisabled(false);
 
 	// assign tags to meal
 	editMealTags(mealptr);
@@ -1408,10 +1408,10 @@ void MealManager::editMeal(Meal* mealPtr)
 			case 5: // enable/disable
 			{
 				// toggle state
-				if (mealPtr->getIsDisabled())
-					mealPtr->setIsDisabled(false);
+				if (mealPtr->isDisabled())
+					mealPtr->setDisabled(false);
 				else
-					mealPtr->setIsDisabled(true);
+					mealPtr->setDisabled(true);
 			}
 			break;
 			case 6: // edit tags
@@ -1932,7 +1932,7 @@ void MealManager::optimizeData(std::map<DaysOfTheWeek, std::vector<MultiTag*>>& 
 				for (auto mealIter : linkedMeals)
 				{
 					// if enabled, add to enabledMeals
-					if (!mealIter->getIsDisabled())
+					if (!mealIter->isDisabled())
 						enabledMeals.push_back(mealIter);
 				}
 			}
@@ -2486,7 +2486,7 @@ void MealManager::displayMealInfo(const Meal* mealPtr)
 	uim->leftAllignedText(tempStr);
 
 	// enabledDays
-	if (mealPtr->getIsDisabled())
+	if (mealPtr->isDisabled())
 		uim->leftAllignedText("Is disabled.");
 	else
 	{
@@ -2584,7 +2584,7 @@ void MealManager::writeMeal(const Meal* mealPtr, std::ofstream& oFile)
 
 	// isDisabled
 	oFile << "\t<IsDisabled>\n";
-	oFile << "\t" << mealPtr->getIsDisabled() << "\n";
+	oFile << "\t" << mealPtr->isDisabled() << "\n";
 	oFile << "\t</IsDisabled>";
 
 	oFile << "\n";
@@ -2791,7 +2791,7 @@ bool MealManager::readMeals(std::ifstream& iFile)
 				// remove tab at beginning
 				tempStr.erase(0, 1);
 				// set value
-				mealPtr->setIsDisabled(std::stoi(tempStr));
+				mealPtr->setDisabled(std::stoi(tempStr));
 
 				// read end header, verify
 				std::getline(iFile, tempStr);

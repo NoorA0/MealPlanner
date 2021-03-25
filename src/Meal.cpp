@@ -4,8 +4,8 @@ Meal::Meal()
 {
 	name = "UNSET";
 	price = 0.0;
-	isDisabled = true;
-	wasChecked = false;
+	disabled = true;
+	checked = false;
 	mealDuration = 1;
 	daysBetweenOccurrences = 0;
 	dayScheduled = 0;
@@ -39,14 +39,14 @@ void Meal::addTag(Tag* newTag)
 	tags.push_back(newTag);
 }
 
-void Meal::setIsDisabled(const bool& isDisabled)
+void Meal::setDisabled(const bool& disabled)
 {
-	this->isDisabled = isDisabled;
+	this->disabled = disabled;
 }
 
-void Meal::setWasChecked(const bool& checked)
+void Meal::setChecked(const bool& checked)
 {
-	wasChecked = checked;
+	this->checked = checked;
 }
 
 void Meal::setMealDuration(const unsigned int& mealDuration)
@@ -79,14 +79,14 @@ std::vector<Tag*> Meal::getTags() const
 	return tags;
 }
 
-bool Meal::getIsDisabled() const
+bool Meal::isDisabled() const
 {
-	return isDisabled;
+	return disabled;
 }
 
-bool Meal::getWasChecked() const
+bool Meal::isChecked() const
 {
-	return wasChecked;
+	return checked;
 }
 
 unsigned int Meal::getMealDuration() const
