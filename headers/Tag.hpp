@@ -31,8 +31,6 @@ class Tag
 
 public:
 	Tag();
-	Tag(const std::string& _name, const std::string& _description, const std::map<DaysOfTheWeek, bool>& _enabledDays,
-		const bool& _dependsOnMultiTag, const unsigned int& _consecutiveLimit);
 	~Tag();
 
 	// SETTERS

@@ -14,15 +14,6 @@ Tag::Tag()
 	this->enabledDays = enabledDays;
 }
 
-Tag::Tag(const std::string& _name, const std::string& _description, const std::map<DaysOfTheWeek, bool>& _enabledDays, const bool& _dependsOnMultiTag, const unsigned int& _consecutiveLimit)
-{
-	name = _name;
-	description = _description;
-	enabledDays = _enabledDays;
-	dependsOnMultiTag = _dependsOnMultiTag;
-	consecutiveLimit = _consecutiveLimit;
-}
-
 Tag::~Tag()
 {
 	for (auto mealIter : linkedMeals)

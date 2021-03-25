@@ -32,7 +32,13 @@ TEST(MealTest, setTags_getTags)
 	{ {MONDAY, false}, {TUESDAY, true}, {WEDNESDAY, false}, {THURSDAY, true},
 	{FRIDAY, false}, {SATURDAY, true}, {SUNDAY, false} };
 
-	Tag* newTag = new Tag("Name", "Desc", enabledDays, true, 3);
+	Tag* newTag = new Tag();
+	newTag->setName("Name");
+	newTag->setDescription("Desc");
+	newTag->setEnabledDays(enabledDays);
+	newTag->setDependency(true);
+	newTag->setConsecutiveLimit(3);
+
 	std::vector<Tag*> tagsVec; 
 	tagsVec.push_back(newTag);
 
@@ -55,7 +61,12 @@ TEST(MealTest, addTag)
 	{ {MONDAY, false}, {TUESDAY, true}, {WEDNESDAY, false}, {THURSDAY, true},
 	{FRIDAY, false}, {SATURDAY, true}, {SUNDAY, false} };
 
-	Tag* newTag = new Tag("10101", "000111", enabledDays, true, 3);
+	Tag* newTag = new Tag();
+	newTag->setName("10101");
+	newTag->setDescription("000111");
+	newTag->setEnabledDays(enabledDays);
+	newTag->setDependency(true);
+	newTag->setConsecutiveLimit(3);
 
 	Meal testMeal;
 	testMeal.addTag(newTag);
