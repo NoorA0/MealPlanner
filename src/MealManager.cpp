@@ -1407,49 +1407,11 @@ void MealManager::editMeal(Meal* mealPtr)
 				break;
 			case 5: // enable/disable
 			{
-				bool mealDisabled = mealPtr->getIsDisabled();
-
-				tempStr = "Editing \"" + mealPtr->getName() + "\"";
-				uim->centeredText(tempStr);
-				uim->centeredText("Enable/Disable");
-				uim->skipLines(2);
-
-				// report status
-				tempStr = "\"" + mealPtr->getName() + "\" is currently ";
-
-				if (mealDisabled)
-					tempStr += "DISABLED.";
+				// toggle state
+				if (mealPtr->getIsDisabled())
+					mealPtr->setIsDisabled(false);
 				else
-					tempStr += "ENABLED.";
-
-				uim->centeredText(tempStr);
-
-				// prompt user
-				tempStr = "Do you want to ";
-
-				if (mealDisabled)
-					tempStr += "enable";
-				else
-					tempStr += "disable";
-
-				tempStr += " it?";
-				uim->centeredText(tempStr);
-
-				strVec = { "YYes", "NNo" };
-				uim->prompt_List_Case_Insensitive(strVec);
-
-				tempStr = uim->display();
-				tempStr = std::toupper(tempStr.at(0));
-
-				// process user's input
-				if (tempStr == "Y")
-				{
-					// toggle state
-					if (mealDisabled)
-						mealPtr->setIsDisabled(false);
-					else
-						mealPtr->setIsDisabled(true);
-				}
+					mealPtr->setIsDisabled(true);
 			}
 			break;
 			case 6: // edit tags
@@ -1899,8 +1861,8 @@ std::string MealManager::formatEnabledDays(const std::map<DaysOfTheWeek, bool>& 
 
 void MealManager::optimizeData(std::map<DaysOfTheWeek, std::vector<MultiTag*>>& highPriorityMultiTags, 
 	std::map<DaysOfTheWeek, std::vector<MultiTag*>>& normalPriorityMultiTags, 
-	std::map<DaysOfTheWeek, std::vector<Tag*>> normalPriorityTags, 
-	std::map<Tag*, std::vector<Meal*>> availableMeals)
+	std::map<DaysOfTheWeek, std::vector<Tag*>>& normalPriorityTags, 
+	std::map<Tag*, std::vector<Meal*>>& availableMeals)
 {
 	DaysOfTheWeek day = MONDAY; // adds elements to function's params for each day of the week
 
@@ -2032,6 +1994,7 @@ int MealManager::displayMeals()
 					for (int count = 1; count <= MEALS_PER_PAGE; ++count)
 					{
 						displayMealInfo(*mealIter);
+						uim->skipLines(1);
 						tempStr = std::to_string(count) + (*mealIter)->getName();
 						strVec.push_back(tempStr);
 
@@ -2048,6 +2011,7 @@ int MealManager::displayMeals()
 					do
 					{
 						displayMealInfo(*mealIter);
+						uim->skipLines(1);
 						tempStr = std::to_string(count) + (*mealIter)->getName();
 						strVec.push_back(tempStr);
 
@@ -2057,6 +2021,9 @@ int MealManager::displayMeals()
 				}
 
 				// add prompts to go to next page, previous, and quit
+				tempStr = "";
+				strVec.push_back(tempStr);
+
 				tempStr = "NNext Page";
 				strVec.push_back(tempStr);
 
@@ -2122,6 +2089,9 @@ int MealManager::displayMeals()
 					++choice;
 				}
 				// add prompts to quit
+				tempStr = "";
+				strVec.push_back(tempStr);
+
 				tempStr = "QQuit Selection";
 				strVec.push_back(tempStr);
 
@@ -2184,6 +2154,9 @@ int MealManager::displayTags()
 			}
 
 			// add quit option
+			tempStr = "";
+			strVec.push_back(tempStr);
+
 			tempStr = "QQuit Selection";
 			strVec.push_back(tempStr);
 
@@ -2197,6 +2170,8 @@ int MealManager::displayTags()
 			{
 				// get choice
 				tempInt = std::stoi(tempStr);
+
+				--tempInt; // user's choices start at 1
 			}
 		}
 		else // print tags in pages
@@ -2266,6 +2241,9 @@ int MealManager::displayTags()
 				}
 
 				// add prompts to go to next page, previous, and quit
+				tempStr = "";
+				strVec.push_back(tempStr);
+
 				tempStr = "NNext Page";
 				strVec.push_back(tempStr);
 
@@ -2351,6 +2329,9 @@ int MealManager::displayMultiTags()
 			}
 
 			// add quit option
+			tempStr = "";
+			strVec.push_back(tempStr);
+
 			tempStr = "QQuit Selection";
 			strVec.push_back(tempStr);
 
@@ -2364,6 +2345,7 @@ int MealManager::displayMultiTags()
 			{
 				// get choice
 				tempInt = std::stoi(tempStr);
+				--tempInt; // choices start at 1
 			}
 		}
 		else // print tags in pages
@@ -2430,6 +2412,9 @@ int MealManager::displayMultiTags()
 				}
 
 				// add prompts to go to next page, previous, and quit
+				tempStr = "";
+				strVec.push_back(tempStr);
+
 				tempStr = "NNext Page";
 				strVec.push_back(tempStr);
 
@@ -2497,17 +2482,10 @@ void MealManager::displayMealInfo(const Meal* mealPtr)
 	uim->leftAllignedText(tempStr);
 
 	// tags
-	uim->skipLines(1);
-	uim->leftAllignedText("Tags:");
-	uim->skipLines(1);
-
-	for (auto tagIter : mealPtr->getTags())
-	{
-		uim->leftAllignedText(tagIter->getName());
-	}
+	tempStr = std::to_string(mealPtr->getTags().size()) + " Tags assigned.";
+	uim->leftAllignedText(tempStr);
 
 	// enabledDays
-	uim->skipLines(1);
 	if (mealPtr->getIsDisabled())
 		uim->leftAllignedText("Is disabled.");
 	else

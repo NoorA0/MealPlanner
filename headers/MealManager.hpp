@@ -127,8 +127,8 @@ class MealManager
 	*/
 	void optimizeData(std::map<DaysOfTheWeek, std::vector<MultiTag*>>& highPriorityMultiTags,
 		std::map<DaysOfTheWeek, std::vector<MultiTag*>>& normalPriorityMultiTags,
-		std::map<DaysOfTheWeek, std::vector<Tag*>> normalPriorityTags,
-		std::map<Tag*, std::vector<Meal*>> availableMeals);
+		std::map<DaysOfTheWeek, std::vector<Tag*>>& normalPriorityTags,
+		std::map<Tag*, std::vector<Meal*>>& availableMeals);
 
 	// display all Meals/Tags, returns index for meals or normalTags(), return -1 if user chose to quit
 	int displayMeals();
