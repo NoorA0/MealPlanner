@@ -75,6 +75,8 @@
 *	if <key> is a character, then user's input is case sensitive
 *	if the vector prompts is empty, UIManager will handle as if prompt_None() was called
 * 
+*	if one of prompt's strings is "", then it will be treated as a prompt_skipLine(1)
+* 
 *	The passed in vector is cleared of data after processing.
 * 
 * prompt_List_Case_Insensitive(vector<string> prompts):
@@ -200,6 +202,7 @@ class UIManager
 	void printCenteredText(const std::string& input, const int& width, std::ostream& out);
 	void printLeftAllignedText(const std::string& input, const int& width, std::ostream& out);
 	std::string validateInput(bool& isValid, std::ostream& out, std::istream& in);
+	
 
 public:
 	UIManager();

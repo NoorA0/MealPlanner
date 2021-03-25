@@ -1424,7 +1424,7 @@ TEST(UIManagerTest, prompt_FreeString_inputFailures)
 	EXPECT_EQ(expected, userInput);
 }
 
-TEST(UIManagerTest, prompt_skipLines)
+TEST(UIManagerTest, prompt_skipLines_explicit)
 {
 	UIManager uim;
 	std::stringstream iStream, oStream;
@@ -1433,6 +1433,84 @@ TEST(UIManagerTest, prompt_skipLines)
 	std::vector<std::string> inputs = { "1One", "2Two" };
 	uim.prompt_List(inputs);
 	uim.prompt_skipLines(3);
+
+	uim.setDimensions(80, 20);
+
+	uim.display(oStream, iStream);
+
+	std::string reference =
+		"--------------------------------------------------------------------------------\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|[1] - One                                                                     |\n"
+		"|[2] - Two                                                                     |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"--------------------------------------------------------------------------------\n"
+		":";
+
+	EXPECT_EQ(oStream.str(), reference);
+}
+
+TEST(UIManagerTest, prompt_List_skipLinesImplicit)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("1\n");
+
+	std::vector<std::string> inputs = { "1One", "2Two", "", "", "" };
+	uim.prompt_List(inputs);
+
+	uim.setDimensions(80, 20);
+
+	uim.display(oStream, iStream);
+
+	std::string reference =
+		"--------------------------------------------------------------------------------\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|[1] - One                                                                     |\n"
+		"|[2] - Two                                                                     |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"--------------------------------------------------------------------------------\n"
+		":";
+
+	EXPECT_EQ(oStream.str(), reference);
+}
+
+TEST(UIManagerTest, prompt_List_Case_Insensitive_skipLinesImplicit)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("1\n");
+
+	std::vector<std::string> inputs = { "1One", "2Two", "", "", "" };
+	uim.prompt_List_Case_Insensitive(inputs);
 
 	uim.setDimensions(80, 20);
 

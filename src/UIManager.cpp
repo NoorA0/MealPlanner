@@ -400,37 +400,77 @@ void UIManager::skipLines(const unsigned int& linesToSkip)
 */
 void UIManager::prompt_List(std::vector<std::string>& prompts)
 {
-	// check if prompts has anything, else default to prompt_None()
+	// prompts is invalid if its size is 0, or all elements are empty strings
 	if (prompts.size() > 0)
 	{
-		promptType = PROMPT_LIST;
-		promptBuffer.clear();
-		// load strings in vector onto prompt vector
-		for (auto& promptsIter : prompts)
+		// check if all elements are empty strings
+		bool valid = false;
+		auto promptsIter = prompts.begin();
+		while (!valid && promptsIter != prompts.end())
 		{
-			promptBuffer.push_back(promptsIter);
+			if (*promptsIter != "")
+				valid = true;
+			++promptsIter;
 		}
-		prompts.clear();
+
+		// if prompts is valid, prepare for normal
+		if (valid)
+		{
+			promptType = PROMPT_LIST;
+			promptBuffer.clear();
+			// load strings in vector onto prompt vector
+			for (auto& promptsIter : prompts)
+			{
+				// if length of string is 0, create an empty line
+				if (promptsIter.length() == 0)
+					prompt_skipLines(1);
+				else
+					promptBuffer.push_back(promptsIter);
+			}
+			prompts.clear();
+		}
+		else // user prompt_None as failsafe
+			prompt_None();
 	}
-	else
+	else // use prompt_None as failsafe 
 		prompt_None();
 }
 
 void UIManager::prompt_List_Case_Insensitive(std::vector<std::string>& prompts)
 {
-	// check if prompts has anything, else default to prompt_None()
+	// prompts is invalid if its size is 0, or all elements are empty strings
 	if (prompts.size() > 0)
 	{
-		promptType = PROMPT_LIST_CASE_INSENSITIVE;
-		promptBuffer.clear();
-		// load strings in vector onto prompt vector
-		for (auto& promptsIter : prompts)
+		// check if all elements are empty strings
+		bool valid = false;
+		auto promptsIter = prompts.begin();
+		while (!valid && promptsIter != prompts.end())
 		{
-			promptBuffer.push_back(promptsIter);
+			if (*promptsIter != "")
+				valid = true;
+			++promptsIter;
 		}
-		prompts.clear();
+
+		// if prompts is valid, prepare for normal
+		if (valid)
+		{
+			promptType = PROMPT_LIST_CASE_INSENSITIVE;
+			promptBuffer.clear();
+			// load strings in vector onto prompt vector
+			for (auto& promptsIter : prompts)
+			{
+				// if length of string is 0, create an empty line
+				if (promptsIter.length() == 0)
+					prompt_skipLines(1);
+				else
+					promptBuffer.push_back(promptsIter);
+			}
+			prompts.clear();
+		}
+		else // user prompt_None as failsafe
+			prompt_None();
 	}
-	else
+	else // use prompt_None as failsafe 
 		prompt_None();
 }
 
