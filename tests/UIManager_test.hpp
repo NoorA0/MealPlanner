@@ -16,9 +16,12 @@ TEST(UIManagerTest, DefaultConstructor_test)
 	UIManager uim;
 	std::stringstream iStream, oStream;
 	iStream = std::stringstream("123\n"); 
+
 	std::string testReturn, expectedReturn;
 	expectedReturn = "123"; // omits \n as it is not passed to testReturn
+
 	testReturn = uim.display(oStream, iStream);
+
 	EXPECT_EQ(testReturn, expectedReturn); // ensure input passed correctly
 }
 
@@ -1419,6 +1422,87 @@ TEST(UIManagerTest, prompt_FreeString_inputFailures)
 	userInput = uim.display(oStream, iStream);
 
 	EXPECT_EQ(expected, userInput);
+}
+
+TEST(UIManagerTest, prompt_skipLines)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("1\n");
+
+	std::vector<std::string> inputs = { "1One", "2Two" };
+	uim.prompt_List(inputs);
+	uim.prompt_skipLines(3);
+
+	uim.setDimensions(80, 20);
+
+	uim.display(oStream, iStream);
+
+	std::string reference =
+		"--------------------------------------------------------------------------------\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|[1] - One                                                                     |\n"
+		"|[2] - Two                                                                     |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"--------------------------------------------------------------------------------\n"
+		":";
+
+	EXPECT_EQ(oStream.str(), reference);
+}
+
+TEST(UIManagerTest, prompt_List_Case_Insensitive_StringVer)
+{
+	UIManager uim;
+	std::stringstream iStream, oStream;
+	iStream = std::stringstream("Q\n");
+
+	uim.prompt_List_Case_Insensitive("1One");
+	uim.prompt_List_Case_Insensitive("2Two");
+	uim.prompt_skipLines(1);
+	uim.prompt_List_Case_Insensitive("QQuit");
+
+	uim.setDimensions(80, 20);
+
+	uim.display(oStream, iStream);
+
+	std::string reference =
+		"--------------------------------------------------------------------------------\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|                                                                              |\n"
+		"|[1] - One                                                                     |\n"
+		"|[2] - Two                                                                     |\n"
+		"|                                                                              |\n"
+		"|[Q] - Quit                                                                    |\n"
+		"--------------------------------------------------------------------------------\n"
+		":";
+
+	EXPECT_EQ(oStream.str(), reference);
 }
 
 TEST(UIManagerTest, getHeight_getWidth)

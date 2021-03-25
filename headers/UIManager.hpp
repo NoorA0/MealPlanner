@@ -80,6 +80,12 @@
 * prompt_List_Case_Insensitive(vector<string> prompts):
 *	same as above, but character <keys> are case insensitive.
 * 
+* prompt_List_Case_Insensitive(string choice):
+*	adds choice to promptBuffer, does not clear promptBuffer before adding choice
+*	therefore, it is possible to create many prompt choices by repeatedly calling this function
+* 
+*	choices must follow the format of Prompt_List and prompt_List_Case_Insensitive
+* 
 * prompt_FreeInt(int min, int max):
 *	lets the user type freely, accepted values are integers between and including min and max
 *		if they type an empty string, it is regarded as an incorrect input
@@ -94,6 +100,10 @@
 * 
 * prompt_FreeString(unsigned int minLength, unsigned int maxLength):
 *	lets the user type freely, as long as their input length is >= minLength and <= maxLength
+* 
+* prompt_SkipLines(unsigned int linesToSkip):
+*	similar to skipLines, creates an empty line in the prompt section
+*	used to space user choices when using prompt_List
 * 
 * prompt_None: tells the user to "(press <enter> to continue)" and waits for newline input
 * 
@@ -163,6 +173,7 @@ class UIManager
 {
 	enum Prompt
 	{
+		UNSET,
 		PROMPT_NONE,
 		PROMPT_FREEINT,
 		PROMPT_FREEDOUBLE,
@@ -204,9 +215,11 @@ public:
 	// PROMPT OPERATIONS
 	void prompt_List(std::vector<std::string>& prompts); 
 	void prompt_List_Case_Insensitive(std::vector<std::string>& prompts);
+	void prompt_List_Case_Insensitive(const std::string& choice);
 	void prompt_FreeInt(const int& min, const int& max); 
 	void prompt_FreeDouble(const double& min, const double& max);
-	void prompt_FreeString(const unsigned int& minLength, const unsigned int& maxLength); 
+	void prompt_FreeString(const unsigned int& minLength, const unsigned int& maxLength);
+	void prompt_skipLines(const unsigned int& linesToSkip);
 	void prompt_None();
 
 	// OTHER OPERATIONS

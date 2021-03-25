@@ -17,14 +17,13 @@ first 4 chars of a string are reserved for determining format type
 
 UIManager::UIManager()
 {
+	promptType = UNSET;
 	screenWidth = 37;
 	screenHeight = 5;
 	lowerLimit = 0;
 	upperLimit = 0;
 	minInputLength = 0;
 	maxInputLength = 0;
-	promptType = PROMPT_NONE;
-	prompt_None();
 }
 
 UIManager::~UIManager()
@@ -39,8 +38,7 @@ void UIManager::resetConfiguration()
 	upperLimit = 0;
 	minInputLength = 0;
 	maxInputLength = 0;
-	promptType = PROMPT_NONE;
-	prompt_None();
+	promptType = UNSET;
 }
 
 void UIManager::printBody(const int& availableHeight, std::ostream& out)
@@ -106,12 +104,22 @@ void UIManager::printPrompt(std::ostream& out)
 		for (auto promptIter = promptBuffer.begin(); promptIter != promptBuffer.end(); promptIter++)
 		{
 			out << "|";
-			// construct string for prompt
-			std::string tempStr = "[" + promptIter->substr(0,1) + "] - " + promptIter->substr(1);
+			// grab first 4 chars for format type
+			std::string format = promptIter->substr(0, 4);
 
-			// print prompt left-alligned
-			printLeftAllignedText(tempStr, screenWidth - 2, out);
-			
+			// check format type 
+			if (format == "2SL_") // skip line
+			{
+				printLeftAllignedText(format.substr(4), screenWidth - 2, out);
+			}
+			else // no other format types to check
+			{
+				// construct string for prompt
+				std::string tempStr = "[" + promptIter->substr(0, 1) + "] - " + promptIter->substr(1);
+
+				// print prompt left-alligned
+				printLeftAllignedText(tempStr, screenWidth - 2, out);
+			}
 			out << "|\n";
 		}
 		break;
@@ -426,6 +434,19 @@ void UIManager::prompt_List_Case_Insensitive(std::vector<std::string>& prompts)
 		prompt_None();
 }
 
+void UIManager::prompt_List_Case_Insensitive(const std::string& choice)
+{
+	// check if choice has anything, else default to prompt_None()
+	if (choice.length() > 0)
+	{
+		promptType = PROMPT_LIST_CASE_INSENSITIVE;
+		// add choice to promptBuffer
+		promptBuffer.push_back(choice);
+	}
+	else
+		prompt_None();
+}
+
 void UIManager::prompt_FreeInt(const int& min, const int& max)
 {
 	promptType = PROMPT_FREEINT;
@@ -483,6 +504,16 @@ void UIManager::prompt_FreeString(const unsigned int& minLength, const unsigned 
 	promptBuffer.push_back("(Enter between " + std::to_string(minInputLength) + " and " + std::to_string(maxInputLength) + " characters)");
 }
 
+void UIManager::prompt_skipLines(const unsigned int& linesToSkip)
+{
+	// create entry in promptBuffer to skip line
+	for (unsigned int insertSkip = 0; insertSkip < linesToSkip; insertSkip++)
+	{
+		std::string tempStr = "2SL_";
+		promptBuffer.push_back(tempStr);
+	}
+}
+
 void UIManager::prompt_None()
 {
 	promptType = PROMPT_NONE;
@@ -525,6 +556,9 @@ std::string UIManager::display(std::ostream& out, std::istream& in)
 		availBodyHeight = screenHeight - 2; // does NOT include space for prompts
 		switch (promptType)
 		{
+		case UNSET:
+			// set to prompt_None
+			prompt_None();
 		case PROMPT_NONE:
 		case PROMPT_FREEINT:
 		case PROMPT_FREEDOUBLE:
