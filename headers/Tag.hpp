@@ -1,30 +1,15 @@
 #ifndef __TAG_HPP__
 #define __TAG_HPP__
 
-#include <map>
+#include "BaseTag.hpp"
 #include <vector>
-#include <string>
 
 class Meal;
-enum DaysOfTheWeek
-{
-	MONDAY,
-	TUESDAY,
-	WEDNESDAY,
-	THURSDAY,
-	FRIDAY,
-	SATURDAY,
-	SUNDAY
-};
 
-DaysOfTheWeek nextDay(const DaysOfTheWeek& day);
-DaysOfTheWeek previousDay(const DaysOfTheWeek& day);
-
-class Tag
+class Tag : public BaseTag
 {
-	std::string name;
-	std::string description;
-	std::map<DaysOfTheWeek, bool> enabledDays; // days of the week that meal is enabled on
+private:
+
 	std::vector<Meal*> linkedMeals; // meals that are linked to this tag
 	bool dependsOnMultiTag; // if tag is only used when a MultiTag uses it
 	unsigned int consecutiveLimit; // times a meal with a tag can occurr consecutively
@@ -34,23 +19,17 @@ public:
 	~Tag();
 
 	// SETTERS
-	void setName(const std::string& new_name);
-	void setDescription(const std::string& new_desc);
-	void setEnabledDays(const std::map<DaysOfTheWeek, bool> new_enabledDays);
-	void setDependency(const bool& new_dependency);
-	void setConsecutiveLimit(const unsigned int& new_consecutiveLimit);
-	void addMeal(Meal* mealPtr);
-	void clearLinkedMeals();
+	void setName(const std::string& _name) { name = _name; }
+	void setDependency(const bool& _dependency) { dependsOnMultiTag = _dependency; }
+	void setConsecutiveLimit(const unsigned int& _consecutiveLimit) { consecutiveLimit = _consecutiveLimit; }
+	void addMeal(Meal* mealPtr) { linkedMeals.push_back(mealPtr); }
 	bool removeMeal(const Meal* mealPtr);
+	void clearLinkedMeals() { linkedMeals.clear(); }
 
 	// GETTERS
-	std::string getName() const;
-	std::string getDescription() const;
-	std::map<DaysOfTheWeek, bool> getEnabledDays() const;
-	bool getDependency() const;
-	unsigned int getConsecutiveLimit() const;
-	bool isDisabled() const;
-	std::vector<Meal*> getLinkedMeals() const;
+	bool getDependency() const { return dependsOnMultiTag; }
+	unsigned int getConsecutiveLimit() const { return consecutiveLimit; }
+	std::vector<Meal*> getLinkedMeals() const { return linkedMeals; }
 
 };
 #endif // !__TAG_HPP__

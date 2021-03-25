@@ -1205,7 +1205,7 @@ void MealManager::editMultiTag(MultiTag* mtagPtr)
 				uim->skipLines(2);
 
 				// report status
-				if (mtagPtr->hasPriority())
+				if (mtagPtr->getPriority())
 					tempStr = "This MultiTag has priority over Tags.";
 				else
 					tempStr = "This MultiTag has the same priority as Tags.";
@@ -1215,7 +1215,7 @@ void MealManager::editMultiTag(MultiTag* mtagPtr)
 				// prompt user
 				tempStr = "Do you want to ";
 
-				if (mtagPtr->hasPriority())
+				if (mtagPtr->getPriority())
 					tempStr += "give this MultiTag priority over Tags?";
 				else
 					tempStr += "lower priority to be the same as Tags?";
@@ -1232,7 +1232,7 @@ void MealManager::editMultiTag(MultiTag* mtagPtr)
 				if (tempStr == "Y")
 				{
 					// toggle state
-					if (mtagPtr->hasPriority())
+					if (mtagPtr->getPriority())
 						mtagPtr->setHighestPriority(false);
 					else
 						mtagPtr->setHighestPriority(true);
@@ -1244,7 +1244,7 @@ void MealManager::editMultiTag(MultiTag* mtagPtr)
 
 				tempStr = "Priority changed to: ";
 
-				if (mtagPtr->hasPriority())
+				if (mtagPtr->getPriority())
 					tempStr += "SAME AS TAGS.";
 				else
 					tempStr += "PRIORITY OVER TAGS.";
@@ -1904,7 +1904,7 @@ void MealManager::optimizeData(std::map<DaysOfTheWeek, std::vector<MultiTag*>>& 
 				if (!isDisabled)
 				{
 					// check if multiTag is high or normal priority
-					if (multiTagIter->hasPriority())
+					if (multiTagIter->getPriority())
 						highPriorityMT.push_back(multiTagIter);
 					else
 						normalPriorityMT.push_back(multiTagIter);
@@ -2550,7 +2550,7 @@ void MealManager::displayMultiTagInfo(const MultiTag* mtagPtr)
 	// hasPriority
 	tempStr = "Has priority over Tags: ";
 
-	if (mtagPtr->hasPriority())
+	if (mtagPtr->getPriority())
 		tempStr += "YES";
 	else
 		tempStr += "NO";
@@ -2677,7 +2677,7 @@ void MealManager::writeMultiTag(const MultiTag* mtagPtr, std::ofstream& oFile)
 
 	// highestPriority
 	oFile << "\t<HasPriority>\n";
-	oFile << "\t" << mtagPtr->hasPriority() << "\n";
+	oFile << "\t" << mtagPtr->getPriority() << "\n";
 	oFile << "\t</HasPriority>";
 
 	oFile << "\n";
@@ -4045,5 +4045,33 @@ void MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
 		else throw mealError;
 
 		iFile.close();
+	}
+}
+
+DaysOfTheWeek nextDay(const DaysOfTheWeek& day)
+{
+	switch (day)
+	{
+	case MONDAY: return TUESDAY;
+	case TUESDAY: return WEDNESDAY;
+	case WEDNESDAY: return THURSDAY;
+	case THURSDAY: return FRIDAY;
+	case FRIDAY: return SATURDAY;
+	case SATURDAY: return SUNDAY;
+	case SUNDAY: return MONDAY;
+	}
+}
+
+DaysOfTheWeek previousDay(const DaysOfTheWeek& day)
+{
+	switch (day)
+	{
+	case MONDAY: return SUNDAY;
+	case TUESDAY: return MONDAY;
+	case WEDNESDAY: return TUESDAY;
+	case THURSDAY: return WEDNESDAY;
+	case FRIDAY: return THURSDAY;
+	case SATURDAY: return FRIDAY;
+	case SUNDAY: return SATURDAY;
 	}
 }

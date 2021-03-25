@@ -2,8 +2,13 @@
 #define __MEALMANAGER_HPP__
 
 #include "Meal.hpp"
+#include "Tag.hpp"
 #include "MultiTag.hpp"
 #include "UIManager.hpp"
+
+
+DaysOfTheWeek nextDay(const DaysOfTheWeek& day);
+DaysOfTheWeek previousDay(const DaysOfTheWeek& day);
 
 class MealManager
 {

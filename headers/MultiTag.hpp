@@ -1,15 +1,15 @@
 #ifndef __MULTITAG_HPP__
 #define __MULTITAG_HPP__
 
-#include "Tag.hpp"
-#include <vector>
+#include "BaseTag.hpp"
 
-class MultiTag
+class Tag;
+
+class MultiTag : public BaseTag
 {
-	bool highestPriority; // default to true, but can be lowered to that of a normal Tag
-	std::string name;
-	std::string description;
-	std::map<DaysOfTheWeek, bool> enabledDays;
+private:
+
+	bool highestPriority; // whether MultiTag should be prioritized above Tags or not
 
 	// ints are used to indicate requested amount of Meals of Tag
 	// requesting 2 Sandwiches (tags) would mean the Tag called Sandwiches is loaded into linkedTags with an int of 2
@@ -22,20 +22,15 @@ public:
 
 	// SETTERS
 	void setName(const std::string& _name) { name = _name; }
-	void setDescription(const std::string& _description) { description = _description; }
 	void setHighestPriority(const bool& _priority) { highestPriority = _priority; }
-	void setEnabledDays(const std::map<DaysOfTheWeek, bool>& _enabledDays) { enabledDays = _enabledDays; }
 	void setLinkedTags(const std::map<Tag*, unsigned int>& _linkedTags) { linkedTags = _linkedTags; }
+	void addLinkedTag(Tag* new_tag, const unsigned int& amount);
+	bool removeLinkedTag(const Tag* tagPtr);
+	void clearLinkedTags() { linkedTags.clear(); }
 
 	// GETTERS
-	std::string getName() const { return name; }
-	std::string getDescription() const { return description; }
-	bool isDisabled() const;
-	bool hasPriority() const { return highestPriority; }
-	std::map<DaysOfTheWeek, bool> getEnabledDays() const { return enabledDays; }
+	bool getPriority() const { return highestPriority; }
 	std::map<Tag*, unsigned int> getLinkedTags() const { return linkedTags; }
 
-	// OTHER
-	void addLinkedTag(Tag* new_tag, const unsigned int& amount) { linkedTags.emplace(new_tag, amount); }
 };
 #endif // !__MULTITAG_HPP__

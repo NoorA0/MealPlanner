@@ -1,4 +1,5 @@
 #include "../headers/MultiTag.hpp"
+#include "../headers/Tag.hpp"
 
 MultiTag::MultiTag()
 {
@@ -20,22 +21,28 @@ MultiTag::~MultiTag()
 	}
 }
 
-bool MultiTag::isDisabled() const
+void MultiTag::addLinkedTag(Tag* new_tag, const unsigned int& amount)
 {
-	bool isDisabled = true;
-	bool done = false;
-	auto daysIter = enabledDays.begin();
+	linkedTags.emplace(new_tag, amount);
+}
 
-	// check each day
-	while (!done && daysIter != enabledDays.end())
+bool MultiTag::removeLinkedTag(const Tag* tagPtr)
+{
+	bool notFound = true;
+
+	// find tagPtr
+	auto tagIter = linkedTags.begin();
+	while (notFound && tagIter != linkedTags.end())
 	{
-		// if day is enabled
-		if (daysIter->second)
+		// if found, erase from vector
+		if (tagPtr == tagIter->first)
 		{
-			isDisabled = false;
-			done = true;
+			notFound = false;
+			linkedTags.erase(tagIter);
 		}
-		++daysIter;
+		++tagIter;
 	}
-	return isDisabled;
+
+	// if nothing found, return error value
+	return notFound;
 }
