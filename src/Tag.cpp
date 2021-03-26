@@ -36,7 +36,8 @@ bool Tag::removeMeal(const Meal* mealPtr)
 			notFound = false;
 			linkedMeals.erase(mealIter);
 		}
-		++mealIter;
+		else
+			++mealIter;
 	}
 
 	// if nothing found, return error value

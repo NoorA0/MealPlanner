@@ -40,7 +40,8 @@ bool MultiTag::removeLinkedTag(const Tag* tagPtr)
 			notFound = false;
 			linkedTags.erase(tagIter);
 		}
-		++tagIter;
+		else
+			++tagIter;
 	}
 
 	// if nothing found, return error value

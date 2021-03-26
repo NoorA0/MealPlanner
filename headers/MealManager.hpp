@@ -165,12 +165,14 @@ class MealManager
 		std::map<DaysOfTheWeek, std::vector<Tag*>>& normalPriorityTags,
 		std::map<Tag*, std::vector<Meal*>>& availableMeals);
 
-	// display all Meals/Tags, returns index for meals or normalTags(), return -1 if user chose to quit
+	// display all Meals/Tags, tagPtr points to Meal/Tag/MultiTag selected/created, or nullptr if user chose to quit
 	// lastPageVistied is set to the last page (if pagee exist) the user was viewing
 	// passing in a valid page in lastPageVisited will start the menu on that page
-	int displayMeals(int& lastPagevisited);
-	int displayTags(int& lastPageVisited);
-	int displayMultiTags(int& lastPageVisited);
+	// return values:
+	//	if user quit menu: -1, if created a new tag: -2, if chose a tag: 0
+	Meal* displayMeals(int& lastPagevisited);
+	int displayTags(int& lastPageVisited, Tag*& tagPtr, const std::vector<Tag*>& excludeTags = std::vector<Tag*>()); // excludeTags will cause displayTags to ignore any matching tags in normalTags 
+	MultiTag* displayMultiTags(int& lastPageVisited);
 
 	// queues information in UIM for one Meal/Tag
 	void displayMealInfo(const Meal* mealPtr);

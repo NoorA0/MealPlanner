@@ -53,7 +53,8 @@ bool Meal::removeTag(const Tag* tagPtr)
 			notFound = false;
 			tags.erase(tagIter);
 		}
-		++tagIter;
+		else
+			++tagIter;
 	}
 
 	// if nothing found, return error value
