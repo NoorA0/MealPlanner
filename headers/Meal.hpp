@@ -23,6 +23,8 @@ public:
 	void setPrice(const double& new_price);
 	void setTags(const std::vector<Tag*>& new_tags);
 	void addTag(Tag* newTag);
+	bool removeTag(const Tag* tagPtr);
+	void clearTags();
 	void setDisabled(const bool& disabled);
 	void setChecked(const bool& checked);
 	void setMealDuration(const unsigned int& mealDuration);

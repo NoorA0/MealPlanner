@@ -34,6 +34,16 @@ class MealManager
 	*/
 	void createMeal(Meal* mealptr);
 
+	/* deleteMeal
+	* INPUTS:
+	*	Meal* mealptr: pointer to instantiated Meal object
+	*
+	* RETURN: none
+	*
+	* CHANGES: mealPtr: Meal is removed from meals, and unlinked from Tags, then deleted and set to nullptr
+	*/
+	void deleteMeal(Meal* mealPtr);
+
 	/* createTag
 	* INPUTS:
 	*	Tag* TagPtr: pointer to instantiated Tag object
@@ -44,6 +54,16 @@ class MealManager
 	*/
 	void createTag(Tag* tagPtr);
 
+	/* deleteTag
+	* INPUTS:
+	*	Tag* tagPtr: pointer to instantiated Tag object
+	*
+	* RETURN: none
+	*
+	* CHANGES: tagPtr: Tag is removed any linked MultiTags, Meals, and normalTags, then deleted and set to nullptr
+	*/
+	void deleteTag(Tag* tagPtr);
+
 	/* createMultiTag
 	* INPUTS:
 	*	MultiTag* mTagPtr: pointer to instantiated MultiTag object
@@ -53,6 +73,16 @@ class MealManager
 	* CHANGES: mTagPtr: sets parameters according to user input, adds MultiTag to MultiTags in alphabetical order
 	*/
 	void createMultiTag(MultiTag* mtagPtr);
+
+	/* deleteMultiTag
+	* INPUTS:
+	*	Tag* mtagPtr: pointer to instantiated MultiTag object
+	*
+	* RETURN: none
+	*
+	* CHANGES: mtagPtr: MultiTag is removed from any linked Tags and multiTags, then deleted and set to nullptr
+	*/
+	void deleteMultiTag(MultiTag* mtagPtr);
 
 	/* editMealTags
 	* INPUTS:
@@ -165,6 +195,7 @@ public:
 	void generateSchedule(const std::string& fileName, std::ofstream& oFile);
 	void mealEditor();
 	void tagEditor();
+	void multitagEditor();
 
 	// Save/Load >>>MAKE PRIVATE WHEN NOT TESTING<<< 
 	void saveState(const std::string& dataFile, std::ofstream& oFile);

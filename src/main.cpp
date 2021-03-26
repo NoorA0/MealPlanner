@@ -111,122 +111,125 @@ int main()
 
 
 
-	while (tempInt != 4)
+	while (tempStr != "Q")
 	{
 		// display main menu
 		uim.centeredText("Meal Planner - Main Menu");
 		uim.skipLines(2);
 		uim.centeredText("Select an option.");
 
-		strVec = { "1Generate a Meal Plan", "", "2Meal Menu", "", "3Tag Menu", "", "4Program Manual","", "5Credits", "", "QQuit Program" };
+		strVec = { "1Generate a Meal Plan", "", "2Meal Menu", "3Tag Menu", "4MultiTag Menu", "", "5Program Manual", "6Credits", "", "QQuit Program" };
 		uim.prompt_List_Case_Insensitive(strVec);
 
 		tempStr = uim.display();
 		tempStr = std::toupper(tempStr.at(0));
 
 		if (tempStr != "Q")
-			tempInt = std::stoi(tempStr);
-		else
-			tempInt = 4;
-
-		switch (tempInt)
 		{
-		case 1: // generate plan
-			uim.centeredText("Create a Plan");
-			uim.skipLines(2);
+			tempInt = std::stoi(tempStr);
 
-			// prompt for filename
-			uim.centeredText("Enter a file name:");
-			tempStr = "(press <enter> to use \"" + OUTPUTFILE + "\")";
-			uim.centeredText(tempStr);
-			uim.prompt_FreeString(MIN_OUTFILE_LENGTH, MAX_OUTFILE_LENGTH);
-			tempStr = uim.display();
-
-			// check if using default name
-			if (tempStr.length() == 0)
-				tempStr = OUTPUTFILE;
-			else // verify file extension is correct
-				tempStr = verifyFileName(tempStr);
-
-			mealManager.generateSchedule(tempStr, oFile);
-			break;
-		case 2: // view Meals
-			mealManager.mealEditor();
-			break;
-		case 3: // view Tags
-			mealManager.tagEditor();
-			break;
-		case 4: // program manual
-			// main menu
-			while (tempStr != "Q")
+			switch (tempInt)
 			{
-				uim.centeredText("Manual - Main Menu");
+			case 1: // generate plan
+				uim.centeredText("Create a Plan");
 				uim.skipLines(2);
-				uim.centeredText("Select a section to view more info:");
-				strVec = { "1How do I use this program?", "2Meals", "3Tags","4MultiTags", "5Examples", "QQuit back to Main Menu" };
 
-				uim.prompt_List_Case_Insensitive(strVec);
+				// prompt for filename
+				uim.centeredText("Enter a file name:");
+				tempStr = "(press <enter> to use \"" + OUTPUTFILE + "\")";
+				uim.centeredText(tempStr);
+				uim.prompt_FreeString(MIN_OUTFILE_LENGTH, MAX_OUTFILE_LENGTH);
 				tempStr = uim.display();
-				tempStr = std::toupper(tempStr.at(0));
 
+				// check if using default name
+				if (tempStr.length() == 0)
+					tempStr = OUTPUTFILE;
+				else // verify file extension is correct
+					tempStr = verifyFileName(tempStr);
 
-				// if not quit
-				if (tempStr != "Q")
+				mealManager.generateSchedule(tempStr, oFile);
+				break;
+			case 2: // view Meals
+				mealManager.mealEditor();
+				break;
+			case 3: // view Tags
+				mealManager.tagEditor();
+				break;
+			case 4: // view MultiTags
+				mealManager.multitagEditor();
+				break;
+			case 5: // program manual
+				// main menu
+				while (tempStr != "Q")
 				{
-					tempInt = std::stoi(tempStr);
+					uim.centeredText("Manual - Main Menu");
+					uim.skipLines(2);
+					uim.centeredText("Select a section to view more info:");
+					strVec = { "1How do I use this program?", "2Meals", "3Tags","4MultiTags", "5Examples", "QQuit back to Main Menu" };
 
-					switch (tempInt)
+					uim.prompt_List_Case_Insensitive(strVec);
+					tempStr = uim.display();
+					tempStr = std::toupper(tempStr.at(0));
+
+
+					// if not quit
+					if (tempStr != "Q")
 					{
-					case 1: // general summary
-						uim.centeredText("General Summary");
-						uim.skipLines(2);
-						uim.leftAllignedText("First, make sure you've created a few Meals, they're the bread and butter of this program.");
-						uim.leftAllignedText("Each Meal can be assigned any number of Tags, which will define when a Meal is suitable to make on a given day.");
-						uim.leftAllignedText("Meals also have a Price. When you want to create a Meal Plan, you can specify your budget for the Plan's period.");
-						uim.leftAllignedText("The program will ensure that the generated plan meets this budget, if possible.");
-						uim.skipLines(1);
-						uim.leftAllignedText("Use Tags to catagorize your meals, such as Desserts that should only be served on certain days of the week.");
-						uim.leftAllignedText("Sometimes a meal may take too long to make, and some days you only have time for a Quick Food.");
-						uim.leftAllignedText("In this case, create Tags called \"Takes Long\" or \"Quick to Make\", then enable the tag on the days that you want that food.");
-						uim.leftAllignedText("If you disabled Meals with \"Takes Long\" on Mondays, then foods assigned to that Tag will not occur on Mondays.");
-						uim.skipLines(1);
-						uim.leftAllignedText("When you want to create a Meal Plan, you will specify a file name, time period in weeks, and a budget over this period.");
-						uim.leftAllignedText("The program will compute a suitable Plan, then create a file with the plan written to it.");
-						uim.leftAllignedText("You can find this file in the same place as where you launched this program from.");
-						uim.display();
-						break;
-					case 2: // Meal info
-						displayMealManual(uim);
-						break;
-					case 3: // Tag info
-						displayTagManual(uim);
-						break;
-					case 4: // MultiTag info
-						displayMultiTagManual(uim);
-						break;
-					case 5: // examples
-						uim.centeredText("Examples");
-						uim.skipLines(2);
-						uim.display();
-						break;
-					default:
-						tempInt = 4; // useless
+						tempInt = std::stoi(tempStr);
+
+						switch (tempInt)
+						{
+						case 1: // general summary
+							uim.centeredText("General Summary");
+							uim.skipLines(2);
+							uim.leftAllignedText("First, make sure you've created a few Meals, they're the bread and butter of this program.");
+							uim.leftAllignedText("Each Meal can be assigned any number of Tags, which will define when a Meal is suitable to make on a given day.");
+							uim.leftAllignedText("Meals also have a Price. When you want to create a Meal Plan, you can specify your budget for the Plan's period.");
+							uim.leftAllignedText("The program will ensure that the generated plan meets this budget, if possible.");
+							uim.skipLines(1);
+							uim.leftAllignedText("Use Tags to catagorize your meals, such as Desserts that should only be served on certain days of the week.");
+							uim.leftAllignedText("Sometimes a meal may take too long to make, and some days you only have time for a Quick Food.");
+							uim.leftAllignedText("In this case, create Tags called \"Takes Long\" or \"Quick to Make\", then enable the tag on the days that you want that food.");
+							uim.leftAllignedText("If you disabled Meals with \"Takes Long\" on Mondays, then foods assigned to that Tag will not occur on Mondays.");
+							uim.skipLines(1);
+							uim.leftAllignedText("When you want to create a Meal Plan, you will specify a file name, time period in weeks, and a budget over this period.");
+							uim.leftAllignedText("The program will compute a suitable Plan, then create a file with the plan written to it.");
+							uim.leftAllignedText("You can find this file in the same place as where you launched this program from.");
+							uim.display();
+							break;
+						case 2: // Meal info
+							displayMealManual(uim);
+							break;
+						case 3: // Tag info
+							displayTagManual(uim);
+							break;
+						case 4: // MultiTag info
+							displayMultiTagManual(uim);
+							break;
+						case 5: // examples
+							uim.centeredText("Examples");
+							uim.skipLines(2);
+							uim.display();
+							break;
+						default:
+							tempInt = 4; // useless
+						}
 					}
 				}
+				break;
+			case 6: // credits
+				uim.centeredText("Meal Planner By Noor Alaghbar");
+				uim.centeredText("Github.com/NoorA0");
+				uim.skipLines(2);
+				uim.centeredText("Thanks for using my program!");
+				uim.leftAllignedText(CREDITS_IMAGE);
+				uim.display();
+				break;
+			default:
+				tempInt = 4;
 			}
-			break;
-		case 5: // credits
-			uim.centeredText("Meal Planner By Noor Alaghbar");
-			uim.centeredText("Github.com/NoorA0");
-			uim.skipLines(2);
-			uim.centeredText("Thanks for using my program!");
-			uim.leftAllignedText(CREDITS_IMAGE);
-			uim.display();
-			break;
-		default:
-			tempInt = 4;
-		}
-	}// WHILE (tempInt != 4)
+		}// if (tempStr != "Q")
+	}// WHILE (tempInt != Q)
 
 	try
 	{

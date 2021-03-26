@@ -39,6 +39,32 @@ void Meal::addTag(Tag* newTag)
 	tags.push_back(newTag);
 }
 
+bool Meal::removeTag(const Tag* tagPtr)
+{
+	bool notFound = true;
+
+	// find mealPtr
+	auto tagIter = tags.begin();
+	while (notFound && tagIter != tags.end())
+	{
+		// if found, erase from vector
+		if (*tagIter == tagPtr)
+		{
+			notFound = false;
+			tags.erase(tagIter);
+		}
+		++tagIter;
+	}
+
+	// if nothing found, return error value
+	return notFound;
+}
+
+void Meal::clearTags()
+{
+	tags.clear();
+}
+
 void Meal::setDisabled(const bool& disabled)
 {
 	this->disabled = disabled;
