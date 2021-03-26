@@ -824,7 +824,8 @@ void MealManager::editMealTags(Meal* mealPtr)
 		// prompt for tag, or quit
 		do
 		{
-			tempInt = displayTags();
+			int lastPageVisited = -1;
+			tempInt = displayTags(lastPageVisited);
 
 			// if user did not choose to quit
 			if (tempInt != -1)
@@ -948,7 +949,8 @@ void MealManager::editMultiTagTags(MultiTag* mtagPtr)
 		// prompt for tag, or quit
 		do
 		{
-			tempInt = displayTags();
+			int lastPageVisited = -1;
+			tempInt = displayTags(lastPageVisited);
 
 			// if user did not choose to quit
 			if (tempInt != -1)
@@ -2004,9 +2006,9 @@ void MealManager::optimizeData(std::map<DaysOfTheWeek, std::vector<MultiTag*>>& 
 	} while (day != MONDAY);
 }
 
-int MealManager::displayMeals()
+int MealManager::displayMeals(int& lastPageVisited)
 {
-	int MEALS_PER_PAGE = 5; 
+	const int MEALS_PER_PAGE = 5; 
 	std::string tempStr = "";
 	std::vector<std::string> strVec;
 	int tempInt = -1;
@@ -2026,6 +2028,10 @@ int MealManager::displayMeals()
 			if (meals.size() % MEALS_PER_PAGE > 0)
 				++totalPages;
 
+			// if lastPageVisited is valid, then replace currentPage with lastPageVisited
+			if (lastPageVisited >= 1 && lastPageVisited <= totalPages)
+				currentPage = lastPageVisited;
+
 			// loop while user has not quit menu
 			while (tempStr != "Q")
 			{
@@ -2034,7 +2040,7 @@ int MealManager::displayMeals()
 				tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
 				uim->centeredText(tempStr);
 				uim->skipLines(2);
-				uim->centeredText("Choose a Meal:");
+				uim->centeredText("Select a Meal to View:");
 
 				// start index for the current page
 				int startIndex = (MEALS_PER_PAGE * (currentPage - 1));
@@ -2119,7 +2125,8 @@ int MealManager::displayMeals()
 					--tempInt; // user's choices started at 1
 					tempInt += startIndex;
 
-					// exit loop
+					// exit loop and return lastPageVisited
+					lastPageVisited = currentPage;
 					tempStr = "Q";
 				}
 			} // while (tempStr != "Q")
@@ -2132,7 +2139,7 @@ int MealManager::displayMeals()
 			{
 				uim->centeredText("Viwing Meals");
 				uim->skipLines(2);
-				uim->centeredText("Choose a Meal:");
+				uim->centeredText("Select a Meal to View:");
 
 				// create prompts
 				int choice = 1;
@@ -2180,9 +2187,9 @@ int MealManager::displayMeals()
 	return tempInt;
 }
 
-int MealManager::displayTags()
+int MealManager::displayTags(int& lastPageVisited)
 {
-	int TAGS_PER_PAGE = 5;
+	const int TAGS_PER_PAGE = 5;
 	std::string tempStr = "";
 	std::vector<std::string> strVec;
 	int tempInt = -1;
@@ -2194,7 +2201,7 @@ int MealManager::displayTags()
 		{
 			uim->centeredText("Viewing Tags");
 			uim->skipLines(2);
-			uim->centeredText("Choose a Tag:");
+			uim->centeredText("Select a Tag to View:");
 			uim->skipLines(1);
 
 			// display tags with description and create prompt
@@ -2241,6 +2248,10 @@ int MealManager::displayTags()
 			if (normalTags.size() % TAGS_PER_PAGE > 0)
 				++totalPages;
 
+			// is lastPageVisited is valid, then replace currentPage with lastPageVisited
+			if (lastPageVisited >= 1 && lastPageVisited <= totalPages)
+				currentPage = lastPageVisited;
+
 			// loop while user has not quit menu
 			while (tempStr != "Q")
 			{
@@ -2249,7 +2260,7 @@ int MealManager::displayTags()
 				tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
 				uim->centeredText(tempStr);
 				uim->skipLines(2);
-				uim->centeredText("Choose a Tag:");
+				uim->centeredText("Select a Tag to View:");
 
 				// start index for the current page
 				int startIndex = (TAGS_PER_PAGE * (currentPage - 1));
@@ -2261,7 +2272,7 @@ int MealManager::displayTags()
 					auto tagIter = normalTags.begin() + startIndex;
 
 					// display tag with description and create prompt
-					for (int count = 1; count < TAGS_PER_PAGE; ++count)
+					for (int count = 1; count <= TAGS_PER_PAGE; ++count)
 					{
 						displayTagInfo(*tagIter);
 						/*uim->centeredText((*tagIter)->getName());
@@ -2340,6 +2351,7 @@ int MealManager::displayTags()
 
 					// end loop
 					tempStr = "Q";
+					lastPageVisited = currentPage;
 				}
 			} // while (tempStr != "Q")
 		} // else print tag in pages
@@ -2354,9 +2366,9 @@ int MealManager::displayTags()
 	return tempInt;
 }
 
-int MealManager::displayMultiTags()
+int MealManager::displayMultiTags(int& lastPageVisited)
 {
-	int MULTITAGS_PER_PAGE = 5;
+	const int MULTITAGS_PER_PAGE = 5;
 	std::string tempStr = "";
 	std::vector<std::string> strVec;
 	int tempInt = -1;
@@ -2369,7 +2381,7 @@ int MealManager::displayMultiTags()
 		{
 			uim->centeredText("Viewing MultiTags");
 			uim->skipLines(2);
-			uim->centeredText("Choose a MultiTag:");
+			uim->centeredText("Select a MultiTag to View:");
 			uim->skipLines(1);
 
 			// display multitags with description and create prompt
@@ -2409,11 +2421,15 @@ int MealManager::displayMultiTags()
 			tempStr = "";
 
 			int currentPage = 1;
-			int totalPages = normalTags.size() / MULTITAGS_PER_PAGE; // remainder may be present
+			int totalPages = multiTags.size() / MULTITAGS_PER_PAGE; // remainder may be present
 
 			// if remainder, then add an extra page
 			if (multiTags.size() % MULTITAGS_PER_PAGE > 0)
 				++totalPages;
+
+			// if lastPageVisited is valid, then replace currentPage with lastPageVisited
+			if (lastPageVisited >= 1 && lastPageVisited <= totalPages)
+				currentPage = lastPageVisited;
 
 			// loop while user has not quit menu
 			while (tempStr != "Q")
@@ -2423,19 +2439,19 @@ int MealManager::displayMultiTags()
 				tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
 				uim->centeredText(tempStr);
 				uim->skipLines(2);
-				uim->centeredText("Choose a MultiTag:");
+				uim->centeredText("Select a MultiTag to View:");
 
 				// start index for the current page
 				int startIndex = (MULTITAGS_PER_PAGE * (currentPage - 1));
 
-				//if displaying a page that is NOT last page, then display 10 items
+				//if displaying a page that is NOT last page, then display MULTITAGS_PER_PAGE items
 				if (currentPage < totalPages)
 				{
 					// create iterator at index's position
 					auto tagIter = multiTags.begin() + startIndex;
 
 					// display tag with description and create prompt
-					for (int count = 1; count < MULTITAGS_PER_PAGE; ++count)
+					for (int count = 1; count <= MULTITAGS_PER_PAGE; ++count)
 					{
 						displayMultiTagInfo(*tagIter);
 						uim->skipLines(1);
@@ -2443,7 +2459,6 @@ int MealManager::displayMultiTags()
 						tempStr = std::to_string(count) + (*tagIter)->getName();
 						strVec.push_back(tempStr);
 
-						++count;
 						++tagIter;
 					}
 				}
@@ -2454,7 +2469,7 @@ int MealManager::displayMultiTags()
 					int count = 1; // used to print prompt number
 
 					// create prompts for the rest of the elements
-					do
+					while (tagIter != multiTags.end())
 					{
 						displayMultiTagInfo(*tagIter);
 						uim->skipLines(1);
@@ -2464,7 +2479,7 @@ int MealManager::displayMultiTags()
 
 						++tagIter;
 						++count;
-					} while (tagIter != multiTags.end());
+					}
 				}
 
 				// add prompts to go to next page, previous, and quit
@@ -2511,6 +2526,7 @@ int MealManager::displayMultiTags()
 
 					// end loop
 					tempStr = "Q";
+					lastPageVisited = currentPage;
 				}
 			} // while (tempStr != "Q")
 		} // else print tag in pages
@@ -3600,10 +3616,13 @@ void MealManager::mealEditor()
 		switch (tempInt)
 		{
 		case 1: // list all meals and allow editing
+		{
+			int lastPageVisted = -1;
+
 			// display meals and get user's choice, or quit
 			do
 			{
-				tempInt = displayMeals();
+				tempInt = displayMeals(lastPageVisted);
 
 				// if user did not quit
 				if (tempInt != -1)
@@ -3616,6 +3635,7 @@ void MealManager::mealEditor()
 					tempStr = "Q";
 
 			} while (tempStr != "Q");
+		}
 			break;
 		case 2: // create a new meal
 			mealPtr = new Meal;
@@ -3634,7 +3654,8 @@ void MealManager::mealEditor()
 			// display meals and get user's choice, or quit
 			do
 			{
-				tempInt = displayMeals();
+				int lastPageVisited = -1; // start at first page
+				tempInt = displayMeals(lastPageVisited);
 
 				// if user did not quit
 				if (tempInt != -1)
@@ -3739,10 +3760,12 @@ void MealManager::tagEditor()
 		switch (tempInt)
 		{
 		case 1: // view/edit tags
+		{
+			int lastPageVisited = -1;
 			//display tags and get user's choice or quit
 			do
 			{
-				tempInt = displayTags();
+				tempInt = displayTags(lastPageVisited);
 
 				// if usser did not quit
 				if (tempInt != -1)
@@ -3753,12 +3776,15 @@ void MealManager::tagEditor()
 				}
 
 			} while (tempInt != -1);
+		}
 			break;
 		case 2: // view/edit multitags
+		{
+			int lastPageVisited = -1;
 			//display multitags and get user's choice or quit
 			do
 			{
-				tempInt = displayMultiTags();
+				tempInt = displayMultiTags(lastPageVisited);
 
 				// if user did not quit
 				if (tempInt != -1)
@@ -3769,9 +3795,10 @@ void MealManager::tagEditor()
 				}
 
 			} while (tempInt != -1);
+		}
 			break;
 		case 3: // create tag
-			uim->centeredText("Choose a type of Tag to create:");
+			uim->centeredText("Select a type of Tag to create:");
 			
 			strVec = { "1Tag", "2MultiTag" };
 			uim->prompt_List_Case_Insensitive(strVec);
@@ -3809,7 +3836,7 @@ void MealManager::tagEditor()
 			}
 			break;
 		case 4: // delete tag
-			uim->centeredText("Choose a type of Tag to delete:");
+			uim->centeredText("Select a type of Tag to delete:");
 
 			strVec = { "1Tag", "2MultiTag" };
 			uim->prompt_List_Case_Insensitive(strVec);
@@ -3822,7 +3849,8 @@ void MealManager::tagEditor()
 				// display tags and get user's choice, or quit
 				do
 				{
-					tempInt = displayTags();
+					int lastPageVisited = -1;
+					tempInt = displayTags(lastPageVisited);
 
 					// if user did not quit
 					if (tempInt != -1)
@@ -3886,7 +3914,8 @@ void MealManager::tagEditor()
 				// display multitags and get user's choice, or quit
 				do
 				{
-					tempInt = displayMultiTags();
+					int lastPageVisited = -1;
+					tempInt = displayMultiTags(lastPageVisited);
 
 					// if user did not quit
 					if (tempInt != -1)

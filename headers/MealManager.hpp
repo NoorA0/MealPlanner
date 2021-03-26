@@ -136,9 +136,11 @@ class MealManager
 		std::map<Tag*, std::vector<Meal*>>& availableMeals);
 
 	// display all Meals/Tags, returns index for meals or normalTags(), return -1 if user chose to quit
-	int displayMeals();
-	int displayTags();
-	int displayMultiTags();
+	// lastPageVistied is set to the last page (if pagee exist) the user was viewing
+	// passing in a valid page in lastPageVisited will start the menu on that page
+	int displayMeals(int& lastPagevisited);
+	int displayTags(int& lastPageVisited);
+	int displayMultiTags(int& lastPageVisited);
 
 	// queues information in UIM for one Meal/Tag
 	void displayMealInfo(const Meal* mealPtr);
