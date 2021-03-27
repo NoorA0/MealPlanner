@@ -316,6 +316,9 @@ void MealManager::createTag(Tag* tagPtr)
 			{
 				// set name
 				tagPtr->setName(tempStr);
+
+				// push to back
+				normalTags.push_back(tagPtr);
 				doneCreatingName = true;
 			}
 			else if (!inputValid) // invalid name, inform user
@@ -329,6 +332,9 @@ void MealManager::createTag(Tag* tagPtr)
 		else // no tags to compare so set name
 		{
 			tagPtr->setName(tempStr);
+
+			// push to back
+			normalTags.push_back(tagPtr);
 			doneCreatingName = true;
 		}
 	} // while (!doneCreatingName)
@@ -516,9 +522,6 @@ void MealManager::createTag(Tag* tagPtr)
 		}
 	} // while (tempStr != "Q")
 	tagPtr->setEnabledDays(enabledDays);
-
-	// add tag to normalTags
-	normalTags.push_back(tagPtr);
 }
 
 void MealManager::deleteTag(Tag* tagPtr)
@@ -877,51 +880,291 @@ void MealManager::editMealTags(Meal* mealPtr)
 	int tempInt = -1;
 	std::vector<std::string> strVec;
 
-	// if meal has no tags, ask if user wants to assign some
-	if (mealPtr->getTags().size() == 0)
+	// while user did not quit menu
+	while (tempStr != "Q")
 	{
-		// ui title
-		uim->centeredText("Assign Tags");
-		uim->skipLines(2);
-
-		tempStr = "\"" + mealPtr->getName() + "\" has no assigned Tags, do you want to assign some?";
-		uim->centeredText(tempStr);
-
-		strVec = { "YYes", "NNo" };
-		uim->prompt_List_Case_Insensitive(strVec);
-
-		tempStr = uim->display();
-		tempStr = std::toupper(tempStr.at(0));
-
-		// bypass display tags
-		if (tempStr != "Y")
-			tempStr = "Q";
-	}
-	else // display assigned tags
-	{
-		// can display all tags in one page
-		if (mealPtr->getTags().size() <= TAGS_PER_PAGE)
+		// check if meal has no tags assigned
+		if (mealPtr->getTags().size() == 0)
 		{
-			// while not quit
-			while (tempStr != "Q")
-			{
-				// ui title
-				uim->centeredText("Assigned Tags");
-				uim->skipLines(1);
+			// create ui prompt
+			tempStr = "\"" + mealPtr->getName() + "\" has no assigned tags, do you want to assign some?";
+			uim->centeredText(tempStr);
 
-				// display tags and create prompt
-				int count = 1;
-				for (auto tagIter : mealPtr->getTags())
+			strVec = { "YYes", "NNo" };
+			uim->prompt_List_Case_Insensitive(strVec);
+
+			tempStr = uim->display();
+			tempStr = std::toupper(tempStr.at(0));
+
+			// check input
+			if (tempStr == "Y")
+			{
+				// prepare to loop adding tags
+				int returnStatus = -2;
+				int lastPageVisited = -1;
+				Tag* tagPtr = nullptr;
+
+				// loop while user is still choosing tags to add
+				do
 				{
-					displayTagInfo(tagIter);
+					// exclude tags already added
+					std::vector<Tag*> excludeTags = mealPtr->getTags();
+
+					// check if there are tags to add
+					if (excludeTags.size() == normalTags.size())
+					{
+						uim->centeredText("There are no tags to assign, please create more in the Tag Menu.");
+						uim->display();
+
+						returnStatus = -1;
+					}
+					else
+						returnStatus = displayTags(lastPageVisited, tagPtr, excludeTags);
+
+					// if user created or chose a tag
+					if (tagPtr != nullptr && (returnStatus == -2 || returnStatus == 0))
+					{
+						// add tag to meal
+						mealPtr->addTag(tagPtr);
+
+						// add meal to tag
+						tagPtr->addMeal(mealPtr);
+
+						// confirm to user 
+						uim->centeredText("Success!");
+						uim->skipLines(2);
+						tempStr = "\"" + tagPtr->getName() + "\" was assigned to \"" + mealPtr->getName() + "\".";
+						uim->centeredText(tempStr);
+						uim->display();
+
+						tagPtr = nullptr;
+					}
+
+				} while (returnStatus != -1);
+			}
+			else // quit menu
+				tempStr = "Q";
+		}
+		else // display meal's tags
+		{
+			// check if need to create pages
+			if (mealPtr->getTags().size() > TAGS_PER_PAGE)
+			{
+				int currentPage = 1;
+				int totalPages = mealPtr->getTags().size() / TAGS_PER_PAGE;
+
+				// check for remainder
+				if (mealPtr->getTags().size() % TAGS_PER_PAGE > 0)
+					++totalPages;
+
+				// while user has not quit menu
+				while (tempStr != "Q")
+				{
+					// create ui header
+					uim->centeredText("Viewing Assigned Tags");
+					// display page x/y
+					tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
+					uim->centeredText(tempStr);
 					uim->skipLines(1);
 
-					tempStr = std::to_string(count) + tagIter->getName();
+					// start index for current page
+					int startIndex = (TAGS_PER_PAGE * (currentPage - 1));
+
+					// create iterator
+					std::vector<Tag*> mealTags = mealPtr->getTags();
+					auto tagIter = mealTags.begin() + startIndex;
+
+					// if on last page
+					if (currentPage == totalPages)
+					{
+						// display until end of tags
+						int choiceNum = 1;
+						while (tagIter != mealTags.end())
+						{
+							// display tag info
+							displayTagInfo(*tagIter);
+							uim->skipLines(1);
+
+							// create user choice
+							tempStr = std::to_string(choiceNum) + (*tagIter)->getName();
+							strVec.push_back(tempStr);
+
+							++choiceNum;
+						}
+
+
+					}
+					else // display TAGS_PER_PAGE of tags
+					{
+						int choiceNum = 1;
+						while (choiceNum <= TAGS_PER_PAGE)
+						{
+							// display tag info
+							displayTagInfo(*tagIter);
+							uim->skipLines(1);
+
+							// create user choice
+							tempStr = std::to_string(choiceNum) + (*tagIter)->getName();
+							strVec.push_back(tempStr);
+
+							++choiceNum;
+						}
+					}
+
+					// create rest of user choices
+					tempStr = "";
 					strVec.push_back(tempStr);
-					++count;
+
+					tempStr = "AAdd a Tag";
+					strVec.push_back(tempStr);
+
+					tempStr = "";
+					strVec.push_back(tempStr);
+
+					tempStr = "NNext Page";
+					strVec.push_back(tempStr);
+
+					tempStr = "PPrevious Page";
+					strVec.push_back(tempStr);
+
+					tempStr = "QQuit Selection";
+					strVec.push_back(tempStr);
+
+					uim->prompt_List_Case_Insensitive(strVec);
+
+					// display and get input
+					tempStr = uim->display();
+					tempStr = std::toupper(tempStr.at(0));
+
+					// if user chose to go to next page
+					if (tempStr == "N")
+					{
+						// increment page number (loops around if at end)
+						if (currentPage == totalPages)
+							currentPage = 1;
+						else
+							++currentPage;
+					}
+					else if (tempStr == "P") // previous page
+					{
+						// decrement page number (loops around if at beginning)
+						if (currentPage == 1)
+							currentPage = totalPages;
+						else
+							--currentPage;
+					}
+					else if (tempStr == "A") // add tag
+					{
+						// prepare to loop adding tags
+						int returnStatus = -2;
+						int lastPageVisited = -1;
+						Tag* tagPtr = nullptr;
+
+						// loop while user is still choosing tags to add
+						do
+						{
+							// exclude tags already added
+							std::vector<Tag*> excludeTags = mealPtr->getTags();
+
+							// check if there are tags to add
+							if (excludeTags.size() == normalTags.size())
+							{
+								uim->centeredText("There are no tags to assign, please create more in the Tag Menu.");
+								uim->display();
+
+								returnStatus = -1;
+							}
+							else
+								returnStatus = displayTags(lastPageVisited, tagPtr, excludeTags);
+
+							// if user created or chose a tag
+							if (tagPtr != nullptr && (returnStatus == -2 || returnStatus == 0))
+							{
+								// add tag to meal
+								mealPtr->addTag(tagPtr);
+
+								// add meal to tag
+								tagPtr->addMeal(mealPtr);
+
+								// confirm to user 
+								uim->centeredText("Success!");
+								uim->skipLines(2);
+								tempStr = "\"" + tagPtr->getName() + "\" was assigned to \"" + mealPtr->getName() + "\".";
+								uim->centeredText(tempStr);
+								uim->display();
+
+								tagPtr = nullptr;
+							}
+
+						} while (returnStatus != -1);
+					}
+					else if (tempStr != "Q") // chose a tag to edit
+					{
+						uim->centeredText("Tag Details");
+						uim->skipLines(2);
+
+						// geti index of tag 
+						tempInt = std::stoi(tempStr);
+						--tempInt;
+
+						// get tag and display info
+						Tag* tagPtr = mealPtr->getTags().at(tempInt);
+						displayTagInfo(tagPtr);
+
+						// create choices
+						strVec = { "RRemove Tag", "", "QQuit Selection" };
+						uim->prompt_List_Case_Insensitive(strVec);
+
+						// get choice
+						tempStr = uim->display();
+						tempStr = std::toupper(tempStr.at(0));
+
+						// remove tag 
+						if (tempStr == "R")
+						{
+							// remove tag from meal
+							mealPtr->removeTag(tagPtr);
+
+							// remove meal from tag 
+							tagPtr->removeMeal(mealPtr);
+
+							// confirm to user
+							uim->centeredText("Success!");
+							uim->skipLines(2);
+
+							tempStr = "\"" + tagPtr->getName() + "\" was removed from \"" + mealPtr->getName() + "\"";
+							uim->centeredText(tempStr);
+							uim->display();
+
+							tagPtr = nullptr;
+						}
+					}
+				} // while (tempStr != "Q")
+			}
+			else // can display all tags in one page
+			{
+				// create ui header
+				uim->centeredText("Viewing Assigned Tags");
+				uim->skipLines(1);
+
+				// create user choice and display tag info
+				strVec.clear();
+				int choiceNum = 1;
+				std::vector<Tag*> mealTags = mealPtr->getTags();
+				for (auto mealTag : mealTags)
+				{
+					// display tag info
+					displayTagInfo(mealTag);
+					uim->skipLines(1);
+
+					// create user choice
+					tempStr = std::to_string(choiceNum) + mealTag->getName();
+					strVec.push_back(tempStr);
+
+					++choiceNum;
 				}
 
-				// create prompts
+				// create rest of user choices
 				tempStr = "";
 				strVec.push_back(tempStr);
 
@@ -934,313 +1177,105 @@ void MealManager::editMealTags(Meal* mealPtr)
 				tempStr = "QQuit Selection";
 				strVec.push_back(tempStr);
 
-				// prompt and get input
 				uim->prompt_List_Case_Insensitive(strVec);
+
+				// display to user and get choice
 				tempStr = uim->display();
 				tempStr = std::toupper(tempStr.at(0));
 
-				// process inputs
-				if (tempStr == "A")
+				// if user chose a tag
+				if (tempStr != "A" && tempStr != "Q")
 				{
-					int lastPageVisited = -1;
-					int returnStatus = 0;
+					uim->centeredText("Tag Details");
+					uim->skipLines(2);
+				
+					// geti index of tag 
+					tempInt = std::stoi(tempStr);
+					--tempInt;
 
+					// get tag and display info
+					Tag* tagPtr = mealPtr->getTags().at(tempInt);
+					displayTagInfo(tagPtr);
+
+					// create choices
+					strVec = { "RRemove Tag", "", "QQuit Selection" };
+					uim->prompt_List_Case_Insensitive(strVec);
+
+					// get choice
+					tempStr = uim->display();
+					tempStr = std::toupper(tempStr.at(0));
+
+					// remove tag 
+					if (tempStr == "R")
+					{
+						// remove tag from meal
+						mealPtr->removeTag(tagPtr);
+
+						// remove meal from tag 
+						tagPtr->removeMeal(mealPtr);
+
+						// confirm to user
+						uim->centeredText("Success!");
+						uim->skipLines(2);
+
+						tempStr = "\"" + tagPtr->getName() + "\" was removed from \"" + mealPtr->getName() + "\"";
+						uim->centeredText(tempStr);
+						uim->display();
+
+						tagPtr = nullptr;
+					}
+				}
+				else if (tempStr == "A") // user chose to add a tag
+				{
+					// prepare to loop adding tags
+					int returnStatus = -2;
+					int lastPageVisited = -1;
 					Tag* tagPtr = nullptr;
 
-					// loop while user did not quit
+					// loop while user is still choosing tags to add
 					do
 					{
-						// get tags already assigned to meal
+						// exclude tags already added
 						std::vector<Tag*> excludeTags = mealPtr->getTags();
-						// find an available tag to add
-						returnStatus = displayTags(lastPageVisited, tagPtr, excludeTags);
 
-						// if user chose a tag
-						if (returnStatus != -2)
+						// check if there are tags to add
+						if (excludeTags.size() == normalTags.size())
 						{
-							// add tag to meal and then meal to tag
+							uim->centeredText("There are no tags to assign, please create more in the Tag Menu.");
+							uim->display();
+
+							returnStatus = -1;
+						}
+						else
+							returnStatus = displayTags(lastPageVisited, tagPtr, excludeTags);
+
+						// if user created or chose a tag
+						if (tagPtr != nullptr && (returnStatus == -2 || returnStatus == 0))
+						{
+							// add tag to meal
 							mealPtr->addTag(tagPtr);
+
+							// add meal to tag
 							tagPtr->addMeal(mealPtr);
+
+							// confirm to user 
+							uim->centeredText("Success!");
+							uim->skipLines(2);
+							tempStr = "\"" + tagPtr->getName() + "\" was assigned to \"" + mealPtr->getName() + "\".";
+							uim->centeredText(tempStr);
+							uim->display();
 
 							tagPtr = nullptr;
 						}
 
 					} while (returnStatus != -1);
-
 				}
-				else if (tempStr != "Q")
-				{
-					// get choice, set to correct index
-					tempInt = std::stoi(tempStr);
-					--tempInt; // user's prompts started at 1
 
-					// exit loop
-					tempStr = "Q";
-				}
 			}
 		}
-		else // display in multiple pages
-		{
-			int currentPage = 1;
-			int totalPages = mealPtr->getTags().size() / TAGS_PER_PAGE; // remainder may exist
+	} // while (tempStr != "Q")
 
-			// if remainder, then add another page
-			if (mealPtr->getTags().size() % TAGS_PER_PAGE > 0)
-				++totalPages;
-
-			// while user not quit
-			while (tempStr != "Q")
-			{
-				// ui title
-				uim->centeredText("Assigned Tags");
-				// display "Page x/y"
-				tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
-				uim->centeredText(tempStr);
-				uim->skipLines(1);
-
-				// start index for current page
-				int startIndex = (TAGS_PER_PAGE * (currentPage - 1));
-
-				// if not on last page
-				if (currentPage < totalPages)
-				{
-					// display tags and create prompt
-					int count = 1;
-					for (auto tagIter : mealPtr->getTags())
-					{
-						displayTagInfo(tagIter);
-						uim->skipLines(1);
-
-						tempStr = std::to_string(count) + tagIter->getName();
-						strVec.push_back(tempStr);
-						++count;
-					}
-				}
-				else // dont now how many elements remain
-				{
-					// create iterator at startIndex's position
-					auto tagIter = mealPtr->getTags().begin() + startIndex;
-					int count = 1;
-
-					while (tagIter != mealPtr->getTags().end())
-					{
-						displayTagInfo(*tagIter);
-						uim->skipLines(1);
-
-						tempStr = std::to_string(count) + (*tagIter)->getName();
-						strVec.push_back(tempStr);
-						++tagIter;
-						++count;
-					}
-				}
-
-				// create prompts
-				tempStr = "";
-				strVec.push_back(tempStr);
-
-				tempStr = "AAdd a Tag";
-				strVec.push_back(tempStr);
-
-				tempStr = "";
-				strVec.push_back(tempStr);
-
-				tempStr = "NNext Page";
-				strVec.push_back(tempStr);
-
-				tempStr = "PPrevious Page";
-				strVec.push_back(tempStr);
-
-				tempStr = "QQuit Selection";
-				strVec.push_back(tempStr);
-
-				// prompt and get input
-				uim->prompt_List_Case_Insensitive(strVec);
-				tempStr = uim->display();
-				tempStr = std::toupper(tempStr.at(0));
-
-				// process inputs
-				if (tempStr == "A")
-				{
-					
-				}
-				else if (tempStr == "N")
-				{
-					// increment page number (loops around if at end)
-					if (currentPage == totalPages)
-						currentPage = 1;
-					else
-						++currentPage;
-				}
-				else if (tempStr == "P")
-				{
-					// decrement page number (loops around if at beginning)
-					if (currentPage == 1)
-						currentPage = totalPages;
-					else
-						--currentPage;
-				}
-				else if (tempStr != "Q")
-				{
-					// get choice, set to correct index
-					tempInt = std::stoi(tempStr);
-					--tempInt; // user's prompts started at 1
-					tempInt += startIndex;
-
-					// exit loop
-					tempStr = "Q";
-				}
-			}
-		}
-
-
-		// if user did not choose to quit
-		if (tempInt != -1)
-		{
-			// ui header
-			uim->centeredText("Tag Information");
-			uim->skipLines(2);
-
-			// view tag details
-			std::vector<Tag*> mealTags = mealPtr->getTags();
-			Tag* tagPtr = mealTags.at(tempInt);
-
-			displayTagInfo(tagPtr);
-
-			// create prompts
-			tempStr = "";
-			strVec.push_back(tempStr);
-
-			tempStr = "RRemove Tag";
-			strVec.push_back(tempStr);
-
-			tempStr = "";
-			strVec.push_back(tempStr);
-
-			tempStr = "QQuit Selection";
-			strVec.push_back(tempStr);
-
-			// prompt and get input
-			uim->prompt_List_Case_Insensitive(strVec);
-			tempStr = uim->display();
-			tempStr = std::toupper(tempStr.at(0));
-
-			// remove tag
-			if (tempStr == "R")
-			{
-				// remove tag from meal
-				mealPtr->removeTag(tagPtr);
-
-				// remove meal from tag
-				tagPtr->removeMeal(mealPtr);
-
-				// confirm to user
-				uim->centeredText("Success!");
-				uim->skipLines(2);
-				
-				tempStr = "\"" + tagPtr->getName() + "\" was removed from \"" + mealPtr->getName() + "\"";
-				uim->centeredText(tempStr);
-				uim->display();
-
-				tagPtr = nullptr;
-			}
-		}
-	}
-
-	// if no tags exist and user wants to assign them, then ask to create one
-	if (normalTags.size() == 0 && tempStr != "Q")
-	{
-		// ui title
-		uim->centeredText("Assign Tags");
-		uim->skipLines(2);
-
-		uim->centeredText("There are no saved Tags, do you want to create one?");
-
-		strVec = { "YYes", "NNo" };
-		uim->prompt_List_Case_Insensitive(strVec);
-
-		tempStr = uim->display();
-		tempStr = std::toupper(tempStr.at(0));
-
-		// bypass editing tags
-		if (tempStr == "N")
-			tempStr = "Q";
-		else
-		{
-			// create a tag
-			Tag* tagPtr = new Tag;
-			createTag(tagPtr);
-
-			// link to Meal, and link Meal to Tag
-			mealPtr->addTag(tagPtr);
-			tagPtr->addMeal(mealPtr);
-			tagPtr = nullptr;
-		}
-	}
-	else if (tempStr != "Q") // display tags and get input if user wants to assign tags
-	{
-		// prompt for tag, or quit
-		do
-		{
-			int lastPageVisited = -1;
-			Tag* compare = nullptr;
-			int returnStatus = -2;
-			
-			// while user did not choose a tag or quit
-			do
-			{
-				std::vector<Tag*> excludeTags = mealPtr->getTags();
-				reminder // excludetags is getting updated properly as tags are assigned, but the displayTags menu is not exluding them
-				returnStatus = displayTags(lastPageVisited, compare, excludeTags);
-
-			} while (returnStatus == -2);
-
-			// if user chose a tag
-			if (returnStatus == 0)
-			{
-				// check if tag already added to meal
-				std::vector<Tag*> mealTags = mealPtr->getTags();
-
-				bool isValid = true;
-				auto mealTagsIter = mealTags.begin();
-
-				while (isValid && mealTagsIter != mealTags.end())
-				{
-					// if match then tag already exists in meal
-					if (compare == *mealTagsIter)
-						isValid = false;
-					++mealTagsIter;
-				}
-
-				if (!isValid)
-				{
-					// tell user the tag exists
-					uim->centeredText("Error");
-					uim->skipLines(2);
-					tempStr = "\"" + compare->getName() + "\" is already assigned to \"" + mealPtr->getName() + "\".";
-					uim->leftAllignedText(tempStr);
-					uim->display();
-				}
-				else
-				{
-					// add tag to meal and meal to tag
-					mealPtr->addTag(compare);
-					compare->addMeal(mealPtr);
-
-					// display confirmation
-					uim->centeredText("Success!");
-					uim->skipLines(2);
-					tempStr = "\"" + compare->getName() + "\" assigned to \"" + mealPtr->getName() + "\".";
-					uim->centeredText(tempStr);
-					uim->display();
-				}
-			}
-			else // user chose to quit
-			{
-				tempStr = "Q";
-			}
-		} while (tempStr != "Q");
-		
-	}// else if (tempStr != "Q")
+	
 }
 
 void MealManager::editMultiTagTags(MultiTag* mtagPtr)
@@ -2730,7 +2765,7 @@ int MealManager::displayTags(int& lastPageVisited, Tag*& tagPtr, const std::vect
 	tagPtr = nullptr;
 
 	// check if tags need to be excluded
-	if (normalTags.size() > 0 && excludeTags.size() > 0)
+	if (availableTags.size() > 0 && excludeTags.size() > 0)
 	{
 		auto availableTagsIter = availableTags.begin();
 		auto excludeTagsIter = excludeTags.begin();
@@ -2761,13 +2796,15 @@ int MealManager::displayTags(int& lastPageVisited, Tag*& tagPtr, const std::vect
 					// reinstantiate at previous position
 					availableTagsIter = tempIter;
 				}
+				++excludeTagsIter;
 			}
-			++availableTagsIter;
+			else
+				++availableTagsIter;
 		}
 	}
 
 	// if there are no tags to list, let user create one 
-	if (normalTags.size() == 0)
+	if (availableTags.size() == 0)
 	{
 		uim->centeredText("There are no Tags to display, do you want to create one?");
 
@@ -4531,28 +4568,50 @@ void MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
 
 DaysOfTheWeek nextDay(const DaysOfTheWeek& day)
 {
+	DaysOfTheWeek returnDay = MONDAY;
+
 	switch (day)
 	{
-	case MONDAY: return TUESDAY;
-	case TUESDAY: return WEDNESDAY;
-	case WEDNESDAY: return THURSDAY;
-	case THURSDAY: return FRIDAY;
-	case FRIDAY: return SATURDAY;
-	case SATURDAY: return SUNDAY;
-	case SUNDAY: return MONDAY;
+	case MONDAY:  returnDay = TUESDAY;
+		break;
+	case TUESDAY:  returnDay = WEDNESDAY;
+		break;
+	case WEDNESDAY:  returnDay = THURSDAY;
+		break;
+	case THURSDAY:  returnDay = FRIDAY;
+		break;
+	case FRIDAY:  returnDay = SATURDAY;
+		break;
+	case SATURDAY:  returnDay = SUNDAY;
+		break;
+	case SUNDAY:  returnDay = MONDAY;
+		break;
 	}
+
+	return  returnDay;
 }
 
 DaysOfTheWeek previousDay(const DaysOfTheWeek& day)
 {
+	DaysOfTheWeek returnDay = MONDAY;
+
 	switch (day)
 	{
-	case MONDAY: return SUNDAY;
-	case TUESDAY: return MONDAY;
-	case WEDNESDAY: return TUESDAY;
-	case THURSDAY: return WEDNESDAY;
-	case FRIDAY: return THURSDAY;
-	case SATURDAY: return FRIDAY;
-	case SUNDAY: return SATURDAY;
+	case MONDAY:  returnDay = SUNDAY;
+		break;
+	case TUESDAY:  returnDay = MONDAY;
+		break;
+	case WEDNESDAY:  returnDay = TUESDAY;
+		break;
+	case THURSDAY:  returnDay = WEDNESDAY;
+		break;
+	case FRIDAY:  returnDay = THURSDAY;
+		break;
+	case SATURDAY:  returnDay = FRIDAY;
+		break;
+	case SUNDAY:  returnDay = SATURDAY;
+		break;
 	}
+
+	return returnDay;
 }
