@@ -171,7 +171,19 @@ class MealManager
 	// return values:
 	//	if user quit menu: -1, if created a new tag: -2, if chose a tag: 0
 	Meal* displayMeals(int& lastPagevisited);
-	int displayTags(int& lastPageVisited, Tag*& tagPtr, const std::vector<Tag*>& excludeTags = std::vector<Tag*>()); // excludeTags will cause displayTags to ignore any matching tags in normalTags 
+
+	/* displayTags
+	* INPUTS:
+	*	int lastPage Visted: if pages need to be displayed, this will start at any valid page (instead of at the first page)
+	*					 if value is incorrect (less than 0 or greater than last page), then menu starts at page 1
+	* 
+	*	Tag*& tagPtr: if user chooses or creates a tag, tagPtr will contain it's pointer, otherwise is set to nullptr
+	* 
+	*	const vector<Tag*>& excludeTags: optional param, if passed with tags, they will not be displayed in the menu
+	*
+	* OUTPUTS: int - menu status: returns 0 if user chose a tag, -1 if user quit, and -2 if user created a tag
+	*/
+	int displayTags(int& lastPageVisited, Tag*& tagPtr, const std::vector<Tag*>& excludeTags = std::vector<Tag*>()); 
 	MultiTag* displayMultiTags(int& lastPageVisited);
 
 	// queues information in UIM for one Meal/Tag
