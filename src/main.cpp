@@ -116,7 +116,7 @@ int main()
 		// display main menu
 		uim.centeredText("Meal Planner - Main Menu");
 		uim.skipLines(2);
-		uim.centeredText("Select an option.");
+		uim.centeredText("Select an option:");
 
 		strVec = { "1Generate a Meal Plan", "", "2Meal Menu", "3Tag Menu", "4MultiTag Menu", "", "5Program Manual", "6Credits", "", "QQuit Program" };
 		uim.prompt_List_Case_Insensitive(strVec);
