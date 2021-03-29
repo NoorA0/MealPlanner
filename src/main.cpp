@@ -82,6 +82,9 @@ int main()
 	int tempInt = 0;
 	std::vector<std::string> strVec;
 
+	// create seed for rng
+	srand(time(NULL));
+
 	// set UI dimensions
 	uim.setDimensions(UI_WIDTH, UI_HEIGHT);
 

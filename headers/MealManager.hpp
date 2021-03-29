@@ -9,6 +9,7 @@
 
 DaysOfTheWeek nextDay(const DaysOfTheWeek& day);
 DaysOfTheWeek previousDay(const DaysOfTheWeek& day);
+std::string dayToString(const DaysOfTheWeek& day);
 
 class MealManager
 {

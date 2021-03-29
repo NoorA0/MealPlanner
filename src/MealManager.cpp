@@ -1,5 +1,6 @@
 #include "../headers/MealManager.hpp"
 #include <fstream>
+#include <stdlib.h>
 
 MealManager::MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE,
 	const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH, UIManager& uim)
@@ -4300,14 +4301,19 @@ void MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 	const unsigned int MAX_CALCULATION_LENGTH = 52; // just under a year (in weeks)
 	const unsigned int MIN_BUDGET = 0;
 	const unsigned int MAX_BUDGET = 100000;
+	const unsigned int MAX_ATTEMPTS = 10; // number of calculation attempts to make
 
 	double budget = 0; // budget for the calculated period
+	double totalCost[MAX_ATTEMPTS] = { 0 }; // total calculated cost over entire period
 	unsigned int calculationPeriod = 0; // period of calculation
-	unsigned int currentDayNum = 0; // current day's number
 	DaysOfTheWeek currentDay = MONDAY; // start of the week
+	std::vector<std::vector<Meal*>> scheduledMeals[MAX_ATTEMPTS]; // meals scheduled for each attempt 
+	unsigned int failedDays[MAX_ATTEMPTS] = { 0 }; // number of days that calculation was unable to find a meal
+
 	std::string tempStr = "";
 	std::vector<std::string> strVec;
 
+	// optmized data
 	std::map<DaysOfTheWeek, std::vector<MultiTag*>> highPriorityMultiTags; // multiTags with elevated priority, sorted by available day
 	std::map<DaysOfTheWeek, std::vector<MultiTag*>> normalPriorityMultiTags; // multiTags with priority of Tag, sorted by available day
 	std::map<DaysOfTheWeek, std::vector<Tag*>> normalPriorityTags; // Tags, sorted by available day
@@ -4358,14 +4364,79 @@ void MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 	calculationPeriod *= 7;
 
 	// OPTIMIZATION
-	std::cout << "\n\nBeginning Optimizations ...";
+	std::cout << "\n\nBeginning optimizations ...";
 	optimizeData(highPriorityMultiTags, normalPriorityMultiTags, normalPriorityTags, availableMeals);
 	std::cout << "\nDone!\n\n";
 
-	std::cout << "size of HPMT: " << highPriorityMultiTags.size()
-		<< "\nsize of NPMT: " << normalPriorityMultiTags.size()
-		<< "\nsize of NPT: " << normalPriorityTags.size()
-		<< "\nsize of AM: " << availableMeals.size();
+	// CALCULATION
+	std::cout << "\n\nBeginning calculations ...";
+
+	// calculates MAX_ATTEMPTS number of complete meal plans
+	for (unsigned int attemptNum = 0; attemptNum < MAX_ATTEMPTS; ++attemptNum)
+	{
+		currentDay = MONDAY;
+
+		// calculate one complete meal plan
+		for (unsigned int dayNumber = 0; dayNumber < calculationPeriod; ++dayNumber)
+		{
+			std::vector<Meal*> mealsInDay; // meals scheduled in one day
+
+			// check if a high priority MT is available
+			if (highPriorityMultiTags.find(currentDay)->second.size() > 0)
+			{
+				// copy vector of multitags
+				std::vector<MultiTag*> availableMTs = highPriorityMultiTags.find(currentDay)->second;
+
+				// randomly choose index
+				int index = rand() % availableMTs.size();
+
+
+			}
+			else if (normalPriorityMultiTags.find(currentDay)->second.size() > 0 && 
+				normalPriorityTags.find(currentDay)->second.size()) // if both MTs and tags are available
+			{
+				// flip coin to decide which to choose from
+				int coinFlip = rand() % 1000 + 1; // 1-1000
+
+				if (coinFlip > 500) // choose MTs
+				{
+
+				}
+				else // choose tags
+				{
+
+				}
+			}
+			else if (normalPriorityMultiTags.find(currentDay)->second.size() > 0) // if only MTs are available
+			{
+
+			}
+			else if (normalPriorityTags.find(currentDay)->second.size() > 0) // if only tags are available
+			{
+
+			}
+			else // no tags available
+			{
+				// insert dummy meal
+				Meal* mealPtr = new Meal;
+				mealPtr->setName("NO AVAILABLE MEALS");
+				mealPtr->setPrice(0);
+
+				mealsInDay.push_back(mealPtr);
+				scheduledMeals[attemptNum].push_back(mealsInDay);
+				++failedDays[attemptNum];
+
+				mealPtr = nullptr;
+
+				// warn user
+				std::cout << "\nWARNING: No available meals on: " << dayToString(currentDay) << ", day #" << std::to_string(dayNumber) << std::endl;
+			}
+			currentDay = nextDay(currentDay); // go to next day
+		}
+	}
+
+	std::cout << "\nDone!\n\n";
+
 
 
 }
@@ -4629,4 +4700,30 @@ DaysOfTheWeek previousDay(const DaysOfTheWeek& day)
 	}
 
 	return returnDay;
+}
+
+std::string dayToString(const DaysOfTheWeek& day)
+{
+	std::string returnStr = "";
+
+	switch (day)
+	{
+	case MONDAY: returnStr = "MONDAY";
+		break;
+	case TUESDAY: returnStr = "TUESDAY";
+		break;
+	case WEDNESDAY: returnStr = "WEDNESDAY";
+		break;
+	case THURSDAY: returnStr = "THURSDAY";
+		break;
+	case FRIDAY: returnStr = "FRIDAY";
+		break;
+	case SATURDAY: returnStr = "SATURDAY";
+		break;
+	case SUNDAY: returnStr = "SUNDAY";
+		break;
+	default: returnStr = "UNKNOWN";
+	}
+
+	return returnStr;
 }
