@@ -12,7 +12,7 @@ class Meal
 	bool checked; // used during generation of Meal Plans
 	unsigned int mealDuration; // how long this meal lasts in days (useful for large batches)
 	unsigned int daysBetweenOccurrences; // how many days before this meal can be rescheduled
-	unsigned int dayScheduled; // number of the day this meal was last scheduled
+	std::vector<unsigned int> daysScheduled; // logs each number of the day this meal was last scheduled
 
 public:
 	Meal();
@@ -29,7 +29,8 @@ public:
 	void setChecked(const bool& checked);
 	void setMealDuration(const unsigned int& mealDuration);
 	void setDaysBetweenOccurrences(const unsigned int& daysBetweenOccurrences);
-	void setDayScheduled(const unsigned int& dayScheduled);
+	void addDayScheduled(const unsigned int& scheduledDay) { daysScheduled.push_back(scheduledDay); }
+	void setDaysScheduled(const std::vector<unsigned int>& daysScheduled);
 
 	// GETTERS
 	std::string getName() const;
@@ -39,7 +40,7 @@ public:
 	bool isChecked() const;
 	unsigned int getMealDuration() const;
 	unsigned int getDaysBetweenOccurrences() const;
-	unsigned int getDayScheduled() const;
+	std::vector<unsigned int> getDaysScheduled() const;
 
 	// OTHER FUNCTIONS
 	std::map<DaysOfTheWeek, bool> getEnabledDays() const;
