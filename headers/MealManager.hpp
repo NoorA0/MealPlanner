@@ -209,7 +209,9 @@ class MealManager
 	bool validateMeal(const Meal* mealPtr, const unsigned int& currentDayNumber);
 	void addFutureMeals(std::vector<Meal*>& futureMeals, const unsigned int& currentDayNumber, const unsigned int& calculationPeriod, std::vector<std::vector<Meal*>>& scheduledMeals);
 	bool scheduleMultiTags(const std::vector<MultiTag*>& availableMultiTags, const std::map<Tag*, std::vector<Meal*>>& availableMeals, const unsigned int& currentDayNumber,
-							const unsigned int& calculationPeriod, const DaysOfTheWeek& currentDay, std::vector<std::vector<Meal*>>& scheduledMeals);
+		const unsigned int& calculationPeriod, const DaysOfTheWeek& currentDay, std::vector<std::vector<Meal*>>& scheduledMeals);
+	bool scheduleNormalTags(const std::vector<Tag*>& availableTags, const std::map<Tag*, std::vector<Meal*>>& availableMeals, const unsigned int& currentDayNumber,
+		const unsigned int& calculationPeriod, const DaysOfTheWeek& currentDay, std::vector<std::vector<Meal*>>& scheduledMeals);
 
 public:
 	MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE, 
