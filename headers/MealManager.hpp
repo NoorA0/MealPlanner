@@ -202,6 +202,15 @@ class MealManager
 	bool readTags(std::ifstream& iFile);
 	bool readMultiTags(std::ifstream& iFile);
 
+	// SCHEDULE CALCULATION
+	// these functions return true if its object is valid (able to be used in calculations)
+	// or false if their params forbid use on the current day
+	bool validateTag(const Tag* tagPtr, const unsigned int& currentDayNumber, const std::vector<Meal*>& assignedMeals, const std::vector<std::vector<Meal*>>& scheduledMeals);
+	bool validateMeal(const Meal* mealPtr, const unsigned int& currentDayNumber);
+	void addFutureMeals(std::vector<Meal*>& futureMeals, const unsigned int& currentDayNumber, const unsigned int& calculationPeriod, std::vector<std::vector<Meal*>>& scheduledMeals);
+	bool scheduleMultiTags(const std::vector<MultiTag*>& availableMultiTags, const std::map<Tag*, std::vector<Meal*>>& availableMeals, const unsigned int& currentDayNumber,
+							const unsigned int& calculationPeriod, const DaysOfTheWeek& currentDay, std::vector<std::vector<Meal*>>& scheduledMeals);
+
 public:
 	MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE, 
 				const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH, UIManager& uim);
