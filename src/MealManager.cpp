@@ -1,6 +1,9 @@
 #include "../headers/MealManager.hpp"
 #include <fstream>
 #include <stdlib.h>
+#include <chrono>
+#include <ctime>
+#include <sstream>
 
 MealManager::MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE,
 	const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH, UIManager& uim)
@@ -4718,19 +4721,152 @@ bool MealManager::scheduleNormalTags(const std::vector<Tag*>& availableTags, con
 	return mealFound;
 }
 
-void MealManager::generateSchedule(const std::string& fileName, std::ofstream& oFile)
+void MealManager::printSchedule(const std::vector<std::vector<Meal*>>& mealPlan, const unsigned int& erroredDays, const double& totalCost, const double& budgetLimit, std::ofstream& oFile)
+{
+	const unsigned int LINE_WIDTH = 80; // output line width in characters
+
+	std::string lineDivider = ""; // divides sections of the meal plan
+	DaysOfTheWeek currentDay = MONDAY; // used to display meals of each day
+	unsigned int weekCount = 0; // tracks each week
+
+	// create divider of length LINE_WIDTH
+	for (int index = 0; index < LINE_WIDTH; ++index)
+		lineDivider += "-";
+
+
+	// header
+	oFile << centeredText("Meal Plan", LINE_WIDTH) << "\n";
+
+	oFile << lineDivider << "\n";
+
+	// creation time 
+	// get system time 
+	auto now = std::chrono::system_clock::now();
+	std::time_t currentTime = std::chrono::system_clock::to_time_t(now);;
+
+	oFile << "Created on: " << ctime(&currentTime);
+
+	// plan duration
+	oFile << "Duration: " << std::to_string(mealPlan.size() / 7) << " weeks (" << std::to_string(mealPlan.size()) << " days)\n";
+
+	// budget limit 
+	oFile << "Budget limit: " << formatPrice(budgetLimit) << "\n";
+
+	// calculated cost
+	oFile << "Calculated cost: " << formatPrice(totalCost) << "\n";
+
+	// number of errors
+	oFile << "Days with errors: " << std::to_string(erroredDays) << "\n";
+
+	// iterates through each day of mealPlan
+	auto mealIter = mealPlan.begin();
+	while (mealIter != mealPlan.end())
+	{
+		// if today is the start of a new week, print week header
+		if (currentDay == MONDAY)
+		{
+			std::string tempStr = "WEEK "; // outputs "WEEK XX : cost yyyy"
+			double costOfWeek = 0; // total of all meals in the upcoming week
+			DaysOfTheWeek dayInWeek = MONDAY; // start on monday of current week
+			auto weekIter = mealIter; // copy iterator
+
+			++weekCount;
+
+			// if weekCount is only 1 digit
+			if (weekCount < 10)
+				tempStr += "0";
+
+			tempStr += std::to_string(weekCount);
+
+			tempStr += " : cost ";
+
+			// sum the price of all meals in the current week
+			do
+			{
+				std::vector<Meal*> mealsInDay = *weekIter;
+
+				for (auto meal : mealsInDay)
+				{
+					costOfWeek += meal->getPrice();
+				}
+
+				++weekIter;
+				dayInWeek = nextDay(dayInWeek);
+			} while (dayInWeek != MONDAY && weekIter != mealPlan.end());
+			tempStr += formatPrice(costOfWeek);
+
+			// begin printing week header
+			oFile << lineDivider << "\n"; // divides previous week
+			oFile << lineDivider << "\n";
+			
+			oFile << centeredText(tempStr, LINE_WIDTH) << "\n\n";
+		}
+
+		// day name
+		std::string tempStr = ">> " + dayToString(currentDay) + " <<";
+		oFile << centeredText(tempStr, LINE_WIDTH) << "\n";
+
+		// meal names w/ prices
+		std::vector<Meal*> daysMeals = *mealIter;
+
+		for (auto meal : daysMeals)
+		{
+			// meal name
+			oFile << centeredText(meal->getName(), LINE_WIDTH) << "\n";
+
+			// meal price
+			std::string tempStr = "price: " + formatPrice(meal->getPrice());
+			oFile << centeredText(tempStr, LINE_WIDTH) << "\n\n";
+		}
+
+		currentDay = nextDay(currentDay);
+		++mealIter;
+	}
+
+	oFile << lineDivider << "\n";
+}
+
+std::string MealManager::centeredText(const std::string& str, const unsigned int& lineWidth)
+{
+	std::string returnStr = "";
+
+	int emptySpaces; // number of empty spaces needed to center text
+
+	// calculate starting point
+	emptySpaces = (lineWidth / 2) - (str.length() / 2);
+
+	// place empty spaces before text
+	for (int index = 0; index < emptySpaces; index++)
+		returnStr += " ";
+
+	// print input string
+	returnStr += str;
+
+	emptySpaces += str.length(); // use emptySpaces as an index
+
+	// place empty spaces after text
+	for (emptySpaces; emptySpaces < lineWidth; emptySpaces++)
+		returnStr += " ";
+
+	return returnStr;
+}
+
+bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& oFile, unsigned int& failedPlanErrors, double& failedPlanCost)
 {
 	const unsigned int MIN_CALCULATION_LENGTH = 1; // 1 week
 	const unsigned int MAX_CALCULATION_LENGTH = 52; // just under a year (in weeks)
 	const unsigned int MIN_BUDGET = 0;
 	const unsigned int MAX_BUDGET = 100000;
-	const unsigned int GENERATED_PLANS = 10; // number of meal plans to make
+	const unsigned int GENERATED_PLANS = 2500; // number of meal plans to make
 	const unsigned int MAX_ATTEMPTS = 1000; // number of attempts allowed when searching for a meal
 
+	bool errorPresent = false; // return value
 	double budget = 0; // budget for the calculated period
-	double totalCost[GENERATED_PLANS] = { 0 }; // total calculated cost over entire period
 	unsigned int calculationPeriod = 0; // period of calculation
 	unsigned int failedDays[GENERATED_PLANS] = { 0 }; // number of days that calculation was unable to find a meal
+	
+	failedPlanErrors = 0;
+	failedPlanCost = 0;
 
 	DaysOfTheWeek currentDay = MONDAY; // start of the week
 	std::vector<std::vector<Meal*>> scheduledMeals[GENERATED_PLANS]; // meals scheduled for each attempt 
@@ -4769,10 +4905,10 @@ void MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 		uim->skipLines(1);
 		
 		tempStr = "BUDGET LIMIT: " + formatPrice(budget);
-		uim->leftAllignedText(tempStr);
+		uim->centeredText(tempStr);
 		
 		tempStr = "SCHEDULE LENGTH: " + std::to_string(calculationPeriod) + " weeks";
-		uim->leftAllignedText(tempStr);
+		uim->centeredText(tempStr);
 
 		strVec = { "YYes", "NNo" };
 		uim->prompt_List_Case_Insensitive(strVec);
@@ -4785,16 +4921,29 @@ void MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 			tempStr = "Q";
 	}
 
+	// tell user to be patient
+	{
+		std::stringstream skipPrompt = std::stringstream("\n"); // skips prompt in the following ui window
+
+		uim->centeredText("Please wait");
+		uim->skipLines(3);
+		uim->centeredText("Your Meal Plan is being created.");
+		uim->skipLines(1);
+		uim->centeredText("Wait time may vary between a few seconds and a few minutes, depending on the speed of your computer.");
+		uim->display(std::cout, skipPrompt);
+		std::cout << "\n\n";
+	}
+
 	// convert weeks into days
 	calculationPeriod *= 7;
 
 	// OPTIMIZATION
-	std::cout << "\n\nBeginning optimizations ...";
+	//std::cout << "\n\nBeginning optimizations ...";
 	optimizeData(highPriorityMultiTags, normalPriorityMultiTags, normalPriorityTags, availableMeals);
-	std::cout << "\nDone!\n\n";
+	//std::cout << "\nDone!\n\n";
 
 	// CALCULATION
-	std::cout << "\n\nBeginning calculations ...";
+	//std::cout << "\n\nBeginning calculations ...";
 
 	// calculates GENERATED_PLANS number of complete meal plans
 	for (unsigned int attemptNum = 0; attemptNum < GENERATED_PLANS; ++attemptNum)
@@ -4873,50 +5022,175 @@ void MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 		} // for: calculates a meal for every day 
 	} // for: calculates an entire plan
 
-	std::cout << "\nDone!\n\n";
+	//std::cout << "\nDone!\n\n";
 
 	// select the plan that had the least number of errors and met budget
-	std::vector<Meal*> finalPlan; // plan with least errors
-	// add check to sum budget
+	std::vector<std::vector<Meal*>> finalPlan; // plan with least errors
+	double finalCost = 0; // cost of all the meals in the plan
+	unsigned int finalErrors = 0;
 	{
 		bool planFound = false;
-		std::map<unsigned int, std::vector<std::vector<Meal*>>> errorsToPlans; // maps errors to scheduled plans
+		std::map<unsigned int, std::pair<std::vector<std::vector<Meal*>>, double>> errorsToPlans; // maps errors to scheduled plans with total cost for plan
 		unsigned int lowestErrors = 0;
 
 		int planIndex = 0;
 		// while a perfect plan was not found, and can check for more plans
 		do
 		{
-			// check for perfect plan
+			// if plan has no errors
 			if (failedDays[planIndex] == 0)
 			{
-				planFound = true;
-				lowestErrors = 0;
-				errorsToPlans.emplace(lowestErrors, planIndex);
+				// check budget
+				double totalCost = 0;
+
+				// sum the cost of all meals
+				for (int index = 0; index < scheduledMeals[planIndex].size(); ++index)
+				{
+					// get day of meals
+					std::vector<Meal*> currentDay = scheduledMeals[planIndex].at(index);
+
+					for (auto mealIter : currentDay)
+					{
+						// if meal lasts multiple days, divide the cost over its duration
+						if (mealIter->getMealDuration() > 1)
+						{
+							totalCost += (mealIter->getPrice() / mealIter->getMealDuration());
+						}
+						else 
+							totalCost += mealIter->getPrice();
+					}
+				}
+
+				// if totalCost is within budget, then plan is ok to use
+				if (totalCost <= budget)
+				{
+					planFound = true;
+					lowestErrors = 0;
+					errorsToPlans.emplace(lowestErrors, std::pair<std::vector<std::vector<Meal*>>, double>(scheduledMeals[planIndex], totalCost));
+				}
 			}
 			else // set lowestErrors 
 			{
-				// if lowestErrors was never set
+				// if lowestErrors was never set, then prepare to set it to this plan
 				if (planIndex == 0)
 				{
-					lowestErrors = failedDays[planIndex];
-					errorsToPlans.emplace(lowestErrors, planIndex);
+					// check budget
+					double totalCost = 0;
 
+					// sum the cost of all meals
+					for (int index = 0; index < scheduledMeals[planIndex].size(); ++index)
+					{
+						// get day of meals
+						std::vector<Meal*> currentDay = scheduledMeals[planIndex].at(index);
+
+						for (auto mealIter : currentDay)
+						{
+							// if meal lasts multiple days, divide the cost over its duration
+							if (mealIter->getMealDuration() > 1)
+							{
+								totalCost += (mealIter->getPrice() / mealIter->getMealDuration());
+							}
+							else
+								totalCost += mealIter->getPrice();
+						}
+					}
+
+					// if totalCost is within budget, then plan is ok to use
+					if (totalCost <= budget)
+					{
+						lowestErrors = failedDays[planIndex];
+						errorsToPlans.emplace(lowestErrors, std::pair<std::vector<std::vector<Meal*>>, double>(scheduledMeals[planIndex], totalCost));
+					}
 				}
-				else if (failedDays[planIndex] < lowestErrors) // else if a better plan was found
+				else if (failedDays[planIndex] < lowestErrors) // if a better plan was found
 				{
-					lowestErrors = failedDays[planIndex];
-					errorsToPlans.emplace(lowestErrors, planIndex);
+					// check budget
+					double totalCost = 0;
+
+					// sum the cost of all meals
+					for (int index = 0; index < scheduledMeals[planIndex].size(); ++index)
+					{
+						// get day of meals
+						std::vector<Meal*> currentDay = scheduledMeals[planIndex].at(index);
+
+						for (auto mealIter : currentDay)
+						{
+							// if meal lasts multiple days, divide the cost over its duration
+							if (mealIter->getMealDuration() > 1)
+							{
+								totalCost += (mealIter->getPrice() / mealIter->getMealDuration());
+							}
+							else
+								totalCost += mealIter->getPrice();
+						}
+					}
+
+					// if totalCost is within budget, then plan is ok to use
+					if (totalCost <= budget)
+					{
+						// attempt to insert new element
+						auto iter = errorsToPlans.insert(std::pair<unsigned int, std::pair<std::vector<std::vector<Meal*>>, double>>(lowestErrors, { scheduledMeals[planIndex], totalCost }));
+
+						// check if key already exists
+						if (iter.second == false)
+						{
+							// replace value at key
+							errorsToPlans[lowestErrors] = std::pair<std::vector<std::vector<Meal*>>, double>(scheduledMeals[planIndex], totalCost);
+						}
+					}
 				}
 			}
 			++planIndex;
 		} while (!planFound && planIndex < GENERATED_PLANS);
 
-		// set finalPlan to plan with lowestErrors
-		finalPlan = 
+		// set finalPlan to plan with lowestErrors that met budget
+		if (errorsToPlans.size() > 0)
+		{
+			finalPlan = errorsToPlans.at(lowestErrors).first;
+			finalCost = errorsToPlans.at(lowestErrors).second;
+			finalErrors = lowestErrors;
+		}
+		else // no suitable plans found
+		{
+			errorPresent = true;
+
+			// retreive total budget and errors from the first plan generated
+			failedPlanErrors = failedDays[0];
+
+			// check budget
+			failedPlanCost = 0;
+
+			// sum the cost of all meals
+			for (int index = 0; index < scheduledMeals[0].size(); ++index)
+			{
+				// get day of meals
+				std::vector<Meal*> currentDay = scheduledMeals[0].at(index);
+
+				for (auto mealIter : currentDay)
+				{
+					// if meal lasts multiple days, divide the cost over its duration
+					if (mealIter->getMealDuration() > 1)
+					{
+						failedPlanCost += (mealIter->getPrice() / mealIter->getMealDuration());
+					}
+					else
+						failedPlanCost += mealIter->getPrice();
+				}
+			}
+		}
 	}
 
+	// if finalPlan is not empty
+	if (finalPlan.size() > 0)
+	{
+		errorPresent = false;
 
+		oFile.open(fileName);
+		printSchedule(finalPlan, finalErrors, finalCost, budget, oFile);
+		oFile.close();
+	}
+
+	return errorPresent;
 }
 
 void MealManager::mealEditor()

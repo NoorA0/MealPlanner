@@ -134,6 +134,11 @@ int main()
 			switch (tempInt)
 			{
 			case 1: // generate plan
+			{
+				// used if plan fails to generate
+				unsigned int errorsInPlan = 0;
+				double planCost = 0; 
+
 				uim.centeredText("Create a Plan");
 				uim.skipLines(2);
 
@@ -150,7 +155,47 @@ int main()
 				else // verify file extension is correct
 					tempStr = verifyFileName(tempStr);
 
-				mealManager.generateSchedule(tempStr, oFile);
+				// attempt to generate plan
+				if (mealManager.generateSchedule(tempStr, oFile, errorsInPlan, planCost) == false)
+				{
+					std::string fileName = tempStr;
+
+					// success
+					uim.centeredText("Success!");
+					uim.skipLines(2);
+
+					tempStr = "A Meal Plan named \"" + fileName + "\" was created in the program's directory.";
+					uim.centeredText(tempStr);
+					uim.display();
+				}
+				else
+				{
+					// plan failed to generate
+					uim.centeredText("Error");
+					uim.skipLines(2);
+
+					uim.centeredText("A Meal Plan was unable to be generated, please try again.");
+					uim.skipLines(3);
+
+					uim.centeredText("Details of failed plan:");
+					uim.skipLines(1);
+
+					tempStr = "Number of days with errors: " + std::to_string(errorsInPlan);
+					uim.centeredText(tempStr);
+
+					tempStr = "Total cost over selected duration: " + std::to_string(planCost);
+					uim.centeredText(tempStr);
+					uim.skipLines(4);
+
+					uim.centeredText("Troubleshooting tips:");
+					uim.skipLines(1);
+					uim.centeredText("Make sure you have enough Meals enabled for the plan's duration.");
+					uim.centeredText("Tags/MultiTags may restrict the number of available Meals.");
+					uim.skipLines(1);
+					uim.centeredText("If the total cost displayed above is greater than your chosen budget, consider raising your budget or creating cheaper Meals.");
+					uim.display();
+				}
+			}
 				break;
 			case 2: // view Meals
 				mealManager.mealEditor();

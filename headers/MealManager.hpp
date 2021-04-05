@@ -208,17 +208,26 @@ class MealManager
 	bool validateTag(const Tag* tagPtr, const unsigned int& currentDayNumber, const std::vector<Meal*>& assignedMeals, const std::vector<std::vector<Meal*>>& scheduledMeals);
 	bool validateMeal(const Meal* mealPtr, const unsigned int& currentDayNumber);
 	void addFutureMeals(std::vector<Meal*>& futureMeals, const unsigned int& currentDayNumber, const unsigned int& calculationPeriod, std::vector<std::vector<Meal*>>& scheduledMeals);
+
 	bool scheduleMultiTags(const std::vector<MultiTag*>& availableMultiTags, const std::map<Tag*, std::vector<Meal*>>& availableMeals, const unsigned int& currentDayNumber,
 		const unsigned int& calculationPeriod, const DaysOfTheWeek& currentDay, std::vector<std::vector<Meal*>>& scheduledMeals);
+
 	bool scheduleNormalTags(const std::vector<Tag*>& availableTags, const std::map<Tag*, std::vector<Meal*>>& availableMeals, const unsigned int& currentDayNumber,
 		const unsigned int& calculationPeriod, const DaysOfTheWeek& currentDay, std::vector<std::vector<Meal*>>& scheduledMeals);
+
+	// write plan to file
+	void printSchedule(const std::vector<std::vector<Meal*>>& mealPlan, const unsigned int& erroredDays , const double& totalCost, const double& budgetLimit, std::ofstream& oFile);
+
+	// format strings
+	std::string centeredText(const std::string& str, const unsigned int& lineWidth);
 
 public:
 	MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE, 
 				const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH, UIManager& uim);
 	~MealManager();
 
-	void generateSchedule(const std::string& fileName, std::ofstream& oFile);
+	// last 2 params are 0 unless generation fails, then they are the number of errored days and total cost of the first plan generated
+	bool generateSchedule(const std::string& fileName, std::ofstream& oFile, unsigned int& failedPlanErrors, double& failedPlanCost);
 	void mealEditor();
 	void tagEditor();
 	void multitagEditor();
