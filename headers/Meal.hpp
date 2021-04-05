@@ -9,7 +9,6 @@ class Meal
 	std::vector<Tag*> tags; // tags that food is a part of
 	double price; // how much it costs to make
 	bool disabled; // user can disable meals
-	bool checked; // used during generation of Meal Plans
 	unsigned int mealDuration; // how long this meal lasts in days (useful for large batches)
 	unsigned int daysBetweenOccurrences; // how many days before this meal can be rescheduled
 	std::vector<unsigned int> daysScheduled; // logs each number of the day this meal was last scheduled
@@ -26,7 +25,6 @@ public:
 	bool removeTag(const Tag* tagPtr);
 	void clearTags();
 	void setDisabled(const bool& disabled);
-	void setChecked(const bool& checked);
 	void setMealDuration(const unsigned int& mealDuration);
 	void setDaysBetweenOccurrences(const unsigned int& daysBetweenOccurrences);
 	void addDayScheduled(const unsigned int& scheduledDay) { daysScheduled.push_back(scheduledDay); }
@@ -37,7 +35,6 @@ public:
 	double getPrice() const;
 	std::vector<Tag*> getTags() const;
 	bool isDisabled() const;
-	bool isChecked() const;
 	unsigned int getMealDuration() const;
 	unsigned int getDaysBetweenOccurrences() const;
 	std::vector<unsigned int> getDaysScheduled() const;
