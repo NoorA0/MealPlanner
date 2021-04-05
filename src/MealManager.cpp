@@ -381,7 +381,8 @@ void MealManager::createTag(Tag* tagPtr)
 	uim->skipLines(2);
 
 	uim->centeredText("How many consecutive days can a Meal with this Tag occur for?");
-	uim->centeredText("Note that this setting is Tag-specific, not Meal-specific. it applies to all Meals assigned to this Tag.");
+	uim->skipLines(1);
+	uim->centeredText("This setting is Tag-specific, not Meal-specific. It applies to all Meals assigned to this Tag.");
 	uim->centeredText("(A value of 1 means that Meals will occur every other day at most, a value of 3 allows 3 days of Meals from this Tag to occur in a row.)");
 	uim->prompt_FreeInt(1, 1000);
 	tagPtr->setConsecutiveLimit(std::stoi(uim->display()));
@@ -2423,8 +2424,9 @@ void MealManager::editTag(Tag* tagPtr)
 				uim->skipLines(1);
 
 				// prompt and get input
-				uim->centeredText("How many consecutive days can a Meal assigned to this Tag occur for?");
-				uim->centeredText("Note that this setting is Tag-specific, not Meal-specific. It applies to all Meals assigned to this Tag.");
+				uim->centeredText("How many consecutive days can a Meal with this Tag occur for?");
+				uim->skipLines(1);
+				uim->centeredText("This setting is Tag-specific, not Meal-specific. It applies to all Meals assigned to this Tag.");
 				uim->centeredText("(A value of 1 means that Meals will occur every other day at most, a value of 3 allows 3 days of Meals from this Tag to occur in a row.)");
 				uim->prompt_FreeInt(1, 1000);
 
@@ -4858,7 +4860,7 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 	const unsigned int MIN_BUDGET = 0;
 	const unsigned int MAX_BUDGET = 100000;
 	const unsigned int GENERATED_PLANS = 2500; // number of meal plans to make
-	const unsigned int MAX_ATTEMPTS = 1000; // number of attempts allowed when searching for a meal
+	const double ERROR_THRESHOLD_PER_WEEK = 0.5; // amount of errored days allowed per week
 
 	bool errorPresent = false; // return value
 	double budget = 0; // budget for the calculated period
@@ -5015,7 +5017,7 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 					mealPtr = nullptr;
 
 					// warn user
-					std::cout << "\nWARNING: No available meals on: " << dayToString(currentDay) << ", day #" << std::to_string(dayNumber) << std::endl;
+					//std::cout << "\nWARNING: No available meals on: " << dayToString(currentDay) << ", day #" << std::to_string(dayNumber) << std::endl;
 				}
 			}// if (scheduledMeals[attemptNum].size() == dayNumber)
 			currentDay = nextDay(currentDay); // go to next day
@@ -5072,34 +5074,42 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 			else // set lowestErrors 
 			{
 				// if lowestErrors was never set, then prepare to set it to this plan
-				if (planIndex == 0)
+				if (errorsToPlans.size() == 0)
 				{
-					// check budget
-					double totalCost = 0;
+					// check if more errors than error threshold
+					unsigned int calculatedWeeks = calculationPeriod / 7;
+					double allowedErrors = calculatedWeeks * ERROR_THRESHOLD_PER_WEEK;
 
-					// sum the cost of all meals
-					for (int index = 0; index < scheduledMeals[planIndex].size(); ++index)
+					// only considers plans that do not exceed allowedErrors
+					if (failedDays[planIndex] <= allowedErrors)
 					{
-						// get day of meals
-						std::vector<Meal*> currentDay = scheduledMeals[planIndex].at(index);
+						// check budget
+						double totalCost = 0;
 
-						for (auto mealIter : currentDay)
+						// sum the cost of all meals
+						for (int index = 0; index < scheduledMeals[planIndex].size(); ++index)
 						{
-							// if meal lasts multiple days, divide the cost over its duration
-							if (mealIter->getMealDuration() > 1)
-							{
-								totalCost += (mealIter->getPrice() / mealIter->getMealDuration());
-							}
-							else
-								totalCost += mealIter->getPrice();
-						}
-					}
+							// get day of meals
+							std::vector<Meal*> currentDay = scheduledMeals[planIndex].at(index);
 
-					// if totalCost is within budget, then plan is ok to use
-					if (totalCost <= budget)
-					{
-						lowestErrors = failedDays[planIndex];
-						errorsToPlans.emplace(lowestErrors, std::pair<std::vector<std::vector<Meal*>>, double>(scheduledMeals[planIndex], totalCost));
+							for (auto mealIter : currentDay)
+							{
+								// if meal lasts multiple days, divide the cost over its duration
+								if (mealIter->getMealDuration() > 1)
+								{
+									totalCost += (mealIter->getPrice() / mealIter->getMealDuration());
+								}
+								else
+									totalCost += mealIter->getPrice();
+							}
+						}
+
+						// if totalCost is within budget, then plan is ok to use
+						if (totalCost <= budget)
+						{
+							lowestErrors = failedDays[planIndex];
+							errorsToPlans.emplace(lowestErrors, std::pair<std::vector<std::vector<Meal*>>, double>(scheduledMeals[planIndex], totalCost));
+						}
 					}
 				}
 				else if (failedDays[planIndex] < lowestErrors) // if a better plan was found
