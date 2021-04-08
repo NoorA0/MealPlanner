@@ -265,13 +265,13 @@ void MealManager::createTag(Tag* tagPtr)
 		uim->centeredText("Enter a name:");
 		uim->centeredText("(recommended 2 - 4 words)");
 		uim->skipLines(2);
-		uim->leftAllignedText("Examples:"); 
+		uim->centeredText("Examples:"); 
 		uim->skipLines(1);
-		uim->leftAllignedText("Chicken");
-		uim->leftAllignedText("Vegetarian");
-		uim->leftAllignedText("Takes long to cook");
-		uim->leftAllignedText("Dessert");
-		uim->leftAllignedText("Weekends Only");
+		uim->centeredText("Chicken");
+		uim->centeredText("Vegetarian");
+		uim->centeredText("Takes long to cook");
+		uim->centeredText("Dessert");
+		uim->centeredText("Weekends Only");
 		uim->prompt_FreeString(1, NAME_LENGTH);
 
 		tempStr = uim->display();
@@ -4404,16 +4404,16 @@ bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMulti
 		// randomly choose index
 		int multitagIndex = rand() % availableMultiTags.size();
 
-		// retreive multiTag
+		// retrieve multiTag
 		MultiTag* chosenMultiTag = availableMultiTags.at(multitagIndex);
 
-		// if no indices searched, then ok to proceed
+		// if no indices previously searched, then ok to proceed
 		if (searchedMultiTags.size() == 0)
 		{
 			searchedMultiTags.push_back(multitagIndex);
 			validMultiTag = true;
 		}
-		else // need to check if index already searched
+		else // need to check if index was already searched
 		{
 			bool indexMatch = false;
 			auto searchedMultiTagsIter = searchedMultiTags.begin();
@@ -4894,12 +4894,9 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 	calculationPeriod *= 7;
 
 	// OPTIMIZATION
-	//std::cout << "\n\nBeginning optimizations ...";
 	optimizeData(highPriorityMultiTags, normalPriorityMultiTags, normalPriorityTags);
-	//std::cout << "\nDone!\n\n";
 
 	// CALCULATION
-	//std::cout << "\n\nBeginning calculations ...";
 
 	// calculates GENERATED_PLANS number of complete meal plans
 	for (unsigned int attemptNum = 0; attemptNum < GENERATED_PLANS; ++attemptNum)
@@ -4976,6 +4973,13 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 			}// if (scheduledMeals[attemptNum].size() == dayNumber)
 			currentDay = nextDay(currentDay); // go to next day
 		} // for: calculates a meal for every day 
+
+		// reset meals' scheduledDays
+		for (auto mealIter : meals)
+		{
+			std::vector<unsigned int> resetDays;
+			mealIter->setDaysScheduled(resetDays);
+		}
 	} // for: calculates an entire plan
 
 	//std::cout << "\nDone!\n\n";
