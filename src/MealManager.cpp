@@ -2549,8 +2549,7 @@ std::string MealManager::formatEnabledDays(const std::map<DaysOfTheWeek, bool>& 
 
 void MealManager::optimizeData(std::map<DaysOfTheWeek, std::vector<MultiTag*>>& highPriorityMultiTags, 
 	std::map<DaysOfTheWeek, std::vector<MultiTag*>>& normalPriorityMultiTags, 
-	std::map<DaysOfTheWeek, std::vector<Tag*>>& normalPriorityTags, 
-	std::map<Tag*, std::vector<Meal*>>& availableMeals)
+	std::map<DaysOfTheWeek, std::vector<Tag*>>& normalPriorityTags)
 {
 	DaysOfTheWeek day = MONDAY; // adds elements to function's params for each day of the week
 
@@ -2558,7 +2557,6 @@ void MealManager::optimizeData(std::map<DaysOfTheWeek, std::vector<MultiTag*>>& 
 	highPriorityMultiTags.clear();
 	normalPriorityMultiTags.clear();
 	normalPriorityTags.clear();
-	availableMeals.clear();
 
 	// populates all but availableMeals according to each day
 	do
@@ -2597,34 +2595,6 @@ void MealManager::optimizeData(std::map<DaysOfTheWeek, std::vector<MultiTag*>>& 
 					else
 						normalPriorityMT.push_back(multiTagIter);
 				}
-			}
-		}
-
-		// checks all tags and their meals
-		for (auto tagIter : normalTags)
-		{
-			std::vector<Meal*> enabledMeals; // meals linked to this tag that are not disabled
-
-			// check if enabled for current day
-			if (tagIter->getEnabledDays().at(day))
-			{
-				// if tag depends on MultiTag, then exclude from normalPriorityTags
-				if (!tagIter->getDependency())
-				{
-					// add to vector
-					normalPriorityT.push_back(tagIter);
-				}
-
-				// regardless of dependency, check if meals are enabled
-				std::vector<Meal*> linkedMeals = tagIter->getLinkedMeals();
-				for (auto mealIter : linkedMeals)
-				{
-					// if enabled, add to enabledMeals
-					if (!mealIter->isDisabled())
-						enabledMeals.push_back(mealIter);
-				}
-				// add element to availableMeals
-				availableMeals.emplace(tagIter, enabledMeals);
 			}
 		}
 
@@ -3343,14 +3313,14 @@ void MealManager::displayMealInfo(const Meal* mealPtr)
 
 	// enabledDays
 	if (mealPtr->isDisabled())
-		uim->leftAllignedText("Is disabled.");
+		uim->leftAllignedText("Meal is disabled.");
 	else
 	{
 		tempStr = "Enabled on: " + formatEnabledDays(mealPtr->getEnabledDays());
 
 		// check if disabled by tags
 		if (tempStr == "Enabled on: []")
-			uim->leftAllignedText("Is disabled by Tags.");
+			uim->leftAllignedText("Meal is disabled by assigned Tags.");
 		else
 			uim->leftAllignedText(tempStr);
 	}
@@ -4303,7 +4273,7 @@ bool MealManager::readMultiTags(std::ifstream& iFile)
 	return error;
 }
 
-bool MealManager::validateTag(const Tag* tagPtr, const unsigned int& currentDayNumber, const std::vector<Meal*>& assignedMeals, const std::vector<std::vector<Meal*>>& scheduledMeals)
+bool MealManager::validateTag(const Tag* tagPtr, const unsigned int& currentDayNumber, const unsigned int& calculationPeriod, const std::vector<Meal*>& assignedMeals, const std::vector<std::vector<Meal*>>& scheduledMeals)
 {
 	bool validTag = false;
 
@@ -4311,37 +4281,43 @@ bool MealManager::validateTag(const Tag* tagPtr, const unsigned int& currentDayN
 	unsigned int lookBackLimit = currentDayNumber - tagPtr->getConsecutiveLimit(); // earliest day to check
 	auto assignedMealsIter = assignedMeals.begin(); // iter to meals assigned to the tag
 
-	// loop until all days checked or a gap in scheduled days is found
-	while (!validTag && lookBack >= lookBackLimit)
+	// if consecutiveLimit is greater than calculationPeriod, or not enough days has passed, then skip detailed check
+	if (tagPtr->getConsecutiveLimit() < calculationPeriod || currentDayNumber >= tagPtr->getConsecutiveLimit())
 	{
-		// get meals of day lookBack
-		std::vector<Meal*> checkMeals = scheduledMeals.at(lookBack);
-
-		auto scheduledMealsIter = checkMeals.begin();
-		bool matchFound = false; // true when any of the previous day's meals was assigned to the tag being checked
-
-		// check all meals of the day
-		while (!validTag && scheduledMealsIter != checkMeals.end())
+		// loop until all days checked or a gap in scheduled days is found
+		while (!validTag && lookBack >= lookBackLimit)
 		{
-			// loop to compare scheduled meals with assigned meals
-			while (!matchFound && assignedMealsIter != assignedMeals.end())
-			{
-				// if a meal matches
-				if (assignedMealsIter == scheduledMealsIter)
-					matchFound = true;
+			// get meals of day lookBack
+			std::vector<Meal*> checkMeals = scheduledMeals.at(lookBack);
 
-				++assignedMealsIter;
+			auto scheduledMealsIter = checkMeals.begin();
+			bool matchFound = false; // true when any of the previous day's meals was assigned to the tag being checked
+
+			// check all meals of the day
+			while (!validTag && scheduledMealsIter != checkMeals.end())
+			{
+				// loop to compare scheduled meals with assigned meals
+				while (!matchFound && assignedMealsIter != assignedMeals.end())
+				{
+					// if a meal matches
+					if (assignedMealsIter == scheduledMealsIter)
+						matchFound = true;
+
+					++assignedMealsIter;
+				}
+
+				++scheduledMealsIter;
 			}
 
-			++scheduledMealsIter;
+			// if no match was found, then the tag is valid
+			if (!matchFound)
+				validTag = true;
+
+			--lookBack;
 		}
-
-		// if no match was found, then the tag is valid
-		if (!matchFound)
-			validTag = true;
-
-		--lookBack;
 	}
+	else
+		validTag = true;
 
 	return validTag;
 }
@@ -4350,15 +4326,26 @@ bool MealManager::validateMeal(const Meal* mealPtr, const unsigned int& currentD
 {
 	bool validMeal = false;
 
-	// get most recent day scheduled
-	unsigned int lastDayScheduled = mealPtr->getDaysScheduled().back();
+	// if meal is enabled, check daysBetweenOccurrences
+	if (!mealPtr->isDisabled())
+	{
+		// if meal was never scheduled, then daysBetweenOccurrences will not prevent scheduling
+		if (mealPtr->getDaysScheduled().size() > 0)
+		{
+			// get most recent day scheduled
+			unsigned int lastDayScheduled = mealPtr->getDaysScheduled().back();
 
-	// calculate how long to wait until selectedMeal can be scheduled again
-	unsigned int waitUntil = lastDayScheduled + mealPtr->getDaysBetweenOccurrences() + 1;
+			// calculate how long to wait until selectedMeal can be scheduled again
+			unsigned int waitUntil = lastDayScheduled + mealPtr->getDaysBetweenOccurrences() + 1;
 
-	// if enough days has passed, then meal is valid
-	if (currentDayNumber >= waitUntil)
-		validMeal = true;
+			// if enough days has passed, then meal is valid
+			if (currentDayNumber >= waitUntil)
+				validMeal = true;
+		}
+		else
+			validMeal = true;
+	}
+
 
 	return validMeal;
 }
@@ -4403,7 +4390,7 @@ void MealManager::addFutureMeals(std::vector<Meal*>& futureMeals, const unsigned
 	}
 }
 
-bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMultiTags, const std::map<Tag*, std::vector<Meal*>>& availableMeals, const unsigned int& currentDayNumber,
+bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMultiTags, const unsigned int& currentDayNumber,
 	const unsigned int& calculationPeriod, const DaysOfTheWeek& currentDay, std::vector<std::vector<Meal*>>& scheduledMeals)
 {
 	std::vector<int> searchedMultiTags; // stores indices of multitags that were accessed
@@ -4458,7 +4445,7 @@ bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMulti
 			for (auto tagIter : availableTags)
 			{
 				unsigned int mealsScheduled = 0; // meals scheduled for one tag
-				std::vector<Meal*> assignedMeals = availableMeals.at(tagIter.first); // meals that are enabled and assigned to the current Tag
+				std::vector<Meal*> assignedMeals = tagIter.first->getLinkedMeals(); // meals that are assigned to the current Tag
 				std::vector<int> searchedMeals; // tracks which meals were already searched
 
 				// check if tag is enabled and has meals
@@ -4466,16 +4453,8 @@ bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMulti
 				{
 					bool validTag = false;
 
-					// check consecutiveLimit to see if tag is allowed to schedule meals
-					// if period is too small to consider consecutive occurrences
-					if (tagIter.first->getConsecutiveLimit() >= calculationPeriod)
-						validTag = true;
-					else if (currentDayNumber < tagIter.first->getConsecutiveLimit()) // not enough days has passed to require check
-						validTag = true;
-					else // check consecutive days limit
-					{
-						validTag = validateTag(tagIter.first, currentDayNumber, assignedMeals, scheduledMeals);
-					}
+					// checks tag's params and returns T if valid, F if not
+					validTag = validateTag(tagIter.first, currentDayNumber, calculationPeriod, assignedMeals, scheduledMeals);
 
 					// begin to schedule meals if tag is allowed to schedule meals
 					if (validTag)
@@ -4494,8 +4473,8 @@ bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMulti
 							// if no meals were searched, then ok to proceed
 							if (searchedMeals.size() == 0)
 							{
-								validMeal = true;
 								searchedMeals.push_back(mealIndex);
+								validMeal = validateMeal(selectedMeal, currentDayNumber);
 							}
 							else // check if meal has been used before
 							{
@@ -4511,18 +4490,10 @@ bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMulti
 										++searchedMealsIter;
 								}
 
-								// if no match, then check if meal's daysBetween Occurrences allows it to be scheduled
+								// if no match, then meal is a candidate to be scheduled
 								if (!matchFound)
 								{
-									searchedMeals.push_back(mealIndex);
-
-									// if never scheduled before, then meal is ok to schedule
-									if (selectedMeal->getDaysScheduled().size() == 0)
-										validMeal = true;
-									else // need to check days between occurrences
-									{
-										validMeal = validateMeal(selectedMeal, currentDayNumber);
-									}
+									validMeal = validateMeal(selectedMeal, currentDayNumber);
 								}
 							}
 
@@ -4575,7 +4546,7 @@ bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMulti
 	return mealFound;
 }
 
-bool MealManager::scheduleNormalTags(const std::vector<Tag*>& availableTags, const std::map<Tag*, std::vector<Meal*>>& availableMeals, const unsigned int& currentDayNumber, const unsigned int& calculationPeriod, const DaysOfTheWeek& currentDay, std::vector<std::vector<Meal*>>& scheduledMeals)
+bool MealManager::scheduleNormalTags(const std::vector<Tag*>& availableTags, const unsigned int& currentDayNumber, const unsigned int& calculationPeriod, const DaysOfTheWeek& currentDay, std::vector<std::vector<Meal*>>& scheduledMeals)
 {
 	bool mealFound = false;
 
@@ -4592,8 +4563,8 @@ bool MealManager::scheduleNormalTags(const std::vector<Tag*>& availableTags, con
 		// retreive Tag
 		Tag* chosenTag = availableTags.at(tagIndex);
 		
-		// get meals available and enabled to chosenTag
-		std::vector<Meal*> assignedMeals = availableMeals.find(chosenTag)->second;
+		// get meals assigned chosenTag
+		std::vector<Meal*> assignedMeals = chosenTag->getLinkedMeals();
 
 		// if no indices searched, then ok to proceed
 		if (searchedTags.size() == 0)
@@ -4630,18 +4601,10 @@ bool MealManager::scheduleNormalTags(const std::vector<Tag*>& availableTags, con
 			{
 				bool validTag = false;
 
-				// check consecutiveLimit to see if tag is allowed to schedule meals
-				// if period is too small to consider consecutive occurrences
-				if (chosenTag->getConsecutiveLimit() >= calculationPeriod)
-					validTag = true;
-				else if (currentDayNumber < chosenTag->getConsecutiveLimit()) // not enough days has passed to require check
-					validTag = true;
-				else // check consecutive days limit
-				{
-					validTag = validateTag(chosenTag, currentDayNumber, assignedMeals, scheduledMeals);
-				}
+				// checks tag's params and returns T if tag is valid, F if not
+				validTag = validateTag(chosenTag, currentDayNumber, calculationPeriod, assignedMeals, scheduledMeals);
 
-				// begin to schedule meals if tag is allowed to schedule meals
+				// begin to schedule meals if tag is valid
 				if (validTag)
 				{
 					std::vector<int> searchedMeals; // stores index of all meals searched within the chosenTag
@@ -4660,8 +4623,8 @@ bool MealManager::scheduleNormalTags(const std::vector<Tag*>& availableTags, con
 						// if no meals were searched, then ok to proceed
 						if (searchedMeals.size() == 0)
 						{
-							validMeal = true;
 							searchedMeals.push_back(mealIndex);
+							validMeal = validateMeal(selectedMeal, currentDayNumber);
 						}
 						else // check if meal has been used before
 						{
@@ -4680,15 +4643,7 @@ bool MealManager::scheduleNormalTags(const std::vector<Tag*>& availableTags, con
 							// if no match, then check if meal's daysBetweenOccurrences allows it to be scheduled
 							if (!matchFound)
 							{
-								searchedMeals.push_back(mealIndex);
-
-								// if never scheduled before, then meal is ok to schedule
-								if (selectedMeal->getDaysScheduled().size() == 0)
-									validMeal = true;
-								else // need to check days between occurrences
-								{
-									validMeal = validateMeal(selectedMeal, currentDayNumber);
-								}
+								validMeal = validateMeal(selectedMeal, currentDayNumber);
 							}
 						}
 
@@ -4880,7 +4835,6 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 	std::map<DaysOfTheWeek, std::vector<MultiTag*>> highPriorityMultiTags; // multiTags with elevated priority, sorted by available day
 	std::map<DaysOfTheWeek, std::vector<MultiTag*>> normalPriorityMultiTags; // multiTags with priority of Tag, sorted by available day
 	std::map<DaysOfTheWeek, std::vector<Tag*>> normalPriorityTags; // Tags, sorted by available day
-	std::map<Tag*, std::vector<Meal*>> availableMeals; // links tag to its meals, only enabled meals are linked
 
 	// loop until user is ok with settings
 	while (tempStr != "Q")
@@ -4941,7 +4895,7 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 
 	// OPTIMIZATION
 	//std::cout << "\n\nBeginning optimizations ...";
-	optimizeData(highPriorityMultiTags, normalPriorityMultiTags, normalPriorityTags, availableMeals);
+	optimizeData(highPriorityMultiTags, normalPriorityMultiTags, normalPriorityTags);
 	//std::cout << "\nDone!\n\n";
 
 	// CALCULATION
@@ -4963,7 +4917,7 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 				// check if a high priority MT is available
 				if (highPriorityMultiTags.find(currentDay)->second.size() > 0)
 				{
-					createdMeals = scheduleMultiTags(highPriorityMultiTags.find(currentDay)->second, availableMeals, dayNumber, 
+					createdMeals = scheduleMultiTags(highPriorityMultiTags.find(currentDay)->second, dayNumber, 
 						calculationPeriod, currentDay, scheduledMeals[attemptNum]);
 					
 				}
@@ -4978,12 +4932,12 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 
 					if (coinFlip > 500) // choose MTs
 					{
-						createdMeals = scheduleMultiTags(normalPriorityMultiTags.find(currentDay)->second, availableMeals, dayNumber,
+						createdMeals = scheduleMultiTags(normalPriorityMultiTags.find(currentDay)->second, dayNumber,
 							calculationPeriod, currentDay, scheduledMeals[attemptNum]);
 					}
 					else // choose tags
 					{
-						createdMeals = scheduleNormalTags(normalPriorityTags.find(currentDay)->second, availableMeals, dayNumber,
+						createdMeals = scheduleNormalTags(normalPriorityTags.find(currentDay)->second, dayNumber,
 							calculationPeriod, currentDay, scheduledMeals[attemptNum]);
 					}
 				}
@@ -4991,14 +4945,14 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 				// if above priority failed, check next lower priority
 				if (!createdMeals && normalPriorityMultiTags.find(currentDay)->second.size() > 0) // if only MTs are available
 				{
-					createdMeals = scheduleMultiTags(normalPriorityMultiTags.find(currentDay)->second, availableMeals, dayNumber,
+					createdMeals = scheduleMultiTags(normalPriorityMultiTags.find(currentDay)->second, dayNumber,
 						calculationPeriod, currentDay, scheduledMeals[attemptNum]);
 				}
 				
 				// if above priority failed, check next lower priority
 				if (!createdMeals && normalPriorityTags.find(currentDay)->second.size() > 0) // if only tags are available
 				{
-					createdMeals = scheduleNormalTags(normalPriorityTags.find(currentDay)->second, availableMeals, dayNumber,
+					createdMeals = scheduleNormalTags(normalPriorityTags.find(currentDay)->second, dayNumber,
 						calculationPeriod, currentDay, scheduledMeals[attemptNum]);
 				}
 

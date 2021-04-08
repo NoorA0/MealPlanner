@@ -163,8 +163,7 @@ class MealManager
 	*/
 	void optimizeData(std::map<DaysOfTheWeek, std::vector<MultiTag*>>& highPriorityMultiTags,
 		std::map<DaysOfTheWeek, std::vector<MultiTag*>>& normalPriorityMultiTags,
-		std::map<DaysOfTheWeek, std::vector<Tag*>>& normalPriorityTags,
-		std::map<Tag*, std::vector<Meal*>>& availableMeals);
+		std::map<DaysOfTheWeek, std::vector<Tag*>>& normalPriorityTags);
 
 	// display all Meals/Tags, tagPtr points to Meal/Tag/MultiTag selected/created, or nullptr if user chose to quit
 	// lastPageVistied is set to the last page (if pagee exist) the user was viewing
@@ -205,14 +204,14 @@ class MealManager
 	// SCHEDULE CALCULATION
 	// these functions return true if its object is valid (able to be used in calculations)
 	// or false if their params forbid use on the current day
-	bool validateTag(const Tag* tagPtr, const unsigned int& currentDayNumber, const std::vector<Meal*>& assignedMeals, const std::vector<std::vector<Meal*>>& scheduledMeals);
+	bool validateTag(const Tag* tagPtr, const unsigned int& currentDayNumber, const unsigned int& calculationPeriod, const std::vector<Meal*>& assignedMeals, const std::vector<std::vector<Meal*>>& scheduledMeals);
 	bool validateMeal(const Meal* mealPtr, const unsigned int& currentDayNumber);
 	void addFutureMeals(std::vector<Meal*>& futureMeals, const unsigned int& currentDayNumber, const unsigned int& calculationPeriod, std::vector<std::vector<Meal*>>& scheduledMeals);
 
-	bool scheduleMultiTags(const std::vector<MultiTag*>& availableMultiTags, const std::map<Tag*, std::vector<Meal*>>& availableMeals, const unsigned int& currentDayNumber,
+	bool scheduleMultiTags(const std::vector<MultiTag*>& availableMultiTags, const unsigned int& currentDayNumber,
 		const unsigned int& calculationPeriod, const DaysOfTheWeek& currentDay, std::vector<std::vector<Meal*>>& scheduledMeals);
 
-	bool scheduleNormalTags(const std::vector<Tag*>& availableTags, const std::map<Tag*, std::vector<Meal*>>& availableMeals, const unsigned int& currentDayNumber,
+	bool scheduleNormalTags(const std::vector<Tag*>& availableTags, const unsigned int& currentDayNumber,
 		const unsigned int& calculationPeriod, const DaysOfTheWeek& currentDay, std::vector<std::vector<Meal*>>& scheduledMeals);
 
 	// write plan to file

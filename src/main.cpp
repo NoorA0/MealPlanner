@@ -433,7 +433,7 @@ void displayGeneralManual(UIManager& uim)
 			uim.skipLines(1);
 			uim.leftAllignedText("Note: if you came from step 2a, then ...");
 			uim.leftAllignedText("after completing this step, you will repeat it until the number of requested meals has been fulfilled.");
-			uim.leftAllignedText("Then return to step 2b.")
+			uim.leftAllignedText("Then return to step 2b.");
 			break;
 		default:
 			// do nothing
