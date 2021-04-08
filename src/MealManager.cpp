@@ -3302,6 +3302,10 @@ void MealManager::displayMealInfo(const Meal* mealPtr)
 	tempStr = "Price: " + formatPrice(mealPtr->getPrice());
 	uim->leftAllignedText(tempStr);
 
+	// duration 
+	tempStr = "Duration: " + std::to_string(mealPtr->getMealDuration()) + " days.";
+	uim->leftAllignedText(tempStr);
+
 	// tags
 	tempStr = std::to_string(mealPtr->getTags().size());
 	
