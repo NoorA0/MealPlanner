@@ -3403,6 +3403,10 @@ void MealManager::displayMultiTagInfo(const MultiTag* mtagPtr)
 		uim->leftAllignedText("All days are disabled.");
 	else
 		uim->leftAllignedText(tempStr);
+
+	// number of linked tags
+	tempStr = "Linked Tags: " + std::to_string(mtagPtr->getLinkedTags().size());
+	uim->leftAllignedText(tempStr);
 }
 
 void MealManager::writeMeal(const Meal* mealPtr, std::ofstream& oFile)
@@ -4838,6 +4842,7 @@ void MealManager::printSchedule(const std::vector<std::vector<Meal*>>& mealPlan,
 		// day name
 		std::string tempStr = ">> " + dayToString(currentDay) + " <<";
 		oFile << centeredText(tempStr, LINE_WIDTH) << "\n";
+		tempStr = "";
 
 		// meals in the current day
 		std::vector<Meal*> daysMeals = *mealIter;
@@ -4846,7 +4851,6 @@ void MealManager::printSchedule(const std::vector<std::vector<Meal*>>& mealPlan,
 		{
 			// meal name
 			oFile << centeredText(meal->getName(), LINE_WIDTH) << "\n";
-			std::string tempStr = "";
 
 			// check if this is a multi-day meal
 			if (meal->getMealDuration() > 1)
@@ -4922,6 +4926,7 @@ void MealManager::printSchedule(const std::vector<std::vector<Meal*>>& mealPlan,
 				tempStr = "price: " + formatPrice(meal->getPrice());
 			}
 			oFile << centeredText(tempStr, LINE_WIDTH) << "\n\n";
+			tempStr = "";
 		}
 
 		currentDay = nextDay(currentDay);
