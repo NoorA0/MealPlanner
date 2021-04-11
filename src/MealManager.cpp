@@ -5473,6 +5473,7 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 					Meal* mealPtr = new Meal;
 					mealPtr->setName("NO AVAILABLE MEALS");
 					mealPtr->setPrice(0);
+					mealPtr->setDisabled(true);
 
 					daysMeals.push_back(mealPtr);
 					scheduledMeals[attemptNum].push_back(daysMeals);
@@ -5671,6 +5672,28 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 		printSchedule(finalPlan, finalErrors, finalCost, budget, oFile);
 		oFile.close();
 	}
+
+	// CLEANUP
+	// checks every plan generated
+	for (int attemptNumber = 0; attemptNumber < GENERATED_PLANS; ++attemptNumber)
+	{
+		// checks every day
+		for (unsigned int dayNumber = 0; dayNumber < calculationPeriod; ++dayNumber)
+		{
+			// checks every meal
+			for (unsigned int mealNumber = 0; mealNumber < scheduledMeals[attemptNumber].at(dayNumber).size(); ++mealNumber)
+			{
+				// if meal is an error meal (i.e. not a real meal), then delete it
+				Meal* mealPtr = scheduledMeals[attemptNumber].at(dayNumber).at(mealNumber);
+
+				if (mealPtr->getName() == "NO AVAILABLE MEALS" && mealPtr->getPrice() == 0.0 && mealPtr->isDisabled() == true)
+				{
+					delete mealPtr;
+					mealPtr = nullptr;
+				}
+			}
+		}
+	} // for: checks every plan generated
 
 	return errorPresent;
 }
