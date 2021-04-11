@@ -23,6 +23,10 @@ class MealManager
 	double MAXIMUM_PRICE;
 	unsigned int NAME_LENGTH;
 	unsigned int DESC_LENGTH;
+	const unsigned int CONSECUTIVE_DAYS_LIMIT = 1000;
+	const unsigned int MEAL_DURATION_LIMIT = 30;
+	const unsigned int DAYS_BETWEEN_OCCURRENCES_LIMIT = 30;
+	const unsigned int REQUESTED_MEALS_LIMIT = 100;
 
 	// HELPER FUNCTIONS
 	/* createMeal
@@ -197,9 +201,10 @@ class MealManager
 	void writeMultiTag(const MultiTag* mtagPtr, std::ofstream& oFile);
 
 	// READING FROM FILE
-	bool readMeals(std::ifstream& iFile);
-	bool readTags(std::ifstream& iFile);
-	bool readMultiTags(std::ifstream& iFile);
+	// RETURN VALUES: 0 = good, 1 = error (aborted import), 2 = corrupted (used default values)
+	int readMeals(std::ifstream& iFile);
+	int readTags(std::ifstream& iFile);
+	int readMultiTags(std::ifstream& iFile);
 
 	// SCHEDULE CALCULATION
 	// these functions return true if its object is valid (able to be used in calculations)
@@ -231,8 +236,10 @@ public:
 	void tagEditor();
 	void multitagEditor();
 
-	// Save/Load >>>MAKE PRIVATE WHEN NOT TESTING<<< 
+	// Save/Load
 	void saveState(const std::string& dataFile, std::ofstream& oFile);
-	void loadState(const std::string& outputFile, std::ifstream& iFile);
+
+	// returns 0 if good, 1 if data corrupted
+	int loadState(const std::string& outputFile, std::ifstream& iFile);
 };
 #endif // !__MEALMANAGER_HPP__

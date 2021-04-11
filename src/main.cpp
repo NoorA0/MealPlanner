@@ -146,7 +146,32 @@ int main()
 	try
 	{
 		// load existing data
-		mealManager.loadState(DATAFILE, iFile);
+		if (mealManager.loadState(DATAFILE, iFile) == 1) // corrupted data
+		{
+			// write error to log
+			std::ofstream errOut(LOGFILE, std::ios::app);
+
+			if (errOut.is_open())
+			{
+				// get system time 
+				auto now = std::chrono::system_clock::now();
+				std::time_t currentTime = std::chrono::system_clock::to_time_t(now);;
+
+				errOut << ctime(&currentTime);
+				errOut << "ERROR: Saved data is corrupted.\n";
+				errOut << "At least one attribute of a Meal/Tag/MultiTag is invalid in the save file.\n";
+				errOut << "Corrupted values have been set to their defaults. Please check your Meals/Tags/MultiTags for any errors.\n\n";
+			}
+			errOut.close();
+
+			// tell user
+			uim.centeredText("Load Error");
+			uim.skipLines(2);
+			uim.centeredText("At least one attribute of a Meal/Tag/MultiTag is invalid in the save file.");
+			uim.skipLines(1);
+			uim.centeredText("Corrupted values have been set to their defaults. Please check your Meals/Tags/MultiTags for any errors.");
+			uim.display();
+		}
 	}
 	catch (std::string& error)
 	{

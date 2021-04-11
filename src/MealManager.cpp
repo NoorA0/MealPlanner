@@ -174,7 +174,7 @@ void MealManager::createMeal(Meal* mealptr)
 	uim->skipLines(2);
 	uim->centeredText("How many days does this meal last?");
 	uim->centeredText("(1 day is typical, Meals prepared in large batches may last longer.)");
-	uim->prompt_FreeInt(1, 30);
+	uim->prompt_FreeInt(1, MEAL_DURATION_LIMIT);
 	tempInt = std::stoi(uim->display());
 
 	mealptr->setMealDuration(tempInt);
@@ -186,7 +186,7 @@ void MealManager::createMeal(Meal* mealptr)
 	uim->skipLines(2);
 	uim->centeredText("When this Meal is scheduled, how many days should pass before it can be scheduled again?");
 	uim->centeredText("(A value of 0 will not delay scheduling, while a value of 1 will make it occur every other day at most.)");
-	uim->prompt_FreeInt(0, 30);
+	uim->prompt_FreeInt(0, DAYS_BETWEEN_OCCURRENCES_LIMIT);
 	tempInt = std::stoi(uim->display());
 
 	mealptr->setDaysBetweenOccurrences(tempInt);
@@ -384,7 +384,7 @@ void MealManager::createTag(Tag* tagPtr)
 	uim->skipLines(1);
 	uim->centeredText("This setting is Tag-specific, not Meal-specific. It applies to all Meals assigned to this Tag.");
 	uim->centeredText("(A value of 1 means that Meals will occur every other day at most, a value of 3 allows 3 days of Meals from this Tag to occur in a row.)");
-	uim->prompt_FreeInt(1, 1000);
+	uim->prompt_FreeInt(1, CONSECUTIVE_DAYS_LIMIT);
 	tagPtr->setConsecutiveLimit(std::stoi(uim->display()));
 
 	tempStr = "";
@@ -1376,7 +1376,7 @@ void MealManager::editMultiTagTags(MultiTag* mtagPtr)
 					tempStr = "(original value: " + std::to_string(linkedTagsIter->second) + ")";
 					uim->centeredText(tempStr);
 
-					uim->prompt_FreeInt(1, 100);
+					uim->prompt_FreeInt(1, REQUESTED_MEALS_LIMIT);
 					newVal = std::stoi(uim->display());
 
 					// set new value
@@ -1496,7 +1496,7 @@ void MealManager::editMultiTagTags(MultiTag* mtagPtr)
 						uim->skipLines(2);
 						tempStr = "How many meals from \"" + compare->getName() + "\" do you want to eat in one day?";
 						uim->centeredText(tempStr);
-						uim->prompt_FreeInt(1, 100);
+						uim->prompt_FreeInt(1, REQUESTED_MEALS_LIMIT);
 						tempInt = std::stoi(uim->display());
 
 						// link Tag to multitag
@@ -2000,7 +2000,7 @@ void MealManager::editMeal(Meal* mealPtr)
 				uim->skipLines(1);
 
 				uim->centeredText("Enter a new Duration:");
-				uim->prompt_FreeInt(1, 30);
+				uim->prompt_FreeInt(1, MEAL_DURATION_LIMIT);
 				tempInt = std::stoi(uim->display());
 
 				mealPtr->setMealDuration(tempInt);
@@ -2029,7 +2029,7 @@ void MealManager::editMeal(Meal* mealPtr)
 				uim->centeredText("Enter a new delay time:");
 				tempStr = "(Original value: " + std::to_string(mealPtr->getDaysBetweenOccurrences()) + ")";
 				uim->centeredText(tempStr);
-				uim->prompt_FreeInt(0, 30);
+				uim->prompt_FreeInt(0, DAYS_BETWEEN_OCCURRENCES_LIMIT);
 				tempInt = std::stoi(uim->display());
 
 				mealPtr->setDaysBetweenOccurrences(tempInt);
@@ -2428,7 +2428,7 @@ void MealManager::editTag(Tag* tagPtr)
 				uim->skipLines(1);
 				uim->centeredText("This setting is Tag-specific, not Meal-specific. It applies to all Meals assigned to this Tag.");
 				uim->centeredText("(A value of 1 means that Meals will occur every other day at most, a value of 3 allows 3 days of Meals from this Tag to occur in a row.)");
-				uim->prompt_FreeInt(1, 1000);
+				uim->prompt_FreeInt(1, CONSECUTIVE_DAYS_LIMIT);
 
 				// set new value
 				tagPtr->setConsecutiveLimit(std::stoi(uim->display()));
@@ -3558,10 +3558,12 @@ void MealManager::writeMultiTag(const MultiTag* mtagPtr, std::ofstream& oFile)
 	oFile << "\t</LinkedTags>";
 }
 
-bool MealManager::readMeals(std::ifstream& iFile)
+int MealManager::readMeals(std::ifstream& iFile)
 {
+	int returnVal = 0; // 0 = good, 1 = error (aborted import), 2 = corrupted (used default values)
 	bool error = false; // true when encountering a read error
 	bool done = false; // when read all meals
+	bool corrupted = false; // true if read values are invalid
 	Meal* mealPtr = nullptr; // for creating meals
 	std::string tempStr; // read lines from file
 
@@ -3576,8 +3578,17 @@ bool MealManager::readMeals(std::ifstream& iFile)
 
 			// get name
 			std::getline(iFile, tempStr);
+
 			// remove tab at beginning
 			tempStr.erase(0, 1);
+
+			// check if string is correct length
+			if (tempStr.length() > NAME_LENGTH)
+			{
+				tempStr = tempStr.substr(0, NAME_LENGTH); // insert up to character limit
+				corrupted = true;
+			}
+
 			// set name
 			mealPtr->setName(tempStr);
 
@@ -3606,10 +3617,28 @@ bool MealManager::readMeals(std::ifstream& iFile)
 			{
 				// get price
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set price
-				mealPtr->setPrice(std::stod(tempStr));
+
+				// validate price
+				try
+				{
+					double price = std::stod(tempStr);
+
+					if (price <= MAXIMUM_PRICE && price >= MINIMUM_PRICE)
+						mealPtr->setPrice(price);
+					else
+					{
+						mealPtr->setPrice(0); // invalid price, default to 0
+						corrupted = true;
+					}
+				}
+				catch (...) // value not valid, default to 0
+				{
+					mealPtr->setPrice(0);
+					corrupted = true;
+				}
 
 				// read end header, verify
 				std::getline(iFile, tempStr);
@@ -3635,10 +3664,18 @@ bool MealManager::readMeals(std::ifstream& iFile)
 			{
 				// get value
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set value
-				mealPtr->setDisabled(std::stoi(tempStr));
+
+				// validate before setting value
+				if (std::isdigit(tempStr.at(0)))
+					mealPtr->setDisabled(std::stoi(tempStr.substr(0, 1)));
+				else
+				{
+					mealPtr->setDisabled(true); // default to true 
+					corrupted = true;
+				}
 
 				// read end header, verify
 				std::getline(iFile, tempStr);
@@ -3664,10 +3701,60 @@ bool MealManager::readMeals(std::ifstream& iFile)
 			{
 				// get value
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set value
-				mealPtr->setMealDuration(std::stoi(tempStr));
+
+				// validate before setting value
+				if (std::isdigit(tempStr.at(0)))
+				{
+					int digits = std::to_string(MEAL_DURATION_LIMIT).length(); // maximum number of digits
+					int charLimit = 0;
+					bool isValid = true;
+
+					if (digits >= tempStr.length()) // string has less than maximum number of digits
+						charLimit = tempStr.length();
+					else // string is too long
+					{
+						charLimit = digits;
+						corrupted = true;
+
+						tempStr = tempStr.substr(0, digits); // limit to correct number of digits
+					}
+
+					// validate every character in tempStr
+					int index = 0;
+					while (isValid && index < charLimit)
+					{
+						if (!std::isdigit(tempStr.at(index)))
+							isValid = false;
+						++index;
+					}
+
+					if (isValid) // is a number 
+					{
+						unsigned int number = std::stoi(tempStr);
+
+						// check if number is <= limit
+						if (number <= MEAL_DURATION_LIMIT)
+							mealPtr->setMealDuration(number);
+						else // default to 1
+						{
+							mealPtr->setMealDuration(1);
+							corrupted = true;
+						}
+					}
+					else // NaN, default to 1
+					{
+						mealPtr->setMealDuration(1);
+						corrupted = true;
+					}
+				}
+				else // NaN, default to 1
+				{
+					mealPtr->setMealDuration(1);
+					corrupted = true;
+				}
 
 				// read end header, verify
 				std::getline(iFile, tempStr);
@@ -3693,10 +3780,60 @@ bool MealManager::readMeals(std::ifstream& iFile)
 			{
 				// get value
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set value
-				mealPtr->setDaysBetweenOccurrences(std::stoi(tempStr));
+
+				// validate before setting value
+				if (std::isdigit(tempStr.at(0)))
+				{
+					int digits = std::to_string(DAYS_BETWEEN_OCCURRENCES_LIMIT).length(); // maximum number of digits
+					int charLimit = 0;
+					bool isValid = true;
+
+					if (digits >= tempStr.length()) // string has less than maximum number of digits
+						charLimit = tempStr.length();
+					else // string is too long
+					{
+						charLimit = digits;
+						corrupted = true;
+
+						tempStr = tempStr.substr(0, digits); // limit to correct number of digits
+					}
+
+					// validate every character in tempStr
+					int index = 0;
+					while (isValid && index < charLimit)
+					{
+						if (!std::isdigit(tempStr.at(index)))
+							isValid = false;
+						++index;
+					}
+
+					if (isValid) // is a number 
+					{
+						unsigned int number = std::stoi(tempStr);
+
+						// check if number is <= limit
+						if (number <= DAYS_BETWEEN_OCCURRENCES_LIMIT)
+							mealPtr->setDaysBetweenOccurrences(number);
+						else // default to 0
+						{
+							mealPtr->setDaysBetweenOccurrences(0);
+							corrupted = true;
+						}
+					}
+					else // NaN, default to 0
+					{
+						mealPtr->setDaysBetweenOccurrences(0);
+						corrupted = true;
+					}
+				}
+				else // NaN, default to 0
+				{
+					mealPtr->setDaysBetweenOccurrences(0);
+					corrupted = true;
+				}
 
 				// read end header, verify
 				std::getline(iFile, tempStr);
@@ -3732,8 +3869,16 @@ bool MealManager::readMeals(std::ifstream& iFile)
 
 						// get name of tag
 						std::getline(iFile, tempStr);
+
 						// remove 2 tabs
 						tempStr.erase(0, 2);
+
+						// validate length
+						if (tempStr.length() > NAME_LENGTH)
+						{
+							tempStr = tempStr.substr(0, NAME_LENGTH);
+							corrupted = true;
+						}
 
 						// find a tag with this name
 						auto tagIter = normalTags.begin();
@@ -3798,13 +3943,21 @@ bool MealManager::readMeals(std::ifstream& iFile)
 	if (error && mealPtr != nullptr)
 		delete mealPtr;
 
-	return error;
+	if (error) // if had to abort, return value
+		returnVal = error;
+	else if (corrupted) // if corruption detected
+		returnVal = 2;
+
+	return returnVal;
 }
 
-bool MealManager::readTags(std::ifstream& iFile)
+int MealManager::readTags(std::ifstream& iFile)
 {
+	int returnVal = 0; // 0 = good, 1 = error (aborted import), 2 = corrupted (used default values)
 	bool error = false; // true when encountering a read error
 	bool done = false; // when read all tags
+	bool corrupted = false;
+
 	Tag* tagPtr = nullptr; // for creating Tags
 	std::string tempStr; // read lines from file
 	std::map<DaysOfTheWeek, bool> enabledDays = // to create EnabledDays in Tags
@@ -3822,9 +3975,18 @@ bool MealManager::readTags(std::ifstream& iFile)
 
 			// get name
 			std::getline(iFile, tempStr);
+
 			// remove tab at beginning
 			tempStr.erase(0, 1);
-			// set name
+
+			// check if string is correct length
+			if (tempStr.length() > NAME_LENGTH)
+			{
+				tempStr= tempStr.substr(0, NAME_LENGTH); // get up to character limit
+				corrupted = true;
+			}
+
+			// set value
 			tagPtr->setName(tempStr);
 
 			// read end header, verify
@@ -3852,9 +4014,18 @@ bool MealManager::readTags(std::ifstream& iFile)
 			{
 				// get description
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set description
+
+				// check if string is correct length
+				if (tempStr.length() > DESC_LENGTH)
+				{
+					tempStr = tempStr.substr(0, DESC_LENGTH); // get up to character limit
+					corrupted = true;
+				}
+
+				// set value
 				tagPtr->setDescription(tempStr);
 
 				// read end header, verify
@@ -3881,10 +4052,18 @@ bool MealManager::readTags(std::ifstream& iFile)
 			{
 				// get value
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set value
-				tagPtr->setDependency(std::stoi(tempStr));
+
+				// validate before setting value
+				if (std::isdigit(tempStr.at(0)))
+					tagPtr->setDependency(std::stoi(tempStr.substr(0, 1)));
+				else
+				{
+					tagPtr->setDependency(false); // default to false 
+					corrupted = true;
+				}
 
 				// read end header, verify
 				std::getline(iFile, tempStr);
@@ -3910,10 +4089,60 @@ bool MealManager::readTags(std::ifstream& iFile)
 			{
 				// get value
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set value
-				tagPtr->setConsecutiveLimit(std::stoi(tempStr));
+
+				// validate before setting value
+				if (std::isdigit(tempStr.at(0)))
+				{
+					int digits = std::to_string(CONSECUTIVE_DAYS_LIMIT).length(); // maximum number of digits
+					int charLimit = 0;
+					bool isValid = true;
+
+					if (digits >= tempStr.length()) // string has less than maximum number of digits
+						charLimit = tempStr.length();
+					else // string is too long
+					{
+						charLimit = digits;
+						corrupted = true;
+
+						tempStr = tempStr.substr(0, digits); // limit to correct number of digits
+					}
+
+					// validate every character in tempStr
+					int index = 0;
+					while (isValid && index < charLimit)
+					{
+						if (!std::isdigit(tempStr.at(index)))
+							isValid = false;
+						++index;
+					}
+
+					if (isValid) // is a number 
+					{
+						unsigned int number = std::stoi(tempStr);
+
+						// check if number is <= limit
+						if (number <= CONSECUTIVE_DAYS_LIMIT)
+							tagPtr->setConsecutiveLimit(number);
+						else // default to 0
+						{
+							tagPtr->setConsecutiveLimit(0);
+							corrupted = true;
+						}
+					}
+					else // NaN, default to 0
+					{
+						tagPtr->setConsecutiveLimit(0);
+						corrupted = true;
+					}
+				}
+				else // NaN, default to 0
+				{
+					tagPtr->setConsecutiveLimit(0);
+					corrupted = true;
+				}
 
 				// read end header, verify
 				std::getline(iFile, tempStr);
@@ -3942,8 +4171,16 @@ bool MealManager::readTags(std::ifstream& iFile)
 				{
 					// get value
 					std::getline(iFile, tempStr);
+
 					// remove tab at beginning
 					tempStr.erase(0, 1);
+
+					// validate before setting value
+					if (!std::isdigit(tempStr.at(0)) || tempStr.length() > 1)
+					{
+						tempStr = "0"; // default to false 
+						corrupted = true;
+					}
 
 					// set value
 					switch (day)
@@ -4017,13 +4254,20 @@ bool MealManager::readTags(std::ifstream& iFile)
 	if (iFile.eof())
 		error = true;
 
-	return error;
+	if (error)
+		returnVal = 1;
+	else if (corrupted)
+		returnVal = 2;
+
+	return returnVal;
 }
 
-bool MealManager::readMultiTags(std::ifstream& iFile)
+int MealManager::readMultiTags(std::ifstream& iFile)
 {
+	int returnVal = 0; // 0 = good, 1 = error (aborted import), 2 = corrupted (used default values)
 	bool error = false; // true when encountering a read error
 	bool done = false; // when read all tags
+	bool corrupted = false;
 
 	MultiTag* mtagPtr = nullptr; // for creating MultiTags
 	std::string tempStr; // read lines from file
@@ -4043,9 +4287,18 @@ bool MealManager::readMultiTags(std::ifstream& iFile)
 
 			// get name
 			std::getline(iFile, tempStr);
+
 			// remove tab at beginning
 			tempStr.erase(0, 1);
-			// set name
+
+			// check if string is correct length
+			if (tempStr.length() > NAME_LENGTH)
+			{
+				tempStr = tempStr.substr(0, NAME_LENGTH); // get up to character limit
+				corrupted = true;
+			}
+
+			// set value
 			mtagPtr->setName(tempStr);
 
 			// read end header, verify
@@ -4073,9 +4326,18 @@ bool MealManager::readMultiTags(std::ifstream& iFile)
 			{
 				// get description
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set description
+
+				// check if string is correct length
+				if (tempStr.length() > DESC_LENGTH)
+				{
+					tempStr = tempStr.substr(0, DESC_LENGTH); // get up to character limit
+					corrupted = true;
+				}
+
+				// set value
 				mtagPtr->setDescription(tempStr);
 
 				// read end header, verify
@@ -4102,10 +4364,18 @@ bool MealManager::readMultiTags(std::ifstream& iFile)
 			{
 				// get value
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set value
-				mtagPtr->setHighestPriority(std::stoi(tempStr));
+
+				// validate before setting value
+				if (std::isdigit(tempStr.at(0)))
+					mtagPtr->setHighestPriority(std::stoi(tempStr.substr(0, 1)));
+				else
+				{
+					mtagPtr->setHighestPriority(false); // default to false 
+					corrupted = true;
+				}
 
 				// read end header, verify
 				std::getline(iFile, tempStr);
@@ -4134,8 +4404,16 @@ bool MealManager::readMultiTags(std::ifstream& iFile)
 				{
 					// get value
 					std::getline(iFile, tempStr);
+
 					// remove tab at beginning
 					tempStr.erase(0, 1);
+
+					// validate before setting value
+					if (!std::isdigit(tempStr.at(0)) || tempStr.length() > 1)
+					{
+						tempStr = "0"; // default to false 
+						corrupted = true;
+					}
 
 					// set value
 					switch (day)
@@ -4207,6 +4485,13 @@ bool MealManager::readMultiTags(std::ifstream& iFile)
 						// remove 2 tabs
 						tempStr.erase(0, 2);
 
+						// check if string is correct length
+						if (tempStr.length() > NAME_LENGTH)
+						{
+							tempStr = tempStr.substr(0, NAME_LENGTH); // get up to character limit
+							corrupted = true;
+						}
+
 						// find a tag with this name
 						auto tagIter = normalTags.begin();
 						while (!matchFound && tagIter != normalTags.end())
@@ -4226,6 +4511,55 @@ bool MealManager::readMultiTags(std::ifstream& iFile)
 
 						// remove 2 tabs
 						tempStr.erase(0, 2);
+
+						// validate before setting value
+						if (std::isdigit(tempStr.at(0)))
+						{
+							int digits = std::to_string(REQUESTED_MEALS_LIMIT).length(); // maximum number of digits
+							int charLimit = 0;
+							bool isValid = true;
+
+							if (digits >= tempStr.length()) // string has less than maximum number of digits
+								charLimit = tempStr.length();
+							else // string is too long
+							{
+								charLimit = digits;
+								corrupted = true;
+
+								tempStr = tempStr.substr(0, digits); // limit to correct number of digits
+							}
+
+							// validate every character in tempStr
+							int index = 0;
+							while (isValid && index < charLimit)
+							{
+								if (!std::isdigit(tempStr.at(index)))
+									isValid = false;
+								++index;
+							}
+
+							if (isValid) // is a number 
+							{
+								unsigned int number = std::stoi(tempStr);
+
+								// check if number is > limit
+								if (number > REQUESTED_MEALS_LIMIT)
+								{
+									tempStr = "1"; // defaults to 1
+									corrupted = true;
+								}
+							}
+							else // NaN, default to 1
+							{
+								tempStr = "1";
+								corrupted = true;
+							}
+						}
+						else // NaN, default to 1
+						{
+							tempStr = "1";
+							corrupted = true;
+						}
 
 						// set values
 						mtagPtr->addLinkedTag(tagPtr, std::stoi(tempStr));
@@ -4282,7 +4616,12 @@ bool MealManager::readMultiTags(std::ifstream& iFile)
 	if (iFile.eof())
 		error = true;
 
-	return error;
+	if (error)
+		returnVal = error;
+	else if (corrupted)
+		returnVal = 2;
+
+	return returnVal;
 }
 
 bool MealManager::validateTag(const Tag* tagPtr, const unsigned int& currentDayNumber, const unsigned int& calculationPeriod, const std::vector<Meal*>& assignedMeals, const std::vector<std::vector<Meal*>>& scheduledMeals)
@@ -5490,11 +5829,15 @@ void MealManager::saveState(const std::string& dataFile, std::ofstream& oFile)
 		throw std::string("Cannot open file");
 }
 
-void MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
+int MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
 {
 	std::string tagError = "Error reading Tags";
 	std::string multiTagError = "Error reading MultiTags";
 	std::string mealError = "Error reading Meals";
+
+	int returnVal = 0; // 0 = good, 1 = corrupted
+
+	bool corruptionDetected = false;
 	std::string line; // lines read from file
 
 	// open file
@@ -5509,9 +5852,13 @@ void MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
 		// check if header is correct
 		if (line == "<Tags>")
 		{
+			int returnVal = readTags(iFile);
+
 			// if tags imported with error
-			if (readTags(iFile) != 0)
+			if (returnVal == 1)
 				throw tagError;
+			else if (returnVal == 2)
+				corruptionDetected = true;
 		}
 		else throw tagError;
 
@@ -5523,9 +5870,13 @@ void MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
 		// check if header is correct
 		if (line == "<MultiTags>")
 		{
-			// if MultiTags imported with error
-			if (readMultiTags(iFile) != 0)
+			int returnVal = readMultiTags(iFile);
+
+			// if tags imported with error
+			if (returnVal == 1)
 				throw multiTagError;
+			else if (returnVal == 2)
+				corruptionDetected = true;
 		}
 		else throw multiTagError;
 
@@ -5537,14 +5888,23 @@ void MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
 		// check if header is correct
 		if (line == "<Meals>")
 		{
-			// if meals imported with error
-			if (readMeals(iFile) != 0)
+			int returnVal = readMeals(iFile);
+
+			// if tags imported with error
+			if (returnVal == 1)
 				throw mealError;
+			else if (returnVal == 2)
+				corruptionDetected = true;
 		}
 		else throw mealError;
 
 		iFile.close();
 	}
+
+	if (corruptionDetected)
+		returnVal = 1;
+
+	return returnVal;
 }
 
 DaysOfTheWeek nextDay(const DaysOfTheWeek& day)
