@@ -4280,13 +4280,25 @@ bool MealManager::readMultiTags(std::ifstream& iFile)
 bool MealManager::validateTag(const Tag* tagPtr, const unsigned int& currentDayNumber, const unsigned int& calculationPeriod, const std::vector<Meal*>& assignedMeals, const std::vector<std::vector<Meal*>>& scheduledMeals)
 {
 	bool validTag = false;
+	int lookBack; // checks previous days
+	int lookBackLimit; // the furthest day in the past necessary to check
 
-	unsigned int lookBack = currentDayNumber - 1; // checks previous days
-	unsigned int lookBackLimit = currentDayNumber - tagPtr->getConsecutiveLimit(); // earliest day to check
+	// set to previous day if one exists
+	if (currentDayNumber > 0)
+		lookBack = currentDayNumber - 1;
+	else
+		lookBack = 0;
+
+	// find earliest day to check if safe
+	if (currentDayNumber >= tagPtr->getConsecutiveLimit())
+		lookBackLimit = currentDayNumber - tagPtr->getConsecutiveLimit();
+	else
+		lookBackLimit = 0;
+
 	auto assignedMealsIter = assignedMeals.begin(); // iter to meals assigned to the tag
 
 	// if consecutiveLimit is greater than calculationPeriod, or not enough days has passed, then skip detailed check
-	if (tagPtr->getConsecutiveLimit() < calculationPeriod || currentDayNumber >= tagPtr->getConsecutiveLimit())
+	if (tagPtr->getConsecutiveLimit() < calculationPeriod && currentDayNumber >= tagPtr->getConsecutiveLimit() && currentDayNumber > 0)
 	{
 		// loop until all days checked or a gap in scheduled days is found
 		while (!validTag && lookBack >= lookBackLimit)
@@ -4304,7 +4316,7 @@ bool MealManager::validateTag(const Tag* tagPtr, const unsigned int& currentDayN
 				while (!matchFound && assignedMealsIter != assignedMeals.end())
 				{
 					// if a meal matches
-					if (assignedMealsIter == scheduledMealsIter)
+					if (*assignedMealsIter == *scheduledMealsIter)
 						matchFound = true;
 
 					++assignedMealsIter;
@@ -4330,7 +4342,7 @@ bool MealManager::validateMeal(const Meal* mealPtr, const unsigned int& currentD
 {
 	bool validMeal = false;
 
-	// if meal is enabled, check daysBetweenOccurrences
+	// if meal is enabled, check further
 	if (!mealPtr->isDisabled())
 	{
 		// if meal was never scheduled, then daysBetweenOccurrences will not prevent scheduling
@@ -4349,7 +4361,6 @@ bool MealManager::validateMeal(const Meal* mealPtr, const unsigned int& currentD
 		else
 			validMeal = true;
 	}
-
 
 	return validMeal;
 }
@@ -4445,6 +4456,10 @@ bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMulti
 			std::vector<Meal*> mealsOfDay; // meals scheduled for the current day
 			std::vector<Meal*> futureMeals; // meals that last more than one day are grouped together
 
+			// update mealsOfDay if meals were already scheduled (multi-day meals)
+			if (scheduledMeals.size() >= currentDayNumber + 1)
+				mealsOfDay = scheduledMeals.at(currentDayNumber);
+
 			// all linked tags' requested Meals must be fulfilled
 			for (auto tagIter : availableTags)
 			{
@@ -4474,7 +4489,7 @@ bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMulti
 							// get meal
 							Meal* selectedMeal = assignedMeals.at(mealIndex);
 
-							// if no meals were searched, then ok to proceed
+							// if no meals were searched, then add this meal to searchedMeals
 							if (searchedMeals.size() == 0)
 							{
 								searchedMeals.push_back(mealIndex);
@@ -4497,7 +4512,30 @@ bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMulti
 								// if no match, then meal is a candidate to be scheduled
 								if (!matchFound)
 								{
+									searchedMeals.push_back(mealIndex);
 									validMeal = validateMeal(selectedMeal, currentDayNumber);
+								}
+							}
+
+							// if meal is valid so far, then check if it has already been scheduled (a multi-day meal)
+							if (validMeal)
+							{
+								// if there are meals to check
+								if (mealsOfDay.size() > 0)
+								{
+									auto mealIter = mealsOfDay.begin();
+									bool found = false;
+
+									while (!found && mealIter != mealsOfDay.end())
+									{
+										if (*mealIter == selectedMeal)
+										{
+											found = true;
+											validMeal = false;
+										}
+										else
+											++mealIter;
+									}
 								}
 							}
 
@@ -4518,15 +4556,16 @@ bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMulti
 
 						} // while: ends loop when requested number of meals are met or all meals were searched
 
+						// DEBUG INFO
 						// if not enough meals were found to fulfil tag's requirement
-						if (mealsScheduled < tagIter.second)
+						/*if (mealsScheduled < tagIter.second)
 						{
 							// display error to user
 							std::cout << "\nWARNING: Tag \"" << tagIter.first->getName() << "\" requests " << tagIter.second << " meals, but only " << std::to_string(mealsScheduled)
 								<< " meals were scheduled.\nPossibly caused by insufficient Meals that are enabled and linked to Tag, and/or Tag settings are too strict."
 								<< "\nThis occurred on: " << dayToString(currentDay) << ", day #" << std::to_string(currentDayNumber) << std::endl;
 
-						}
+						}*/
 					} // if (validTag)
 				} // if tag is enabled and has meals
 			} // for (auto tagIter : availableTags)
@@ -4536,7 +4575,10 @@ bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMulti
 			{
 				mealFound = true;
 				// add mealsOfDay to scheduledMeals
-				scheduledMeals.push_back(mealsOfDay);
+				if (scheduledMeals.size() >= currentDayNumber + 1)
+					scheduledMeals.at(currentDayNumber) = mealsOfDay;
+				else
+					scheduledMeals.push_back(mealsOfDay);
 			}
 
 			// if there are meals that last longer than 1 day, add them to future days in the schedule
@@ -4612,6 +4654,11 @@ bool MealManager::scheduleNormalTags(const std::vector<Tag*>& availableTags, con
 				if (validTag)
 				{
 					std::vector<int> searchedMeals; // stores index of all meals searched within the chosenTag
+					std::vector<Meal*> mealsOfDay; // meals scheduled/to be scheduled on the current day
+
+					// update mealsOfDay if meals were already scheduled (multi-day meals)
+					if (scheduledMeals.size() >= currentDayNumber + 1)
+						mealsOfDay = scheduledMeals.at(currentDayNumber);
 
 					// ends loop when a meal was found or all meals were searched
 					while (!mealFound && searchedMeals.size() < assignedMeals.size())
@@ -4647,7 +4694,30 @@ bool MealManager::scheduleNormalTags(const std::vector<Tag*>& availableTags, con
 							// if no match, then check if meal's daysBetweenOccurrences allows it to be scheduled
 							if (!matchFound)
 							{
+								searchedMeals.push_back(mealIndex);
 								validMeal = validateMeal(selectedMeal, currentDayNumber);
+							}
+						}
+
+						// if meal is valid so far, then check if it has already been scheduled (a multi-day meal)
+						if (validMeal)
+						{
+							// if there are meals to check
+							if (mealsOfDay.size() > 0)
+							{
+								auto mealIter = mealsOfDay.begin();
+								bool found = false;
+
+								while (!found && mealIter != mealsOfDay.end())
+								{
+									if (*mealIter == selectedMeal)
+									{
+										found = true;
+										validMeal = false;
+									}
+									else
+										++mealIter;
+								}
 							}
 						}
 
@@ -4655,7 +4725,6 @@ bool MealManager::scheduleNormalTags(const std::vector<Tag*>& availableTags, con
 						if (validMeal)
 						{
 							mealFound = true;
-							std::vector<Meal*> mealsOfDay;
 
 							// add meal to mealsOfDay
 							mealsOfDay.push_back(selectedMeal);
@@ -4664,7 +4733,10 @@ bool MealManager::scheduleNormalTags(const std::vector<Tag*>& availableTags, con
 							selectedMeal->addDayScheduled(currentDayNumber);
 
 							// add mealsOfDay to scheduledMeals
-							scheduledMeals.push_back(mealsOfDay);
+							if (scheduledMeals.size() >= currentDayNumber + 1) // an entry for the day already exists
+								scheduledMeals.at(currentDayNumber) = mealsOfDay;
+							else
+								scheduledMeals.push_back(mealsOfDay);
 
 							// if selectedMeal lasts for more than 1 day, then add to futureMeals
 							if (selectedMeal->getMealDuration() > 1)
@@ -4767,16 +4839,88 @@ void MealManager::printSchedule(const std::vector<std::vector<Meal*>>& mealPlan,
 		std::string tempStr = ">> " + dayToString(currentDay) + " <<";
 		oFile << centeredText(tempStr, LINE_WIDTH) << "\n";
 
-		// meal names w/ prices
+		// meals in the current day
 		std::vector<Meal*> daysMeals = *mealIter;
 
 		for (auto meal : daysMeals)
 		{
 			// meal name
 			oFile << centeredText(meal->getName(), LINE_WIDTH) << "\n";
+			std::string tempStr = "";
 
-			// meal price
-			std::string tempStr = "price: " + formatPrice(meal->getPrice());
+			// check if this is a multi-day meal
+			if (meal->getMealDuration() > 1)
+			{
+				int occurranceNumber = 0; // number of times the meal has occurred over its duration
+				auto lookBack = mealIter; // copy iter at current day
+				bool doneChecking = false; // true when a gap of scheduled days is found or checked to the first day
+
+				// check previous days to count occurranceNumber
+				while (!doneChecking)
+				{
+					// lookBack is on the first day, stop checking further back
+					if (lookBack == mealPlan.begin())
+					{
+						doneChecking = true;
+					}
+
+					std::vector<Meal*> mealsOfDay = *lookBack; // get meals of the previous day
+					auto mealsOfDayIter = mealsOfDay.begin();
+
+					bool matchFound = false; // true when the current meal has found to have occurred before
+					while (!matchFound && mealsOfDayIter != mealsOfDay.end())
+					{
+						// if meal occurred in the past
+						if (*mealsOfDayIter == meal)
+						{
+							++occurranceNumber;
+							matchFound = true;
+						}
+						else
+							++mealsOfDayIter;
+					}
+
+					// if no match found in the previous day, then a gap was found
+					if (!matchFound)
+						doneChecking = true;
+
+					// if done checking, dont go further back
+					if (!doneChecking)
+						--lookBack;
+				}
+
+				// since all occurrances are counted, need to reset occurranceNumber every time it counts to duration
+				if (occurranceNumber > meal->getMealDuration())
+				{
+					occurranceNumber = occurranceNumber % meal->getMealDuration();
+					
+					// set to 3 instead of 0
+					if (occurranceNumber == 0)
+						occurranceNumber = 3;
+				}
+
+				// if this is the first occurrance, then display price with occcurrance number
+				if (occurranceNumber == 1)
+				{
+					// meal price
+					tempStr = "price: " + formatPrice(meal->getPrice());
+					oFile << centeredText(tempStr, LINE_WIDTH) << "\n";
+
+					// occurrance number
+					tempStr = "[Day " + std::to_string(occurranceNumber) + " of " + std::to_string(meal->getMealDuration()) + "]";
+				}
+				else
+				{
+					// occurrance number
+					tempStr = "[Day " + std::to_string(occurranceNumber) + " of " + std::to_string(meal->getMealDuration()) + "]";
+				}
+
+			}
+			else // display price normally
+			{
+				// meal price
+				tempStr = "price: " + formatPrice(meal->getPrice());
+			}
 			oFile << centeredText(tempStr, LINE_WIDTH) << "\n\n";
 		}
 
@@ -4822,6 +4966,7 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 	const double ERROR_THRESHOLD_PER_WEEK = 0.5; // amount of errored days allowed per week
 
 	bool errorPresent = false; // return value
+	bool insufficientData = true; // stops generation if no meals or tags exist
 	double budget = 0; // budget for the calculated period
 	unsigned int calculationPeriod = 0; // period of calculation
 	unsigned int failedDays[GENERATED_PLANS] = { 0 }; // number of days that calculation was unable to find a meal
@@ -4840,8 +4985,24 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 	std::map<DaysOfTheWeek, std::vector<MultiTag*>> normalPriorityMultiTags; // multiTags with priority of Tag, sorted by available day
 	std::map<DaysOfTheWeek, std::vector<Tag*>> normalPriorityTags; // Tags, sorted by available day
 
+	// check if meals and tags exist, otherwise cannot make a plan
+	if (meals.size() > 0 && normalTags.size() > 0)
+	{
+		insufficientData = false;
+	}
+	else // tell uesr
+	{
+		errorPresent = true;
+
+		uim->centeredText("Error");
+		uim->skipLines(2);
+		uim->centeredText("You have not created any Meals or Tags.");
+		uim->centeredText("Please create some and try again.");
+		uim->display();
+	}
+
 	// loop until user is ok with settings
-	while (tempStr != "Q")
+	while (!insufficientData && tempStr != "Q")
 	{
 		// prompt for calculationPeriod
 		uim->centeredText("Schedule Length");
@@ -4881,7 +5042,7 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 			tempStr = "Q";
 	}
 
-	// tell user to be patient
+	if (!insufficientData) // tell user to be patient
 	{
 		std::stringstream skipPrompt = std::stringstream("\n"); // skips prompt in the following ui window
 
@@ -4898,33 +5059,34 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 	calculationPeriod *= 7;
 
 	// OPTIMIZATION
-	optimizeData(highPriorityMultiTags, normalPriorityMultiTags, normalPriorityTags);
+	if (!insufficientData)
+		optimizeData(highPriorityMultiTags, normalPriorityMultiTags, normalPriorityTags);
 
 	// CALCULATION
 
 	// calculates GENERATED_PLANS number of complete meal plans
-	for (unsigned int attemptNum = 0; attemptNum < GENERATED_PLANS; ++attemptNum)
+	if (!insufficientData)
 	{
-		currentDay = MONDAY;
-
-		// calculate one complete meal plan
-		for (unsigned int dayNumber = 0; dayNumber < calculationPeriod; ++dayNumber)
+		for (unsigned int attemptNum = 0; attemptNum < GENERATED_PLANS; ++attemptNum)
 		{
-			// only calculate a day's meals if the current day's meals are empty
-			if (scheduledMeals[attemptNum].size() == dayNumber)
+			currentDay = MONDAY;
+
+			// calculate one complete meal plan
+			for (unsigned int dayNumber = 0; dayNumber < calculationPeriod; ++dayNumber)
 			{
+
 				bool createdMeals = false; // if meal creation failed on a certain priority, attempts to use next lower priority
 
 				// check if a high priority MT is available
 				if (highPriorityMultiTags.find(currentDay)->second.size() > 0)
 				{
-					createdMeals = scheduleMultiTags(highPriorityMultiTags.find(currentDay)->second, dayNumber, 
+					createdMeals = scheduleMultiTags(highPriorityMultiTags.find(currentDay)->second, dayNumber,
 						calculationPeriod, currentDay, scheduledMeals[attemptNum]);
-					
+
 				}
-				
+
 				// if above priority failed, check next lower priority
-				if (!createdMeals && 
+				if (!createdMeals &&
 					normalPriorityMultiTags.find(currentDay)->second.size() > 0 &&
 					normalPriorityTags.find(currentDay)->second.size()) // if both MTs and tags are available
 				{
@@ -4942,14 +5104,14 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 							calculationPeriod, currentDay, scheduledMeals[attemptNum]);
 					}
 				}
-				
+
 				// if above priority failed, check next lower priority
 				if (!createdMeals && normalPriorityMultiTags.find(currentDay)->second.size() > 0) // if only MTs are available
 				{
 					createdMeals = scheduleMultiTags(normalPriorityMultiTags.find(currentDay)->second, dayNumber,
 						calculationPeriod, currentDay, scheduledMeals[attemptNum]);
 				}
-				
+
 				// if above priority failed, check next lower priority
 				if (!createdMeals && normalPriorityTags.find(currentDay)->second.size() > 0) // if only tags are available
 				{
@@ -4974,24 +5136,24 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 					// warn user
 					//std::cout << "\nWARNING: No available meals on: " << dayToString(currentDay) << ", day #" << std::to_string(dayNumber) << std::endl;
 				}
-			}// if (scheduledMeals[attemptNum].size() == dayNumber)
-			currentDay = nextDay(currentDay); // go to next day
-		} // for: calculates a meal for every day 
+				currentDay = nextDay(currentDay); // go to next day
+			} // for: calculates a meal for every day 
 
-		// reset meals' scheduledDays
-		for (auto mealIter : meals)
-		{
-			std::vector<unsigned int> resetDays;
-			mealIter->setDaysScheduled(resetDays);
-		}
-	} // for: calculates an entire plan
-
-	//std::cout << "\nDone!\n\n";
-
+			// reset meals' scheduledDays
+			for (auto mealIter : meals)
+			{
+				std::vector<unsigned int> resetDays;
+				mealIter->setDaysScheduled(resetDays);
+			}
+		} // for: calculates an entire plan
+	}
+	
 	// select the plan that had the least number of errors and met budget
 	std::vector<std::vector<Meal*>> finalPlan; // plan with least errors
 	double finalCost = 0; // cost of all the meals in the plan
 	unsigned int finalErrors = 0;
+
+	if (!insufficientData)
 	{
 		bool planFound = false;
 		std::map<unsigned int, std::pair<std::vector<std::vector<Meal*>>, double>> errorsToPlans; // maps errors to scheduled plans with total cost for plan
@@ -5020,7 +5182,7 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 						{
 							totalCost += (mealIter->getPrice() / mealIter->getMealDuration());
 						}
-						else 
+						else
 							totalCost += mealIter->getPrice();
 					}
 				}
@@ -5150,7 +5312,8 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 				}
 			}
 		}
-	}
+	}// if (!insufficientData)
+	
 
 	// if finalPlan is not empty
 	if (finalPlan.size() > 0)
