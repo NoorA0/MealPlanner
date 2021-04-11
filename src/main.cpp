@@ -30,10 +30,65 @@ int main()
 	const unsigned int NAME_LENGTH = 40; // char limit for Tag and Meal names 
 	const unsigned int DESC_LENGTH = 80; // char limit for Tag descriptions
 
+	const std::vector<std::string> MAINMENU_IMAGE = {
+"               ,                                                      ",
+"              %,           &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  ",
+"             &(,           &               Meal Plan               &  ",
+"            &%*            &---------------------------------------&  ",
+"           .@#,            &Created on: Fri Aug 29 02:14:00 1997   &  ",
+"           &%*,            &Duration: 3 weeks (21 days)            &  ",
+"           @%*             &Budget limit: 321                      &  ",
+"          &&*,             &Calculated cost: 100.25                &  ",
+"          @%*              &Days with errors: 0                    &  ",
+"         %&*,              &---------------------------------------&  ",
+"         @%**              &---------------------------------------&  ",
+"        %@/,               &          WEEK 01: cost 32.19          &  ",
+"        &%*,               &                                       &  ",
+"       %@#,                &            >> MONDAY <<               &  ",
+"       &&*,                &           Djikstra Special            &  ",
+"      #&#,                 &          price: calculating ...       &  ",
+"      &&*,                 &                                       &  ",
+"     #@%*/                 &           >> TUESDAY <<               &  ",
+"     %@*,                  &            Hot Potatoes               &  ",
+"    .@&*,                  &             price: 3.79               &  ",
+"   @%@(,                   &                                       &  ",
+"   .&&*.                   &          >> WEDNESDAY <<              &  ",
+"  @&@%,                    &          Dehydrated Pizza             &  ",
+"  @@&*.                    &            price: 1.21                &  ",
+"  @@%,                     &                                       &  ",
+"   @,.                     &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  ",
+"   &,                                                                 ",
+"  @/                                                                  "
+	};
+
+	const std::vector<std::string> MANUAL_IMAGE = {
+
+"                  (&&&&&&)               ",
+"            %@@/************&&#         ",
+"         &@*********************@%      ",
+"       @@********%@@@@@@&*********&     ",
+"      @*******@@@        (@@*******&    ",
+"     @/******@&            @@******@#   ",
+"     @******@&              @(*****&%   ",
+"     @******@              @@/*****@#   ",
+"     @*****@@            #@@/*****@&    ",
+"      %@@@@&          (%@@/******@%     ",
+"                  *#@@@(/******&%       ",
+"                /@@@(******/&%          ",
+"                &@&/****(&&             ",
+"                @@*****&&               ",
+"                @@#***@#                ",
+"                @@#***@#                ",
+"                @@****&#                ",
+"                &#****&#                ",
+"                %&&****&#               ",
+"              #@*********%              ",
+"              %#*********&#             ",
+"               %*********%              ",
+"                 #%&%%%#                "
+	};
+
 	const std::vector<std::string> CREDITS_IMAGE = {
-		"                                                                                                  ",
-"                                                                                                  ",
-"                                                                                                  ",
 "                                                                                                  ",
 "                                         . ...........                                            ",
 "                                ................,,............                                    ",
@@ -67,8 +122,6 @@ int main()
 "                              ..............,,,.,,,..,,,,,,,...........                           ",
 "                                   ..............................                                 ",
 "                                            . . ......                                            ",
-"                                                                                                  ",
-"                                                                                                  ",
 "                                                                                                  "
 	};
 
@@ -123,7 +176,12 @@ int main()
 		uim.skipLines(2);
 		uim.centeredText("Select an option:");
 
-		strVec = { "1Generate a Meal Plan", "", "2Meal Menu", "3Tag Menu", "4MultiTag Menu", "", "5Program Manual", "6Credits", "", "QQuit Program" };
+		// print ascii image
+		uim.centeredText(MAINMENU_IMAGE);
+		//for (int index = 0; index < MAINMENU_IMAGE.size(); ++index)
+			//uim.centeredText(MAINMENU_IMAGE[index]);
+
+		strVec = { "GGenerate a Meal Plan", "", "1Meal Menu", "2Tag Menu", "3MultiTag Menu", "", "MProgram Manual", "CCredits", "", "QQuit Program" };
 		uim.prompt_List_Case_Insensitive(strVec);
 
 		tempStr = uim.display();
@@ -131,7 +189,18 @@ int main()
 
 		if (tempStr != "Q")
 		{
-			tempInt = std::stoi(tempStr);
+			// convert tempStr to number 
+			if (tempStr == "G") // generate plan
+				tempInt = 1;
+			else if (tempStr == "M") // manual
+				tempInt = 5;
+			else if (tempStr == "C") // credits
+				tempInt = 6;
+			else // is either 1, 2, or 3
+			{
+				tempInt = std::stoi(tempStr);
+				++tempInt; // allign with switch cases
+			}
 
 			switch (tempInt)
 			{
@@ -215,7 +284,12 @@ int main()
 					uim.centeredText("Program Manual");
 					uim.skipLines(2);
 					uim.centeredText("Select a section to view more info:");
-					strVec = { "1How do I use this program?", "2Meals", "3Tags","4MultiTags", "5Examples", "QQuit back to Main Menu" };
+					uim.skipLines(2);
+
+					// display ascii image
+					uim.centeredText(MANUAL_IMAGE);
+
+					strVec = { "1How do I use this program?", "", "2Meals", "3Tags","4MultiTags", "", "5Example Usage", "", "QQuit back to Main Menu" };
 
 					uim.prompt_List_Case_Insensitive(strVec);
 					tempStr = uim.display();
@@ -255,11 +329,14 @@ int main()
 				uim.centeredText("Meal Planner By Noor Alaghbar");
 				uim.centeredText("DEMO VERSION - NOT COMPLETE");
 				uim.skipLines(1);
-				uim.centeredText("Contact noorga115@gmail.com for questions/technical help.");
+				uim.centeredText("Contact noorga115@gmail.com for questions/assistance.");
 				//uim.centeredText("Github.com/NoorA0");
-				uim.skipLines(2);
+				uim.skipLines(1);
 				uim.centeredText("Thanks for using my program!");
-				//uim.leftAllignedText(CREDITS_IMAGE);
+
+				// display galaxy
+				uim.centeredText(CREDITS_IMAGE);
+
 				uim.display();
 				break;
 			default:
