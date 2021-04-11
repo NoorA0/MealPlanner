@@ -3367,6 +3367,10 @@ void MealManager::displayTagInfo(const Tag* tagPtr)
 		uim->leftAllignedText("Tag is disabled on all days.");
 	else
 		uim->leftAllignedText(tempStr);
+
+	// number of assigned meals
+	tempStr = "Assigned Meals: " + std::to_string(tagPtr->getLinkedMeals().size());
+	uim->leftAllignedText(tempStr);
 }
 
 void MealManager::displayMultiTagInfo(const MultiTag* mtagPtr)
@@ -5068,10 +5072,9 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 		optimizeData(highPriorityMultiTags, normalPriorityMultiTags, normalPriorityTags);
 
 	// CALCULATION
-
-	// calculates GENERATED_PLANS number of complete meal plans
 	if (!insufficientData)
-	{
+	{	
+		// calculates GENERATED_PLANS number of complete meal plans
 		for (unsigned int attemptNum = 0; attemptNum < GENERATED_PLANS; ++attemptNum)
 		{
 			currentDay = MONDAY;
