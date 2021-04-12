@@ -852,6 +852,37 @@ void MealManager::createMultiTag(MultiTag* mtagPtr)
 
 	// link to other tags
 	editMultiTagTags(mtagPtr);
+
+	// set requireFulfillment
+	tempStr = "New MultiTag: \"" + mtagPtr->getName() + "\"";
+	uim->centeredText(tempStr);
+	uim->centeredText("Require Linked Tag Fulfillment");
+	uim->skipLines(2);
+
+	uim->centeredText("Do you require all linked Tags to meet their requested number of Meals? (recommended YES)");
+	uim->skipLines(1);
+	uim->centeredText("If YES, then if a Tag's assigned Meals are unavailable, or not enough can be scheduled, then the program will skip this MultiTag.");
+	uim->centeredText("If NO, then no matter how many Tags are linked, if at least ONE meal is scheduled, the program will commit it to the schedule.");
+	uim->skipLines(3);
+	uim->centeredText("Examples if set to REQUIRE ALL TAGS TO BE FULFILLED:");
+	uim->skipLines(1);
+	uim->centeredText("If this MultiTag has 1 linked Tag which requests 3 Meals but only 2 are available, then a different Tag/MultiTag will be found.");
+	uim->centeredText("If this MultiTag has 2 linked Tags and both request 1 Meal but only 1 Meal is found, then a different Tag/MultiTag will be found.");
+	uim->skipLines(2);
+	uim->centeredText("Examples if set to ALLOW PARTIAL FULFILLMENT:");
+	uim->skipLines(1);
+	uim->centeredText("If this MultiTag has 5 linked Tags, all request 1 Meal but only 1 Meal in total is found, then the day will have only 1 Meal scheduled.");
+
+	strVec = { "1Require all Tags to be fulfilled", "2Allow partial fulfillment" };
+	uim->prompt_List_Case_Insensitive(strVec);
+
+	tempStr = uim->display();
+
+	// set priority depending on user choice
+	if (tempStr == "1")
+		mtagPtr->setRequireFulfillment(true);
+	else
+		mtagPtr->setRequireFulfillment(false);
 }
 
 void MealManager::deleteMultiTag(MultiTag* mtagPtr)
@@ -1540,7 +1571,7 @@ void MealManager::editMultiTag(MultiTag* mtagPtr)
 
 		// prompt user for attribute to edit or quit
 		strVec = { "1Edit Name", "2Edit Description", "3Edit Enabled Days",
-					"4Edit priority level", "5View/Edit Linked Tags", "", "DDelete MultiTag", "", "QQuit Selection" };
+					"4Edit priority level", "5View/Edit Linked Tags", "6Edit Tag Fulfillment Requirement", "", "DDelete MultiTag", "", "QQuit Selection" };
 		uim->prompt_List_Case_Insensitive(strVec);
 
 		tempStr = uim->display();
@@ -1867,6 +1898,61 @@ void MealManager::editMultiTag(MultiTag* mtagPtr)
 			case 5: // view/edit linked tags
 				editMultiTagTags(mtagPtr);
 				tempStr = ""; // make sure menu will loop
+				break;
+			case 6:
+				// set requireFulfillment
+				tempStr = "Editing \"" + mtagPtr->getName() + "\"";
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
+
+				tempStr = "Current status: ";
+
+				if (mtagPtr->getRequireFulfillment())
+					tempStr += "REQUIRE ALL TAGS TO BE FULFILLED";
+				else
+					tempStr += "ALLOW PARTIAL FULFILLMENT";
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
+
+				uim->centeredText("Do you require all linked Tags to meet their requested number of Meals? (recommended YES)");
+				uim->skipLines(1);
+				uim->centeredText("If YES, then if a Tag's assigned Meals are unavailable, or not enough can be scheduled, then the program will skip this MultiTag.");
+				uim->centeredText("If NO, then no matter how many Tags are linked, if at least ONE meal is scheduled, the program will commit it to the schedule.");
+				uim->skipLines(3);
+				uim->centeredText("Examples if set to REQUIRE ALL TAGS TO BE FULFILLED:");
+				uim->skipLines(1);
+				uim->centeredText("If this MultiTag has 1 linked Tag which requests 3 Meals but only 2 are available, then a different Tag/MultiTag will be found.");
+				uim->centeredText("If this MultiTag has 2 linked Tags and both request 1 Meal but only 1 Meal is found, then a different Tag/MultiTag will be found.");
+				uim->skipLines(2);
+				uim->centeredText("Examples if set to ALLOW PARTIAL FULFILLMENT:");
+				uim->skipLines(1);
+				uim->centeredText("If this MultiTag has 5 linked Tags, all request 1 Meal but only 1 Meal in total is found, then the day will have only 1 Meal scheduled.");
+
+				strVec = { "1Require all Tags to be fulfilled", "2Allow partial fulfillment" };
+				uim->prompt_List_Case_Insensitive(strVec);
+
+				tempStr = uim->display();
+
+				// set priority depending on user choice
+				if (tempStr == "1")
+					mtagPtr->setRequireFulfillment(true);
+				else
+					mtagPtr->setRequireFulfillment(false);
+
+				// confirm to user
+				uim->centeredText("Success!");
+				uim->skipLines(2);
+
+				tempStr = "Requirement changed to: ";
+
+				if (mtagPtr->getRequireFulfillment())
+					tempStr += "REQUIRE ALL TAGS TO BE FULFILLED";
+				else
+					tempStr += "ALLOW PARTIAL FULFILLMENT";
+
+				uim->centeredText(tempStr);
+				uim->prompt_None();
+				uim->display();
 				break;
 			default:
 				// do nothing
@@ -2559,14 +2645,45 @@ void MealManager::optimizeData(std::map<DaysOfTheWeek, std::vector<MultiTag*>>& 
 	normalPriorityMultiTags.clear();
 	normalPriorityTags.clear();
 
-	// populates all but availableMeals according to each day
+	// create an entry for each day of the week
 	do
 	{
-		// vectors to add to params
-		std::vector<MultiTag*> highPriorityMT;
-		std::vector<MultiTag*> normalPriorityMT;
-		std::vector<Tag*> normalPriorityT;
+		std::vector<Tag*> tagEntry;
+		std::vector<MultiTag*> multiTagEntry;
 
+		// create element in params
+		highPriorityMultiTags.emplace(day, multiTagEntry);
+		normalPriorityMultiTags.emplace(day, multiTagEntry);
+		normalPriorityTags.emplace(day, tagEntry);
+
+		day = nextDay(day); // go to next day
+	} while (day != MONDAY);
+
+	// populates normalPriorityTags
+	do
+	{
+		// check all tags
+		for (auto tagIter : normalTags)
+		{
+			// check if enabled for current day and does not depend on a multitag
+			if (tagIter->getEnabledDays().at(day) && !tagIter->getDependency())
+			{
+				// copy vector of normalTags in normalPriorityTags
+				std::vector<Tag*> tagEntry = normalPriorityTags.at(day);
+
+				// add tagIter to tagEntry
+				tagEntry.push_back(tagIter);
+
+				// store back into normalPriorityTags
+				normalPriorityTags.at(day) = tagEntry;
+			}
+		}
+		day = nextDay(day); // go to next day
+	} while (day != MONDAY);
+
+	// populates highPriorityMultiTags and normalPriorityMultiTags
+	do
+	{
 		// check all multiTags
 		for (auto multiTagIter : multiTags)
 		{
@@ -2574,36 +2691,48 @@ void MealManager::optimizeData(std::map<DaysOfTheWeek, std::vector<MultiTag*>>& 
 			if (multiTagIter->getEnabledDays().at(day))
 			{
 				// check if multiTagsIter is disabled by its linked tags
-				bool isDisabled = true;
 				std::map<Tag*, unsigned int> linkedTags = multiTagIter->getLinkedTags();
-				auto linkedTagIter = linkedTags.begin();
 
+				bool isDisabled = true;
+				auto linkedTagIter = linkedTags.begin();
 				while (isDisabled && linkedTagIter != linkedTags.end())
 				{
 					// if linked tag is enabled, then quit loop
 					if (linkedTagIter->first->getEnabledDays().at(day))
 						isDisabled = false;
-
-					++linkedTagIter;
+					else
+						++linkedTagIter;
 				}
 
-				// if multitag has a tag that is enabled on day
+				// if multitag is not disabled
 				if (!isDisabled)
 				{
 					// check if multiTag is high or normal priority
 					if (multiTagIter->getPriority())
-						highPriorityMT.push_back(multiTagIter);
+					{
+						// copy vector of high priority multitags
+						std::vector<MultiTag*> tagEntry = highPriorityMultiTags.at(day);
+
+						// add multiTag to vector
+						tagEntry.push_back(multiTagIter);
+
+						// store back into highPriorityMultiTags
+						highPriorityMultiTags.at(day) = tagEntry;
+					}
 					else
-						normalPriorityMT.push_back(multiTagIter);
+					{
+						// copy vector of normal priority multitags
+						std::vector<MultiTag*> tagEntry = normalPriorityMultiTags.at(day);
+
+						// add multiTag to vector
+						tagEntry.push_back(multiTagIter);
+
+						// store back into normalPriorityMultiTags
+						normalPriorityMultiTags.at(day) = tagEntry;
+					}
 				}
 			}
 		}
-
-		// create elemets in main params
-		highPriorityMultiTags.emplace(day, highPriorityMT);
-		normalPriorityMultiTags.emplace(day, normalPriorityMT);
-		normalPriorityTags.emplace(day, normalPriorityT);
-
 		day = nextDay(day); // go to next day
 	} while (day != MONDAY);
 }
@@ -3409,8 +3538,16 @@ void MealManager::displayMultiTagInfo(const MultiTag* mtagPtr)
 	else
 		uim->leftAllignedText(tempStr);
 
+	// requires fulfillment
+	tempStr = "Require all Tags to be fulfilled: ";
+
+	if (mtagPtr->getRequireFulfillment())
+		tempStr += "YES";
+	else
+		tempStr += "NO";
+
 	// number of linked tags
-	tempStr = "Linked Tags: " + std::to_string(mtagPtr->getLinkedTags().size());
+	tempStr += "     Linked Tags: " + std::to_string(mtagPtr->getLinkedTags().size());
 	uim->leftAllignedText(tempStr);
 }
 
@@ -3527,6 +3664,13 @@ void MealManager::writeMultiTag(const MultiTag* mtagPtr, std::ofstream& oFile)
 	oFile << "\t<HasPriority>\n";
 	oFile << "\t" << mtagPtr->getPriority() << "\n";
 	oFile << "\t</HasPriority>";
+
+	oFile << "\n";
+
+	// requiresFulfillment
+	oFile << "\t<RequiresFulfillment>\n";
+	oFile << "\t" << mtagPtr->getRequireFulfillment() << "\n";
+	oFile << "\t</RequiresFulfillment>";
 
 	oFile << "\n";
 
@@ -4396,6 +4540,43 @@ int MealManager::readMultiTags(std::ifstream& iFile)
 		// continue if no error and not done
 		if (!error && !done)
 		{
+			// check if requiresFulfillment exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "\t<RequiresFulfillment>")
+			{
+				// get value
+				std::getline(iFile, tempStr);
+
+				// remove tab at beginning
+				tempStr.erase(0, 1);
+
+				// validate before setting value
+				if (std::isdigit(tempStr.at(0)))
+					mtagPtr->setRequireFulfillment(std::stoi(tempStr.substr(0, 1)));
+				else
+				{
+					mtagPtr->setRequireFulfillment(false); // default to false 
+					corrupted = true;
+				}
+
+				// read end header, verify
+				std::getline(iFile, tempStr);
+				if (tempStr != "\t</RequiresFulfillment>")
+				{
+					done = true;
+					error = true;
+				}
+			}
+			else // error
+			{
+				done = true;
+				error = true;
+			}
+		}
+
+		// continue if no error and not done
+		if (!error && !done)
+		{
 			// check if EnabledDays exists
 			std::getline(iFile, tempStr);
 			if (tempStr == "\t<EnabledDays>")
@@ -4803,6 +4984,19 @@ bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMulti
 			std::map<Tag*, unsigned int> availableTags = chosenMultiTag->getLinkedTags(); // get linked tags of multitag
 			std::vector<Meal*> mealsOfDay; // meals scheduled for the current day
 			std::vector<Meal*> futureMeals; // meals that last more than one day are grouped together
+			unsigned int requiredMeals = 0; // meals needed to consider MultiTag valid
+			unsigned int totalMealsScheduled = 0; // meals scheduled for MultiTag
+
+			// check if MultiTag requires all Tags to be fulfilled
+			if (chosenMultiTag->getRequireFulfillment())
+			{
+				// sum all of the required meals
+				for (auto linkedTags : availableTags)
+				{
+					requiredMeals += linkedTags.second;
+				}
+			}
+			else requiredMeals = 1; // only require 1 meal
 
 			// update mealsOfDay if meals were already scheduled (multi-day meals)
 			if (scheduledMeals.size() >= currentDayNumber + 1)
@@ -4811,7 +5005,7 @@ bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMulti
 			// all linked tags' requested Meals must be fulfilled
 			for (auto tagIter : availableTags)
 			{
-				unsigned int mealsScheduled = 0; // meals scheduled for one tag
+				unsigned int mealsScheduled = 0; // meals scheduled for Tag
 				std::vector<Meal*> assignedMeals = tagIter.first->getLinkedMeals(); // meals that are assigned to the current Tag
 				std::vector<int> searchedMeals; // tracks which meals were already searched
 
@@ -4893,6 +5087,7 @@ bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMulti
 								// add meal to mealsOfDay
 								mealsOfDay.push_back(selectedMeal);
 								++mealsScheduled;
+								++totalMealsScheduled;
 
 								// update daysScheduled
 								selectedMeal->addDayScheduled(currentDayNumber);
@@ -4918,8 +5113,8 @@ bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMulti
 				} // if tag is enabled and has meals
 			} // for (auto tagIter : availableTags)
 
-			// if there are meals to schedule
-			if (mealsOfDay.size() > 0)
+			// if there are enough meals to schedule
+			if (totalMealsScheduled >= requiredMeals)
 			{
 				mealFound = true;
 				// add mealsOfDay to scheduledMeals

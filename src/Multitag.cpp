@@ -4,6 +4,7 @@
 MultiTag::MultiTag()
 {
 	highestPriority = false;
+	requireFulfillment = false;
 
 	name = "UNSET";
 	description = "UNSET";

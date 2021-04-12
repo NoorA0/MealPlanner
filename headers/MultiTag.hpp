@@ -10,6 +10,7 @@ class MultiTag : public BaseTag
 private:
 
 	bool highestPriority; // whether MultiTag should be prioritized above Tags or not
+	bool requireFulfillment; // all tags linked must produce <requested meals> amount of meals, otherwise don't use multiTag
 
 	// ints are used to indicate requested amount of Meals of Tag
 	// requesting 2 Sandwiches (tags) would mean the Tag called Sandwiches is loaded into linkedTags with an int of 2
@@ -22,6 +23,7 @@ public:
 
 	// SETTERS
 	void setName(const std::string& _name) { name = _name; }
+	void setRequireFulfillment(const bool& _requireFulfillment) { requireFulfillment = _requireFulfillment; }
 	void setHighestPriority(const bool& _priority) { highestPriority = _priority; }
 	void setLinkedTags(const std::map<Tag*, unsigned int>& _linkedTags) { linkedTags = _linkedTags; }
 	void addLinkedTag(Tag* new_tag, const unsigned int& amount);
@@ -29,6 +31,7 @@ public:
 	void clearLinkedTags() { linkedTags.clear(); }
 
 	// GETTERS
+	bool getRequireFulfillment() const { return requireFulfillment; }
 	bool getPriority() const { return highestPriority; }
 	std::map<Tag*, unsigned int> getLinkedTags() const { return linkedTags; }
 
