@@ -366,7 +366,7 @@ int main()
 			case 6: // credits
 				uim.centeredText("Meal Planner");
 				uim.centeredText("Copyright (C) 2021 Noor Alaghbar");
-				uim.centeredText("VERSION 1.0");
+				uim.centeredText("VERSION 1.0.0");
 				uim.skipLines(1);
 				uim.centeredText("Contact noorga115@gmail.com for questions/assistance.");
 				uim.centeredText("github.com/NoorA0/MealPlanner");
