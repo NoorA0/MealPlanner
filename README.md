@@ -1,4 +1,4 @@
-# What is this, and why do I want to use it?
+# What is this, and why should I use it?
 
 MealPlanner is project I've been working on-and-off for a few years. 
 
