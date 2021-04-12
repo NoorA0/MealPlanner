@@ -149,7 +149,7 @@ int main()
 	"Meal Planner  Copyright (C) 2021  Noor Alaghbar",
 	"",
 	"This program comes with ABSOLUTELY NO WARRANTY.",
-	"This is free software,and you are welcome to redistribute it under certain conditions.",
+	"This is free software, and you are welcome to redistribute it under certain conditions.",
 	"",
 	"See LICENSE.txt for more information."
 	};
@@ -849,7 +849,7 @@ void displayMultiTagManual(UIManager& uim)
 			uim.centeredText("Linked Tags");
 			uim.skipLines(1);
 			uim.centeredText("MultiTags have no purpose unless linked to Tags.");
-			uim.centeredText("Meals can only be enabled or disabled totally, and rely on one or more assigned Tags to determine what days a Meal is availble on.");
+			uim.centeredText("Meals rely on one or more assigned Tags to enable/disable on a per-day basis.");
 			uim.centeredText("MultiTags are groupings of Tags, and allows for multiple Meals to be scheduled on a single day.");
 			uim.centeredText("MultiTags also allow for the use of complex rules, as both MultiTags and its Linked Tags have Enabled Days.");
 			uim.skipLines(1);
@@ -933,7 +933,7 @@ void displayMultiTagManual(UIManager& uim)
 			uim.skipLines(1);
 			uim.leftAllignedText("If a Tag is enabled on every day, but the MultiTag that is linked to it is disabled on every day,");
 			uim.leftAllignedText("then the result is no Tags will EVER be chosen from the MultiTag.");
-			uim.leftAllignedText("This is becuase the MultiTag, which contains Linked Tags, is effectively disabled.");
+			uim.leftAllignedText("This is because the MultiTag, which contains Linked Tags, is effectively disabled.");
 			uim.leftAllignedText("So if the MultiTag is not enabled, the state of its Linked Tags do not matter at all, they will never be chosen.");
 			break;
 		default:
@@ -1041,7 +1041,7 @@ void displayExamples(UIManager& uim)
 			uim.leftAllignedText("Set each Tag to depend on a MultiTag, since you don't want these courses to be scheduled on their own.");
 			uim.skipLines(1);
 			uim.leftAllignedText("Next, create Meals for all of the possible things you might serve, like 2-3 soups, 5 appetizers, etc.");
-			uim.leftAllignedText("If you want this Multi-Course meal to occur every 2 weeks, the set each Meal's Days Between Occurrences to 14 days.");
+			uim.leftAllignedText("If you want this Multi-Course meal to occur every 2 weeks, then set each Meal's Days Between Occurrences to 14 days.");
 			uim.leftAllignedText("Assign each Meal to the course it is a part of, so soups should only be assigned to the \"Soup\" Tag., and so on.");
 			uim.skipLines(1);
 			uim.leftAllignedText("Since Tags only schedule a single Meal on a day, and you need more than 1 Meal to create a Multi-Course meal");
