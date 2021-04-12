@@ -5310,7 +5310,7 @@ bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& o
 	const unsigned int MAX_CALCULATION_LENGTH = 52; // just under a year (in weeks)
 	const unsigned int MIN_BUDGET = 0;
 	const unsigned int MAX_BUDGET = 100000;
-	const unsigned int GENERATED_PLANS = 750; // number of meal plans to make
+	const unsigned int GENERATED_PLANS = 100; // number of meal plans to make
 	const double ERROR_THRESHOLD_PER_WEEK = 0.5; // amount of errored days allowed per week
 
 	bool errorPresent = false; // return value
