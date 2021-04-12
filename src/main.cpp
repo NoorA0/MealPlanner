@@ -417,13 +417,16 @@ void displayGeneralManual(UIManager& uim)
 			uim.skipLines(2);
 			uim.leftAllignedText("Before you can do anything with this program, you need to create Meals.");
 			uim.leftAllignedText("Meals are what gets scheduled for each day of the week, and can be as large or small as you like.");
-			uim.leftAllignedText("Meals have a value for their Name, Price, Duration, Days Between Occurrences, and assigned Tags.");
+			uim.leftAllignedText("Meals have a: Name, Price, Duration, Days Between Occurrences, and assigned Tags.");
 			uim.leftAllignedText("(Check the Meals section of the manual for detailed information about these properties.)");
 			uim.skipLines(1);
-			uim.leftAllignedText("Use Tags to group and catagorize your Meals, like Desserts that should only be served on certain days of the week.");
+			uim.leftAllignedText("Use Tags to group your Meals, like \"Desserts\" that should only be served on certain days of the week.");
+			uim.leftAllignedText("Many Meals can be assigned to a single Tag, and the Tag only allows meals to be scheduled on specific days of the week.");
+			uim.leftAllignedText("A single Meal may be assigned to more than one Tag at the same time.");
 			uim.skipLines(1);
 			uim.leftAllignedText("MultiTags are an advanced feature of this program, and they group multiple Tags together.");
-			uim.leftAllignedText("You can create very specific meal plans by using Meals, Tags, and MultiTags together. Be sure to understand how to use them first.");
+			uim.leftAllignedText("This is similar to how a Tag groups multiple Meals together.");
+			uim.leftAllignedText("You can create very specific Meal Plans by using Meals, Tags, and MultiTags together. Be sure to understand how to use them first.");
 			uim.skipLines(1);
 			uim.leftAllignedText("When you want to create a Meal Plan, you will specify a file name, the plan's duration (in weeks), and a budget you want to meet.");
 			uim.leftAllignedText("The program will compute a suitable plan, then create a text file with the plan written to it.");
@@ -442,7 +445,7 @@ void displayGeneralManual(UIManager& uim)
 			uim.leftAllignedText("When generating a Meal Plan that spans 4 weeks, it is recommended that you make available at least 5 Meals.");
 			uim.leftAllignedText("The amount of Meals you should make available varies highly by how much you restrict their usage.");
 			uim.skipLines(1);
-			uim.leftAllignedText("Be mindful of the price you set for a Meal, if you add too many expensive Meals, then creating a Meal Plan may be difficult.");
+			uim.leftAllignedText("Be mindful of the price you set for a Meal, if you add many expensive Meals, then it may be difficult to meet a low budget.");
 			uim.leftAllignedText("The next page explains the process of creating a Meal Plan.");
 			break;
 		case 3:
@@ -454,23 +457,23 @@ void displayGeneralManual(UIManager& uim)
 			uim.leftAllignedText("When creating a Meal Plan, the program ignores any Meals, Tags, and MultiTags were set to disabled.");
 			uim.leftAllignedText("This includes: Meals set to DISABLED, Tags/MultiTags that are not enabled on any day of the week.");
 			uim.skipLines(1);
-			uim.leftAllignedText("If you are having trouble creating a Meal Plan and you think there are enough Meals created, then check your Tag/MultiTag restrictions.");
+			uim.leftAllignedText("If you are having trouble creating a Meal Plan and you think you have created enough Meals, then check your Tag/MultiTag restrictions.");
 			uim.leftAllignedText("Perhaps you have unintentionally set most of your Tags/MultiTags to disabled for most of the week.");
 			uim.skipLines(1);
-			uim.leftAllignedText("Plan generation begins by choosing a Tag/MultiTag according to priority level. ");
+			uim.leftAllignedText("The program begins by choosing a Tag/MultiTag according to priority level.");
 			uim.leftAllignedText("The highest priority are MultiTags that have been set to high priority.");
-			uim.leftAllignedText("Tags, and MultiTags that were set to normal priority, will be chosen only if there are no available high priority MultiTags.");
+			uim.leftAllignedText("Tags, and MultiTags that were set to normal priority will be chosen only if there are no available high priority MultiTags.");
 			uim.skipLines(1);
 			uim.leftAllignedText("Once a priority level has been selected, the program will randomly choose a Tag/MultiTag within that priority level.");
 			uim.leftAllignedText("If a MultiTag is chosen, then ALL of its linked Tags will be searched for suitable Meals to schedule on a given day.");
 			uim.leftAllignedText("If a Tag is chosen, then the program will randomly choose a Meal assigned to this Tag.");
-			uim.leftAllignedText("Tags/MultiTags without sutiable meals will cause the program to randomly pick a different Tag/MultiTag.");
+			uim.leftAllignedText("Tags/MultiTags without suitable meals will cause the program to randomly pick a different Tag/MultiTag.");
 			uim.skipLines(1);
-			uim.leftAllignedText("Tags linked to MultiTags can request to schedule more than one meal on a given day.");
-			uim.leftAllignedText("In this case, the program will attempt to randomly pick and schedule multiple Meals that are assigned to a Tag.");
+			uim.leftAllignedText("Tags linked to MultiTags can request to schedule more than one Meal on a given day.");
+			uim.leftAllignedText("In this case, the program will attempt to randomly pick and schedule multiple Meals that are assigned to the same Tag.");
 			uim.skipLines(1);
 			uim.leftAllignedText("When creating a Meal Plan, the program will create hundreds of potential Meal Plans, then pick the best one.");
-			uim.leftAllignedText("\"Best\", is defined as meeting the budget limit, and containing as few errors as possible.");
+			uim.leftAllignedText("\"Best\", is defined as meeting the budget limit and containing as few errors as possible.");
 			uim.leftAllignedText("An error occurs when a Meal cannot be scheduled on a given day.");
 			uim.skipLines(1);
 			uim.leftAllignedText("The amount of errors in a Meal Plan can be found at the top of the text file.");
@@ -482,20 +485,20 @@ void displayGeneralManual(UIManager& uim)
 			tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
 			uim.centeredText(tempStr);
 			uim.skipLines(2);
-			uim.leftAllignedText("Failure to create a Meal Plan has two causes:");
+			uim.leftAllignedText("Failure to create a Meal Plan may be caused by the following:");
 			uim.skipLines(1);
 			uim.leftAllignedText("1. Budget is too low, or Meals are too expensive.");
 			uim.leftAllignedText("2. Not enough available Meals.");
 			uim.skipLines(2);
 			uim.leftAllignedText("Upon failure, you will be shown the calculated cost of the Meal Plan.");
-			uim.leftAllignedText("If it is significantly higher than your specified budget, then this indicates that the problem is cause $1.");
+			uim.leftAllignedText("If it is significantly higher than your specified budget, then this indicates that the problem is #1.");
 			uim.skipLines(1);
-			uim.leftAllignedText("You will also be shown the number of errors present for the whole duration of the Meal Plan.");
+			uim.leftAllignedText("You will also be shown the number of errors present for the duration of the Meal Plan.");
 			uim.leftAllignedText("The program will reject any proposed plan with more than 1 error per 2 weeks.");
-			uim.leftAllignedText("If the number of errors is very high, then the likely cause is #2.");
+			uim.leftAllignedText("If the number of errors is very high, then the problem is likely #2.");
 			uim.skipLines(2);
-			uim.leftAllignedText("The solution to #1 is to raise your budget, or keep it and lower the duration of the Meal Plan.");
-			uim.leftAllignedText("You may also add Meals with a lower cost.");
+			uim.leftAllignedText("The solution to #1 is to raise your budget or lower the duration of the Meal Plan.");
+			uim.leftAllignedText("You may also add Meals with a lower price.");
 			uim.skipLines(1);
 			uim.leftAllignedText("Solving #2 requires that you check Meals and ensure they are not accidentally disabled.");
 			uim.leftAllignedText("You should also check Tags and MultiTags to make sure they are not excessively restricting Meals.");
@@ -515,7 +518,7 @@ void displayGeneralManual(UIManager& uim)
 			uim.centeredText("Step 2a: Randomly choose a MultiTag");
 			uim.skipLines(1);
 			uim.leftAllignedText("Randomly choose a MultiTag according to chosen priority level.");
-			uim.leftAllignedText("If chosen MultiTag is not availble to schedule a Meal (Enabled Days restriction), then choose again.");
+			uim.leftAllignedText("If chosen MultiTag is not avilable to schedule a Meal (Enabled Days restriction), then choose again.");
 			uim.leftAllignedText("Once you have found a valid MultiTag, then proceed to step 2b.");
 			uim.skipLines(2);
 			uim.centeredText("Step 2b: Randomly choose a Tag");
@@ -580,7 +583,7 @@ void displayGeneralManual(UIManager& uim)
 void displayMealManual(UIManager& uim)
 {
 	int currentPage = 1;
-	int totalPages = 3;
+	int totalPages = 2;
 	std::string tempStr = "";
 	std::vector<std::string> strVec;
 
@@ -597,7 +600,8 @@ void displayMealManual(UIManager& uim)
 			uim.skipLines(2);
 			uim.centeredText("Name");
 			uim.skipLines(1);
-			uim.centeredText("Name of a Meal, it should be short (e.g. Tacos, Tikka Masala).");
+			uim.centeredText("Name of a Meal, it should be short (e.g. Tacos, Tikka Masala, Salad and Soup, etc.).");
+			uim.centeredText("Names should be descriptive for you to recognise it. If you eat multiple sandwiches, then \"Sandwich\" is too vague.");
 			uim.centeredText("Note that Meals cannot share the same name (case insensitive).");
 			uim.skipLines(2);
 			uim.centeredText("Price");
@@ -614,8 +618,11 @@ void displayMealManual(UIManager& uim)
 			uim.centeredText("For durations of 1, this does nothing, but when the duration is greater than 1, the cost of a Meal is:");
 			uim.centeredText("Cost = (Price / Duration) * Number of days scheduled");
 			uim.skipLines(1);
-			uim.centeredText("The price of such a meal under a day's name will be displayed as its full cost.");
+			uim.centeredText("The price of a Meal in a Meal Plan will be displayed as its full cost.");
 			uim.centeredText("However, the total cost over the entire plan is calculated on a per-day basis, as explained above.");
+			uim.centeredText("If a Meal costs 20 over 5 days, but is scheduled for 2 days, the program will find the sum to be 8.");
+			uim.skipLines(1);
+			uim.centeredText("In short, the \"Calculated cost\", listed at the top of a Meal Plan, will always be accurate.");
 			break;
 		case 2:
 			uim.centeredText("Meal Parameters (cont'd)");
@@ -638,18 +645,6 @@ void displayMealManual(UIManager& uim)
 			uim.centeredText("Meals can be assigned to one or more Tags. Tags are used to restrict a Meal to certain days of the week.");
 			uim.centeredText("Meals without any assigned Tags will behave as if they were disabled, meaning they won't show up in a Meal Plan");
 			uim.centeredText("Therefore, it's important to note that you MUST assign a Tag to a Meal in order to use the Meal in Meal Plans.");
-			break;
-		case 3:
-			uim.centeredText("Usage Guidelines");
-			// display "Page x/y"
-			tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
-			uim.centeredText(tempStr);
-			uim.skipLines(2);
-			uim.leftAllignedText("In most cases, Meals should be complete, meaning they should contain all side dishes.");
-			uim.leftAllignedText("If you normally eat a sandwich and fries, you can name the Meal \"Sandwich and Fries\", so that you know what it includes.");
-			uim.skipLines(1);
-			uim.leftAllignedText("When you want greater control over the structure of Meals, use MultiTags.");
-			uim.leftAllignedText("Be sure to understand how to use Tags and MultiTags before creating a Meal Plan.");
 			break;
 		default:
 			// do nothing
@@ -857,7 +852,10 @@ void displayMultiTagManual(UIManager& uim)
 			uim.centeredText("High Priority");
 			uim.skipLines(1);
 			uim.centeredText("If this value is set to TRUE, then this MultiTag will be considered before Tags and other MultiTags with normal priority.");
-			uim.centeredText("(See manual page about Meal Plan generation, under \"How do I use this program?\")");
+			uim.centeredText("It is recommended that you set MultiTags to normal priority unless you absolutely need a MultiTag to be chosen before anything else.");
+			uim.centeredText("MultiTags left on high priority WILL prevent other Tags and MultiTags from being used, which may cause bad Meal Plans.");
+			uim.skipLines(1);
+			uim.centeredText("(For info on plan generation, see manual page about Meal Plan generation, under \"How do I use this program?\")");
 			break;
 		case 3:
 			uim.centeredText("Advanced Usage: Sandwich Randomizer");
