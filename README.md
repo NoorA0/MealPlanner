@@ -38,6 +38,14 @@ If you're the sole cook of a large household and would like some way to better p
 
 - Supports meals cooked in large batches.
 
+# Limitations
+
+- Does not track calories (yet!). I may add this feature if there's any demand for it.
+
+- Cannot plan for specific calendar day/week/month. The program works in units of 7 days, and does not keep track of a real-world month. It would add significant complexity for what I see as a minor benefit. If you think I'm wrong, let me know!
+
+- Program uses a terminal window to display interface. This is because I have little skills in creating GUIs, and the program is intended for personal use. MealPlanner is intended to be a small, portable tool to aid in the planning of meals.
+
 
 # Screenshots
 ![mainmenu](https://github.com/NoorA0/MealPlanner/blob/main/screenshots/01_mainmenu.jpg)
