@@ -1,46 +1,35 @@
 #ifndef __TAG_HPP__
 #define __TAG_HPP__
 
-#include <map>
-#include <string>
+#include "BaseTag.hpp"
+#include <vector>
 
-enum DaysOfTheWeek
-{
-	MONDAY,
-	TUESDAY,
-	WEDNESDAY,
-	THURSDAY,
-	FRIDAY,
-	SATURDAY,
-	SUNDAY
-};
+class Meal;
 
-class Tag
+class Tag : public BaseTag
 {
-	std::string name;
-	std::string description;
-	std::map<DaysOfTheWeek, bool> enabledDays; // days of the week that meal is enabled on
+private:
+
+	std::vector<Meal*> linkedMeals; // meals that are linked to this tag
 	bool dependsOnMultiTag; // if tag is only used when a MultiTag uses it
 	unsigned int consecutiveLimit; // times a meal with a tag can occurr consecutively
 
 public:
 	Tag();
-	Tag(const std::string& _name, const std::string& _description, const std::map<DaysOfTheWeek, bool>& _enabledDays,
-		const bool& _dependsOnMultiTag, const unsigned int& _consecutiveLimit);
 	~Tag();
 
 	// SETTERS
-	void setName(const std::string& new_name);
-	void setDescription(const std::string& new_desc);
-	void setEnabledDays(const std::map<DaysOfTheWeek, bool> new_enabledDays);
-	void setDependency(const bool& new_dependency);
-	void setConsecutiveLimit(const unsigned int& new_consecutiveLimit);
+	void setName(const std::string& _name) { name = _name; }
+	void setDependency(const bool& _dependency) { dependsOnMultiTag = _dependency; }
+	void setConsecutiveLimit(const unsigned int& _consecutiveLimit) { consecutiveLimit = _consecutiveLimit; }
+	void addMeal(Meal* mealPtr) { linkedMeals.push_back(mealPtr); }
+	bool removeMeal(const Meal* mealPtr);
+	void clearLinkedMeals() { linkedMeals.clear(); }
 
 	// GETTERS
-	std::string getName() const;
-	std::string getDescription() const;
-	std::map<DaysOfTheWeek, bool> getEnabledDays() const;
-	bool getDependency() const;
-	unsigned int getConsecutiveLimit() const;
+	bool getDependency() const { return dependsOnMultiTag; }
+	unsigned int getConsecutiveLimit() const { return consecutiveLimit; }
+	std::vector<Meal*> getLinkedMeals() const { return linkedMeals; }
+
 };
 #endif // !__TAG_HPP__

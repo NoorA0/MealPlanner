@@ -1,9 +1,10 @@
 #include "../headers/MultiTag.hpp"
+#include "../headers/Tag.hpp"
 
 MultiTag::MultiTag()
 {
-	enabled = false;
 	highestPriority = false;
+	requireFulfillment = false;
 
 	name = "UNSET";
 	description = "UNSET";
@@ -19,4 +20,31 @@ MultiTag::~MultiTag()
 	{
 		delete tagIter->first;
 	}
+}
+
+void MultiTag::addLinkedTag(Tag* new_tag, const unsigned int& amount)
+{
+	linkedTags.emplace(new_tag, amount);
+}
+
+bool MultiTag::removeLinkedTag(const Tag* tagPtr)
+{
+	bool notFound = true;
+
+	// find tagPtr
+	auto tagIter = linkedTags.begin();
+	while (notFound && tagIter != linkedTags.end())
+	{
+		// if found, erase from vector
+		if (tagPtr == tagIter->first)
+		{
+			notFound = false;
+			linkedTags.erase(tagIter);
+		}
+		else
+			++tagIter;
+	}
+
+	// if nothing found, return error value
+	return notFound;
 }

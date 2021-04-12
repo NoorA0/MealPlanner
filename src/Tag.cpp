@@ -1,4 +1,5 @@
 #include "../headers/Tag.hpp"
+#include "../headers/Meal.hpp"
 
 Tag::Tag()
 {
@@ -13,65 +14,32 @@ Tag::Tag()
 	this->enabledDays = enabledDays;
 }
 
-Tag::Tag(const std::string& _name, const std::string& _description, const std::map<DaysOfTheWeek, bool>& _enabledDays, const bool& _dependsOnMultiTag, const unsigned int& _consecutiveLimit)
-{
-	name = _name;
-	description = _description;
-	enabledDays = _enabledDays;
-	dependsOnMultiTag = _dependsOnMultiTag;
-	consecutiveLimit = _consecutiveLimit;
-}
-
 Tag::~Tag()
 {
+	for (auto mealIter : linkedMeals)
+	{
+		delete mealIter;
+	}
 }
 
-void Tag::setName(const std::string& new_name)
+bool Tag::removeMeal(const Meal* mealPtr)
 {
-	name = new_name;
-}
+	bool notFound = true;
+	
+	// find mealPtr
+	auto mealIter = linkedMeals.begin();
+	while (notFound && mealIter != linkedMeals.end())
+	{
+		// if found, erase from vector
+		if (*mealIter == mealPtr)
+		{
+			notFound = false;
+			linkedMeals.erase(mealIter);
+		}
+		else
+			++mealIter;
+	}
 
-void Tag::setDescription(const std::string& new_desc)
-{
-	description = new_desc;
-}
-
-void Tag::setEnabledDays(const std::map<DaysOfTheWeek, bool> new_enabledDays)
-{
-	enabledDays = new_enabledDays;
-}
-
-void Tag::setDependency(const bool& new_depenency)
-{
-	this->dependsOnMultiTag = new_depenency;
-}
-
-void Tag::setConsecutiveLimit(const unsigned int& new_consecutiveLimit)
-{
-	consecutiveLimit = new_consecutiveLimit;
-}
-
-std::string Tag::getName() const
-{
-	return name;
-}
-
-std::string Tag::getDescription() const
-{
-	return description;
-}
-
-std::map<DaysOfTheWeek, bool> Tag::getEnabledDays() const
-{
-	return enabledDays;
-}
-
-bool Tag::getDependency() const
-{
-	return dependsOnMultiTag;
-}
-
-unsigned int Tag::getConsecutiveLimit() const
-{
-	return consecutiveLimit;
+	// if nothing found, return error value
+	return notFound;
 }

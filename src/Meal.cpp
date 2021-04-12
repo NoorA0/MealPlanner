@@ -4,7 +4,7 @@ Meal::Meal()
 {
 	name = "UNSET";
 	price = 0.0;
-	isDisabled = true;
+	disabled = true;
 	mealDuration = 1;
 	daysBetweenOccurrences = 0;
 }
@@ -37,9 +37,36 @@ void Meal::addTag(Tag* newTag)
 	tags.push_back(newTag);
 }
 
-void Meal::setIsDisabled(const bool& isDisabled)
+bool Meal::removeTag(const Tag* tagPtr)
 {
-	this->isDisabled = isDisabled;
+	bool notFound = true;
+
+	// find mealPtr
+	auto tagIter = tags.begin();
+	while (notFound && tagIter != tags.end())
+	{
+		// if found, erase from vector
+		if (*tagIter == tagPtr)
+		{
+			notFound = false;
+			tags.erase(tagIter);
+		}
+		else
+			++tagIter;
+	}
+
+	// if nothing found, return error value
+	return notFound;
+}
+
+void Meal::clearTags()
+{
+	tags.clear();
+}
+
+void Meal::setDisabled(const bool& disabled)
+{
+	this->disabled = disabled;
 }
 
 void Meal::setMealDuration(const unsigned int& mealDuration)
@@ -50,6 +77,11 @@ void Meal::setMealDuration(const unsigned int& mealDuration)
 void Meal::setDaysBetweenOccurrences(const unsigned int& daysBetweenOccurrences)
 {
 	this->daysBetweenOccurrences = daysBetweenOccurrences;
+}
+
+void Meal::setDaysScheduled(const std::vector<unsigned int>& daysScheduled)
+{
+	this->daysScheduled = daysScheduled;
 }
 
 std::string Meal::getName() const
@@ -67,9 +99,9 @@ std::vector<Tag*> Meal::getTags() const
 	return tags;
 }
 
-bool Meal::getIsDisabled() const
+bool Meal::isDisabled() const
 {
-	return isDisabled;
+	return disabled;
 }
 
 unsigned int Meal::getMealDuration() const
@@ -80,6 +112,11 @@ unsigned int Meal::getMealDuration() const
 unsigned int Meal::getDaysBetweenOccurrences() const
 {
 	return daysBetweenOccurrences;
+}
+
+std::vector<unsigned int> Meal::getDaysScheduled() const
+{
+	return daysScheduled;
 }
 
 std::map<DaysOfTheWeek, bool> Meal::getEnabledDays() const

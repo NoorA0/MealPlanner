@@ -75,10 +75,18 @@
 *	if <key> is a character, then user's input is case sensitive
 *	if the vector prompts is empty, UIManager will handle as if prompt_None() was called
 * 
+*	if one of prompt's strings is "", then it will be treated as a prompt_skipLine(1)
+* 
 *	The passed in vector is cleared of data after processing.
 * 
 * prompt_List_Case_Insensitive(vector<string> prompts):
 *	same as above, but character <keys> are case insensitive.
+* 
+* prompt_List_Case_Insensitive(string choice):
+*	adds choice to promptBuffer, does not clear promptBuffer before adding choice
+*	therefore, it is possible to create many prompt choices by repeatedly calling this function
+* 
+*	choices must follow the format of Prompt_List and prompt_List_Case_Insensitive
 * 
 * prompt_FreeInt(int min, int max):
 *	lets the user type freely, accepted values are integers between and including min and max
@@ -92,8 +100,12 @@
 *		if they type "10.20abc", it will be regarded as the double 10.20
 *		if they type "abc10", is is regarded as an incorrect input
 * 
-* prompt_FreeString(int maxLength):
-*	lets the user type freely, as long as their input string is <= maxLength in length
+* prompt_FreeString(unsigned int minLength, unsigned int maxLength):
+*	lets the user type freely, as long as their input length is >= minLength and <= maxLength
+* 
+* prompt_SkipLines(unsigned int linesToSkip):
+*	similar to skipLines, creates an empty line in the prompt section
+*	used to space user choices when using prompt_List
 * 
 * prompt_None: tells the user to "(press <enter> to continue)" and waits for newline input
 * 
@@ -101,6 +113,10 @@
 * ------- OTHER OPERATIONS -------
 * setDimensions(int width, int height): sets character dimensions of the output window
 *
+* unsigned int getHeight(): returns screenHeight
+* unsigned int getWidth(): returns screenWidth
+*
+* 
 * string display(ostream, istream): 
 *	outputs body text and prompt text to user with correct formatting,
 *	then gets user input according to the prompt type that was selected most recently.
@@ -159,6 +175,7 @@ class UIManager
 {
 	enum Prompt
 	{
+		UNSET,
 		PROMPT_NONE,
 		PROMPT_FREEINT,
 		PROMPT_FREEDOUBLE,
@@ -174,7 +191,8 @@ class UIManager
 	int screenHeight;
 	double lowerLimit;
 	double upperLimit;
-	unsigned int inputLength;
+	unsigned int minInputLength;
+	unsigned int maxInputLength;
 	Prompt promptType;
 
 	// HELPER FUNCTIONS
@@ -184,6 +202,7 @@ class UIManager
 	void printCenteredText(const std::string& input, const int& width, std::ostream& out);
 	void printLeftAllignedText(const std::string& input, const int& width, std::ostream& out);
 	std::string validateInput(bool& isValid, std::ostream& out, std::istream& in);
+	
 
 public:
 	UIManager();
@@ -199,13 +218,17 @@ public:
 	// PROMPT OPERATIONS
 	void prompt_List(std::vector<std::string>& prompts); 
 	void prompt_List_Case_Insensitive(std::vector<std::string>& prompts);
+	void prompt_List_Case_Insensitive(const std::string& choice);
 	void prompt_FreeInt(const int& min, const int& max); 
 	void prompt_FreeDouble(const double& min, const double& max);
-	void prompt_FreeString(const unsigned int& maxLength); 
+	void prompt_FreeString(const unsigned int& minLength, const unsigned int& maxLength);
+	void prompt_skipLines(const unsigned int& linesToSkip);
 	void prompt_None();
 
 	// OTHER OPERATIONS
 	void setDimensions(const unsigned int& width, const unsigned int& height);
+	unsigned int getHeight() const;
+	unsigned int getWidth() const;
 	std::string display(std::ostream& out = std::cout, std::istream& in = std::cin);
 };
 

@@ -39,3 +39,4 @@ cmake_install.cmake
 CMakeCache.txt
 ProgramData.txt
 Logs.txt
+Generated_Plan.txt

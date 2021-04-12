@@ -9,7 +9,7 @@ TEST(MealTest, defaultConstructor)
 
 	EXPECT_EQ(testMeal.getName(), "UNSET");
 	EXPECT_DOUBLE_EQ(testMeal.getPrice(), 0.0);
-	EXPECT_EQ(testMeal.getIsDisabled(), true);
+	EXPECT_EQ(testMeal.isDisabled(), true);
 }
 
 TEST(MealTest, setName_getName)
@@ -32,15 +32,27 @@ TEST(MealTest, setTags_getTags)
 	{ {MONDAY, false}, {TUESDAY, true}, {WEDNESDAY, false}, {THURSDAY, true},
 	{FRIDAY, false}, {SATURDAY, true}, {SUNDAY, false} };
 
-	Tag newTag("Name", "Desc", enabledDays, true, 3);
-	std::vector<Tag*> newTags; newTags.push_back(&newTag);
+	Tag* newTag = new Tag();
+	newTag->setName("Name");
+	newTag->setDescription("Desc");
+	newTag->setEnabledDays(enabledDays);
+	newTag->setDependency(true);
+	newTag->setConsecutiveLimit(3);
+
+	std::vector<Tag*> tagsVec; 
+	tagsVec.push_back(newTag);
 
 	Meal testMeal;
-	testMeal.setTags(newTags);
+	testMeal.setTags(tagsVec);
 
 	EXPECT_EQ("Name", testMeal.getTags().at(0)->getName());
 	EXPECT_EQ("Desc", testMeal.getTags().at(0)->getDescription());
 	EXPECT_EQ(true, testMeal.getTags().at(0)->getDependency());
+	
+	tagsVec.clear();
+	testMeal.setTags(tagsVec);
+	delete newTag;
+	newTag = nullptr;
 }
 
 TEST(MealTest, addTag)
@@ -49,7 +61,12 @@ TEST(MealTest, addTag)
 	{ {MONDAY, false}, {TUESDAY, true}, {WEDNESDAY, false}, {THURSDAY, true},
 	{FRIDAY, false}, {SATURDAY, true}, {SUNDAY, false} };
 
-	Tag* newTag = new Tag("10101", "000111", enabledDays, true, 3);
+	Tag* newTag = new Tag();
+	newTag->setName("10101");
+	newTag->setDescription("000111");
+	newTag->setEnabledDays(enabledDays);
+	newTag->setDependency(true);
+	newTag->setConsecutiveLimit(3);
 
 	Meal testMeal;
 	testMeal.addTag(newTag);
@@ -58,13 +75,9 @@ TEST(MealTest, addTag)
 	EXPECT_EQ("000111", testMeal.getTags().at(0)->getDescription());
 	EXPECT_EQ(true, testMeal.getTags().at(0)->getDependency());
 	
+	std::vector<Tag*> tagsVec;
+	testMeal.setTags(tagsVec);
 	delete newTag;
-}
-
-TEST(MealTest, isDisabled)
-{
-	Meal testMeal;
-	testMeal.setIsDisabled(false);
-	EXPECT_EQ(testMeal.getIsDisabled(), false);
+	newTag = nullptr;
 }
 #endif // !__MEAL_TEST_HPP__

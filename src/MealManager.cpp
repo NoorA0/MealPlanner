@@ -1,8 +1,12 @@
 #include "../headers/MealManager.hpp"
 #include <fstream>
+#include <stdlib.h>
+#include <chrono>
+#include <ctime>
+#include <sstream>
 
 MealManager::MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE,
-	const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH)
+	const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH, UIManager& uim)
 {
 	// verify values
 	if (MINIMUM_PRICE >= 0)
@@ -17,6 +21,8 @@ MealManager::MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRIC
 
 	this->NAME_LENGTH = NAME_LENGTH;
 	this->DESC_LENGTH = DESC_LENGTH;
+
+	this->uim = &uim;
 }
 
 MealManager::~MealManager()
@@ -24,6 +30,8 @@ MealManager::~MealManager()
 	// delete all tags
 	for (auto tagsIter : normalTags)
 	{
+		// clear tag's linkedMeals
+		tagsIter->clearLinkedMeals();
 		delete tagsIter;
 	}
 	normalTags.clear();
@@ -49,9 +57,10 @@ MealManager::~MealManager()
 		delete tagsIter;
 	}
 	multiTags.clear();
+	uim = nullptr;
 }
 
-void MealManager::createMeal(Meal* mealptr, UIManager& uim)
+void MealManager::createMeal(Meal* mealptr)
 {
 	bool doneCreating = false;
 	bool inputValid = false;
@@ -60,149 +69,212 @@ void MealManager::createMeal(Meal* mealptr, UIManager& uim)
 	double tempDouble;
 	std::vector<std::string> strVec;
 
+	// ensure mealPtr is instantiated
+	if (mealptr == nullptr)
+		mealptr = new Meal();
+
 	// loop while user is not done choosing a name
 	while (!doneCreating)
 	{
-		uim.centeredText("New Meal - Name");
-		uim.skipLines(2);
+		uim->centeredText("New Meal");
+		uim->skipLines(2);
 
 		// prompt and get name
-		uim.centeredText("Enter a name.");
-		uim.skipLines(2);
-		uim.leftAllignedText("Examples:");
-		uim.skipLines(1);
-		uim.leftAllignedText("Hamburgers");
-		uim.leftAllignedText("Tacos");
-		uim.leftAllignedText("Ceasar Salad");
-		uim.leftAllignedText("The Dijkstra Special");
-		uim.prompt_FreeString(NAME_LENGTH);
-		tempStr = uim.display();
+		uim->centeredText("Enter a name:");
+		uim->skipLines(2);
+		uim->leftAllignedText("Examples:");
+		uim->skipLines(1);
+		uim->leftAllignedText("Hamburgers");
+		uim->leftAllignedText("Tacos");
+		uim->leftAllignedText("Ceasar Salad");
+		uim->leftAllignedText("The Dijkstra Special");
+		uim->prompt_FreeString(1, NAME_LENGTH);
+		tempStr = uim->display();
 
 		// if there are other meals stored, check if names conflict (case insensitive)
+		// also try to find place to insert into (alphabetical order)
 		if (meals.size() > 0)
 		{
 			// get uppercase version of tempStr
 			std::string upperStr = tempStr;
 			for (int i = 0; i < upperStr.size(); ++i)
 			{
-				char makeUpper = std::toupper(upperStr.at(i));
-				upperStr.at(i) = makeUpper;
+				upperStr.at(i) = std::toupper(upperStr.at(i));
 			}
 
 			// compare with names of all meals until a match is found
+			// also find a place to insert into (alphabetical order)
+			bool placeFound = false;
 			inputValid = true;
 			auto mealsIter = meals.begin();
-			while (inputValid && mealsIter != meals.end())
+			while (inputValid && !placeFound && mealsIter != meals.end())
 			{
 				// get uppercase version of meal's name
-				std::string mealName = (*mealsIter)->getName();
-				for (int i = 0; i < mealName.size(); ++i)
+				std::string compareName = (*mealsIter)->getName();
+				for (int i = 0; i < compareName.size(); ++i)
 				{
-					char makeUpper = std::toupper(mealName.at(i));
-					mealName.at(i) = makeUpper;
+					compareName.at(i) = std::toupper(compareName.at(i));
 				}
 
 				// check if names match
-				if (upperStr == mealName)
+				if (upperStr == compareName)
 					inputValid = false;
-				++mealsIter;
+				else if (upperStr < compareName) // check if is this a good place to insert
+				{
+					// insert here
+					placeFound = true;
+					mealptr->setName(tempStr);
+					meals.emplace(mealsIter, mealptr);
+					doneCreating = true;
+				}
+				else // keep looking
+					++mealsIter;
 			}
 
-			// check if name is valid
-			if (inputValid)
+			// check if name is valid but place not found
+			if (inputValid && !placeFound)
 			{
-				// make new meal and set name
+				// set name and place at back of meals
 				mealptr->setName(tempStr);
+				meals.push_back(mealptr);
 				doneCreating = true; // exits section of creation
 			}
-			else // invalid name, inform user
+			else if (!inputValid) // invalid name, inform user
 			{
-				uim.centeredText("Error: Invalid Name");
-				uim.skipLines(2);
-				uim.leftAllignedText("The name you entered already exists. (case insensitive)");
-				uim.display();
+				uim->centeredText("Error: Invalid Name");
+				uim->skipLines(2);
+				uim->centeredText("The name you entered already exists. (case insensitive)");
+				uim->display();
 			}
 		}
-		else // add meal
+		else // name is ok, push to back of meals
 		{
 			mealptr->setName(tempStr);
+			meals.push_back(mealptr);
 			doneCreating = true;
 		}
-
 	}// while (!doneCreating)
 
 	// price
-	uim.centeredText("New Meal - Price");
-	uim.skipLines(2);
+	tempStr = "New Meal: \"" + mealptr->getName() + "\"";
+	uim->centeredText(tempStr);
+	uim->skipLines(2);
 
 	// prompt and get price
-	uim.centeredText("Enter a price:");
-	uim.prompt_FreeDouble(MINIMUM_PRICE, MAXIMUM_PRICE);
-	tempDouble = std::stod(uim.display());
+	uim->centeredText("Enter a price:");
+	uim->prompt_FreeDouble(MINIMUM_PRICE, MAXIMUM_PRICE);
+	tempDouble = std::stod(uim->display());
 
 	mealptr->setPrice(tempDouble);
 
 	// mealDuration
-	uim.centeredText("New Meal - Duration");
-	uim.skipLines(2);
-	uim.centeredText("How many days does this meal last?");
-	uim.centeredText("(1 is typical, Meals in large batches may last multiple days)");
-	uim.prompt_FreeInt(1, 30);
-	tempInt = std::stoi(uim.display());
+	tempStr = "New Meal: \"" + mealptr->getName() + "\"";
+	uim->centeredText(tempStr);
+	uim->centeredText("Duration");
+	uim->skipLines(2);
+	uim->centeredText("How many days does this meal last?");
+	uim->centeredText("(1 day is typical, Meals prepared in large batches may last longer.)");
+	uim->prompt_FreeInt(1, MEAL_DURATION_LIMIT);
+	tempInt = std::stoi(uim->display());
 
 	mealptr->setMealDuration(tempInt);
 
 	// daysBetweenOccurrences
-	uim.centeredText("New Meal - Days Between Occurrences");
-	uim.skipLines(2);
-	uim.centeredText("When this Meal is scheduled, how many days should pass before it can be scheduled again?");
-	uim.centeredText("(value of 0 will not delay scheduling, 1 will make it occur every other day)");
-	uim.prompt_FreeInt(0, 30);
-	tempInt = std::stoi(uim.display());
+	tempStr = "New Meal: \"" + mealptr->getName() + "\"";
+	uim->centeredText(tempStr);
+	uim->centeredText("Days Between Occurrences");
+	uim->skipLines(2);
+	uim->centeredText("When this Meal is scheduled, how many days should pass before it can be scheduled again?");
+	uim->centeredText("(A value of 0 will not delay scheduling, while a value of 1 will make it occur every other day at most.)");
+	uim->prompt_FreeInt(0, DAYS_BETWEEN_OCCURRENCES_LIMIT);
+	tempInt = std::stoi(uim->display());
 
 	mealptr->setDaysBetweenOccurrences(tempInt);
 
+	// enable meal
+	mealptr->setDisabled(false);
+
 	// assign tags to meal
-	editMealTags(mealptr, uim);
+	editMealTags(mealptr);
 }
 
-void MealManager::createTag(Tag* tagPtr, UIManager& uim)
+void MealManager::deleteMeal(Meal* mealPtr)
+{
+	// get assigned tags
+	std::vector<Tag*> assignedTags = mealPtr->getTags();
+
+	// if meal has assigned tags, unlink them from meal
+	if (assignedTags.size() > 0)
+	{
+		for (auto tagIter : assignedTags)
+		{
+			tagIter->removeMeal(mealPtr);
+		}
+		
+		// clear tags
+		mealPtr->clearTags();
+	}
+
+	// remove meal from meals
+	bool found = false;
+	auto mealIter = meals.begin();
+
+	// find meal
+	while (!found && mealIter != meals.end())
+	{
+		if (*mealIter == mealPtr)
+			found = true;
+		else
+			++mealIter;
+	}
+
+	if (found)
+	{
+		meals.erase(mealIter);
+		delete mealPtr;
+		mealPtr = nullptr;
+	}
+}
+
+void MealManager::createTag(Tag* tagPtr)
 {
 	std::string tempStr = "";
-	int tempInt;
+	int tempInt = 0;
 	std::vector<std::string> strVec;
 	bool doneCreatingName = false;
 
 	// tag's params
-	std::string tagName = "";
-	std::string tagDesc = "";
-	bool dependsOnMultitag = false;
-	unsigned int consecutiveLimit = 0;
 	std::map<DaysOfTheWeek, bool> enabledDays =
 	{ {MONDAY, false}, {TUESDAY, false}, {WEDNESDAY, false}, {THURSDAY, false}, {FRIDAY, false},
 		{SATURDAY, false}, {SUNDAY, false} };
 
 
+	// ensure pointer is instantiated
+	if (tagPtr == nullptr)
+	{
+		tagPtr = new Tag();
+	}
+
 	// loop while user is not done choosing a name
 	while (!doneCreatingName)
 	{
 		// prompt and get name
-		uim.centeredText("Create Tag - Name");
-		uim.skipLines(2);
+		uim->centeredText("New Tag");
+		uim->skipLines(2);
 
-		uim.centeredText("Enter a name:");
-		uim.centeredText("(recommended 2 - 4 words)");
-		uim.skipLines(2);
-		uim.leftAllignedText("Examples:"); 
-		uim.skipLines(1);
-		uim.leftAllignedText("Chicken");
-		uim.leftAllignedText("Vegatarian");
-		uim.leftAllignedText("Takes long to cook");
-		uim.leftAllignedText("Desert");
-		uim.leftAllignedText("Weekends Only");
-		uim.prompt_FreeString(NAME_LENGTH);
+		uim->centeredText("Enter a name:");
+		uim->centeredText("(recommended 2 - 4 words)");
+		uim->skipLines(2);
+		uim->centeredText("Examples:"); 
+		uim->skipLines(1);
+		uim->centeredText("Chicken");
+		uim->centeredText("Vegetarian");
+		uim->centeredText("Takes long to cook");
+		uim->centeredText("Dessert");
+		uim->centeredText("Weekends Only");
+		uim->prompt_FreeString(1, NAME_LENGTH);
 
-		tempStr = uim.display();
+		tempStr = uim->display();
 
 		// if there are other tags stored, check if names conflict (case insensitive)
 		if (normalTags.size() > 0)
@@ -211,148 +283,180 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 			std::string upperStr = tempStr;
 			for (int i = 0; i < upperStr.size(); ++i)
 			{
-				char makeUpper = std::toupper(upperStr.at(i));
-				upperStr.at(i) = makeUpper;
+				upperStr.at(i) = std::toupper(upperStr.at(i));
 			}
 
 			// compare with names of all tags until a match is found
+			// also find a place to insert into (alphabetical order)
+			bool placeFound = false;
 			bool inputValid = true;
 			auto tagsIter = normalTags.begin();
-			while (inputValid && tagsIter != normalTags.end())
+			while (inputValid && !placeFound && tagsIter != normalTags.end())
 			{
 				// get uppercase version of tag's name
-				std::string tagName = (*tagsIter)->getName();
-				for (int i = 0; i < tagName.size(); ++i)
+				std::string compareName = (*tagsIter)->getName();
+				for (int i = 0; i < compareName.size(); ++i)
 				{
-					char makeUpper = std::toupper(tagName.at(i));
-					tagName.at(i) = makeUpper;
+					compareName.at(i) = std::toupper(compareName.at(i));
 				}
 
 				// check if names match
-				if (upperStr == tagName)
+				if (upperStr == compareName)
 					inputValid = false;
-				++tagsIter;
+				else if (upperStr < compareName) // check if this is a good place to insert
+				{
+					// insert here
+					placeFound = true;
+					tagPtr->setName(tempStr);
+					normalTags.emplace(tagsIter, tagPtr);
+					doneCreatingName = true;
+				}
+				else // keep searching
+					++tagsIter;
 			}
 
-			// check if name is valid
-			if (inputValid)
-				doneCreatingName = true;
-			else // invalid name, inform user
+			// check if name is valid but place not found
+			if (inputValid && !placeFound)
 			{
-				uim.centeredText("Error: Invalid Name");
-				uim.skipLines(2);
-				uim.leftAllignedText("The name you entered already exists. (case insensitive)");
-				uim.display();
+				// set name
+				tagPtr->setName(tempStr);
+
+				// push to back
+				normalTags.push_back(tagPtr);
+				doneCreatingName = true;
+			}
+			else if (!inputValid) // invalid name, inform user
+			{
+				uim->centeredText("Error: Invalid Name");
+				uim->skipLines(2);
+				uim->centeredText("The name you entered already exists. (case insensitive)");
+				uim->display();
 			}
 		}
-		else // no tags to compare
+		else // no tags to compare so set name
+		{
+			tagPtr->setName(tempStr);
+
+			// push to back
+			normalTags.push_back(tagPtr);
 			doneCreatingName = true;
+		}
 	} // while (!doneCreatingName)
 
-	tagName = tempStr;;
-
 	// prompt and get description
-	uim.centeredText("Create Tag - Description");
-	uim.skipLines(2);
+	tempStr = "New Tag: \"" + tagPtr->getName() + "\"";
+	uim->centeredText(tempStr);
+	uim->centeredText("Description");
+	uim->skipLines(2);
 
-	uim.centeredText("Enter a description:");
-	uim.prompt_FreeString(DESC_LENGTH);
-	tagDesc = uim.display();
+	uim->centeredText("Enter a description:");
+	uim->centeredText("(Press <enter> to skip)");
+	uim->prompt_FreeString(0, DESC_LENGTH);
+	tagPtr->setDescription(uim->display());
 
 	// prompt and get dependency
-	uim.centeredText("Create Tag - MultiTag Dependency");
-	uim.skipLines(2);
+	tempStr = "New Tag: \"" + tagPtr->getName() + "\"";
+	uim->centeredText(tempStr);
+	uim->centeredText("MultiTag Dependency");
+	uim->skipLines(2);
 
-	uim.centeredText("Disable this Tag unless linked with a MultiTag?");
-	uim.centeredText("(Recommended: No)");
+	uim->centeredText("Disable this Tag unless linked with a MultiTag?");
+	uim->centeredText("(Recommended: No)");
 	strVec = { "YYes", "NNo" };
-	uim.prompt_List_Case_Insensitive(strVec);
+	uim->prompt_List_Case_Insensitive(strVec);
 
-	tempStr = uim.display();
+	tempStr = uim->display();
 	tempStr = std::toupper(tempStr.at(0));
 
 	// set hasPriority depending on user choice
 	if (tempStr == "Y")
-		dependsOnMultitag = true;
+		tagPtr->setDependency(true);
 	else
-		dependsOnMultitag = false;
+		tagPtr->setDependency(false);
 
 	// prompt and get consecutiveLimit
-	uim.centeredText("Create Tag - Consecutive Days Limit");
-	uim.skipLines(2);
+	tempStr = "New Tag: \"" + tagPtr->getName() + "\"";
+	uim->centeredText(tempStr);
+	uim->centeredText("Consecutive Days Limit");
+	uim->skipLines(2);
 
-	uim.centeredText("How many consecutive days can a Meal with this Tag occur for?");
-	uim.prompt_FreeInt(0, 1000);
-	consecutiveLimit = std::stoi(uim.display());
+	uim->centeredText("How many consecutive days can a Meal with this Tag occur for?");
+	uim->skipLines(1);
+	uim->centeredText("This setting is Tag-specific, not Meal-specific. It applies to all Meals assigned to this Tag.");
+	uim->centeredText("(A value of 1 means that Meals will occur every other day at most, a value of 3 allows 3 days of Meals from this Tag to occur in a row.)");
+	uim->prompt_FreeInt(1, CONSECUTIVE_DAYS_LIMIT);
+	tagPtr->setConsecutiveLimit(std::stoi(uim->display()));
 
 	tempStr = "";
 	// let user set enabled days or quit
 	while (tempStr != "Q")
 	{
-		uim.centeredText("Create Tag - Enabled Days");
-		uim.skipLines(2);
+		tempStr = "New Tag: \"" + tagPtr->getName() + "\"";
+		uim->centeredText(tempStr);
+		uim->centeredText("Enabled Days");
+		uim->skipLines(2);
 
-		uim.centeredText("Choose days that Meals with this Tag may occur on:");
-		uim.skipLines(1);
+		uim->centeredText("Choose days that Meals with this Tag may occur on:");
+		uim->skipLines(1);
 
 		tempStr = "MON: ";
 		if (enabledDays.find(MONDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "TUE: ";
 		if (enabledDays.find(TUESDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "WED: ";
 		if (enabledDays.find(WEDNESDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "THU: ";
 		if (enabledDays.find(THURSDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "FRI: ";
 		if (enabledDays.find(FRIDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "SAT: ";
 		if (enabledDays.find(SATURDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "SUN: ";
 		if (enabledDays.find(SUNDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		// print options
 		strVec.clear();
 		strVec = { "1Toggle MONDAY", "2Toggle TUESDAY", "3Toggle WEDNESDAY", "4Toggle THURSDAY",
-				  "5Toggle FRIDAY", "6Toggle SATURDAY", "7Toggle SUNDAY", "- ",
-				  "EEnable ALL", "DDisable ALL","- ", "QExit & Confirm Selection" };
+				  "5Toggle FRIDAY", "6Toggle SATURDAY", "7Toggle SUNDAY", "",
+				  "EEnable ALL", "DDisable ALL","", "QExit & Confirm Selection" };
 
 		// prompt and get input
-		uim.prompt_List_Case_Insensitive(strVec);
-		tempStr = uim.display();
+		uim->prompt_List_Case_Insensitive(strVec);
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
 		if (tempStr == "E")
@@ -424,21 +528,63 @@ void MealManager::createTag(Tag* tagPtr, UIManager& uim)
 			}
 		}
 	} // while (tempStr != "Q")
-
-	// create a tag with collected data
-	tagPtr->setName(tagName);
-	tagPtr->setDescription(tagDesc);
 	tagPtr->setEnabledDays(enabledDays);
-	tagPtr->setDependency(dependsOnMultitag);
-	tagPtr->setConsecutiveLimit(consecutiveLimit);
 }
 
-void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
+void MealManager::deleteTag(Tag* tagPtr)
+{
+	// get linked meals
+	std::vector<Meal*> linkedMeals = tagPtr->getLinkedMeals();
+
+	// if tag has linked meals, unlink them
+	if (linkedMeals.size() > 0)
+	{
+		for (auto mealIter : linkedMeals)
+		{
+			mealIter->removeTag(tagPtr);
+		}
+
+		// clear linkedMeals
+		tagPtr->clearLinkedMeals();
+	}
+
+	// unlink tag from all multiTags
+	for (auto mtagIter : multiTags)
+	{
+		mtagIter->removeLinkedTag(tagPtr);
+	}
+
+	// find tag in normalTags
+	auto tagIter = normalTags.begin();
+	bool found = false;
+
+	while (!found && tagIter != normalTags.end())
+	{
+		if (*tagIter == tagPtr)
+			found = true;
+		else
+			++tagIter;
+	}
+
+	// remove from normalTags and delete
+	if (found)
+	{
+		normalTags.erase(tagIter);
+		delete tagPtr;
+		tagPtr = nullptr;
+	}
+}
+
+void MealManager::createMultiTag(MultiTag* mtagPtr)
 {
 	std::string tempStr = "";
 	int tempInt;
 	std::vector<std::string> strVec;
 	bool doneCreatingName = false;
+
+	// ensure pointer is instantiated to an object
+	if (mtagPtr == nullptr)
+		mtagPtr = new MultiTag();
 
 	// multitag's params
 	std::map<DaysOfTheWeek, bool> enabledDays =
@@ -450,20 +596,21 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	while (!doneCreatingName)
 	{
 		// prompt and get name
-		uim.centeredText("Create MultiTag - Name");
-		uim.skipLines(2);
+		uim->centeredText("New MultiTag");
+		uim->skipLines(2);
 
-		uim.centeredText("Enter a name:");
-		uim.centeredText("(recommended 2 - 4 words)");
-		uim.skipLines(2);
-		uim.leftAllignedText("Examples:");
-		uim.skipLines(1);
-		uim.leftAllignedText("Guest Meals");
-		uim.leftAllignedText("No Time");
-		uim.leftAllignedText("Birthday Party");
-		uim.prompt_FreeString(NAME_LENGTH);
+		uim->centeredText("Enter a name:");
+		uim->centeredText("(recommended 2 - 4 words)");
+		uim->skipLines(2);
+		uim->leftAllignedText("Examples:");
+		uim->skipLines(1);
+		uim->leftAllignedText("Guest Meals");
+		uim->leftAllignedText("No Time");
+		uim->leftAllignedText("Birthday Party");
+		uim->leftAllignedText("Many Meals");
+		uim->prompt_FreeString(1, NAME_LENGTH);
 
-		tempStr = uim.display();
+		tempStr = uim->display();
 
 		// if there are other tags stored, check if names conflict (case insensitive)
 		if (multiTags.size() > 0)
@@ -472,66 +619,84 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 			std::string upperStr = tempStr;
 			for (int i = 0; i < upperStr.size(); ++i)
 			{
-				char makeUpper = std::toupper(upperStr.at(i));
-				upperStr.at(i) = makeUpper;
+				upperStr.at(i) = std::toupper(upperStr.at(i));
 			}
 
 			// compare with names of all tags until a match is found
+			bool placeFound = false;
 			bool inputValid = true;
 			auto tagsIter = multiTags.begin();
-			while (inputValid && tagsIter != multiTags.end())
+			while (inputValid && !placeFound && tagsIter != multiTags.end())
 			{
 				// get uppercase version of tag's name
-				std::string tagName = (*tagsIter)->getName();
-				for (int i = 0; i < tagName.size(); ++i)
+				std::string compareName = (*tagsIter)->getName();
+				for (int i = 0; i < compareName.size(); ++i)
 				{
-					char makeUpper = std::toupper(tagName.at(i));
-					tagName.at(i) = makeUpper;
+					compareName.at(i) = std::toupper(compareName.at(i));
 				}
 
 				// check if names match
-				if (upperStr == tagName)
+				if (upperStr == compareName)
 					inputValid = false;
-				++tagsIter;
+				else if (upperStr < compareName) // check if this is a good place to insert
+				{
+					// insert here
+					placeFound = true;
+					mtagPtr->setName(tempStr);
+					multiTags.emplace(tagsIter, mtagPtr);
+					doneCreatingName = true;
+				}
+				else // keep looking
+					++tagsIter;
 			}
 
-			// check if name is valid
-			if (inputValid)
-				doneCreatingName = true;
-			else // invalid name, inform user
+			// check if name is valid but place not found
+			if (inputValid && !placeFound)
 			{
-				uim.centeredText("Error: Invalid Name");
-				uim.skipLines(2);
-				uim.leftAllignedText("The name you entered already exists. (case insensitive)");
-				uim.display();
+				// set name and place at back of multitags
+				mtagPtr->setName(tempStr);
+				multiTags.push_back(mtagPtr);
+				doneCreatingName = true;
+			}
+			else if (!inputValid) // invalid name, inform user
+			{
+				uim->centeredText("Error: Invalid Name");
+				uim->skipLines(2);
+				uim->centeredText("The name you entered already exists. (case insensitive)");
+				uim->display();
 			}
 		}
-		else // no tags to compare
+		else // no tags to compare so push to back of meals
+		{
+			mtagPtr->setName(tempStr);
+			multiTags.push_back(mtagPtr);
 			doneCreatingName = true;
+		}
 	} // while (!doneCreatingName)
 
-	// assign name
-	mtagPtr->setName(tempStr);
-
 	// prompt and get description
-	uim.centeredText("Create MultiTag - Description");
-	uim.skipLines(2);
+	tempStr = "New MultiTag: \"" + mtagPtr->getName() + "\"";
+	uim->centeredText(tempStr);
+	uim->skipLines(2);
 
-	uim.centeredText("Enter a description:");
-	uim.prompt_FreeString(DESC_LENGTH);
-	mtagPtr->setDescription(uim.display());
+	uim->centeredText("Enter a description:");
+	uim->centeredText("(Press <enter> to skip)");
+	uim->prompt_FreeString(0, DESC_LENGTH);
+	mtagPtr->setDescription(uim->display());
 
 	// prompt and get dependency
-	uim.centeredText("Create MultiTag - Priority Level");
-	uim.skipLines(2);
+	tempStr = "New MultiTag: \"" + mtagPtr->getName() + "\"";
+	uim->centeredText(tempStr);
+	uim->centeredText("Priority Level");
+	uim->skipLines(2);
 
-	uim.centeredText("MultiTags can take priority over normal Tags when creating a Meal Plan.");
-	uim.centeredText("Do you want to give this MultiTag elevated priority, or make it behave like normal Tag?");
+	uim->centeredText("MultiTags can take priority over normal Tags when creating a Meal Plan.");
+	uim->centeredText("Do you want to give this MultiTag elevated priority, or make it behave like normal Tag?");
 
 	strVec = { "1Elevated Priority", "2Behave like a normal Tag" };
-	uim.prompt_List_Case_Insensitive(strVec);
+	uim->prompt_List_Case_Insensitive(strVec);
 
-	tempStr = uim.display();
+	tempStr = uim->display();
 
 	// set priority depending on user choice
 	if (tempStr == "1")
@@ -543,60 +708,63 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	// let user set enabled days or quit
 	while (tempStr != "Q")
 	{
-		uim.centeredText("Create MultiTag - Enabled Days");
-		uim.skipLines(2);
+		tempStr = "New MultiTag: \"" + mtagPtr->getName() + "\"";
+		uim->centeredText(tempStr);
+		uim->centeredText("Enabled Days");
+		uim->skipLines(2);
 
-		uim.centeredText("Choose days that MuliTag is active on:");
-		uim.skipLines(1);
+		tempStr = "Choose the days that you want \"" + mtagPtr->getName() + "\" to be active on:";
+		uim->centeredText(tempStr);
+		uim->skipLines(1);
 
 		tempStr = "MON: ";
 		if (enabledDays.find(MONDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "TUE: ";
 		if (enabledDays.find(TUESDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "WED: ";
 		if (enabledDays.find(WEDNESDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "THU: ";
 		if (enabledDays.find(THURSDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "FRI: ";
 		if (enabledDays.find(FRIDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "SAT: ";
 		if (enabledDays.find(SATURDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		tempStr = "SUN: ";
 		if (enabledDays.find(SUNDAY)->second)
 			tempStr += "enabled";
 		else
 			tempStr += "disabled";
-		uim.centeredText(tempStr);
+		uim->centeredText(tempStr);
 
 		// print options
 		strVec.clear();
@@ -605,8 +773,8 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				  "EEnable ALL", "DDisable ALL","- ", "QExit & Confirm Selection" };
 
 		// prompt and get input
-		uim.prompt_List_Case_Insensitive(strVec);
-		tempStr = uim.display();
+		uim->prompt_List_Case_Insensitive(strVec);
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
 		if (tempStr == "E")
@@ -683,268 +851,709 @@ void MealManager::createMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	mtagPtr->setEnabledDays(enabledDays);
 
 	// link to other tags
-	editMultiTagTags(mtagPtr, uim);
+	editMultiTagTags(mtagPtr);
 
-	// set enabled/disabled
-	uim.centeredText("Create MultiTag - Enable/Disable");
-	uim.skipLines(2);
-	uim.centeredText("Do you want to Enable this MultiTag?");
-	strVec = { "YYes", "NNo" };
-	uim.prompt_List_Case_Insensitive(strVec);
+	// set requireFulfillment
+	tempStr = "New MultiTag: \"" + mtagPtr->getName() + "\"";
+	uim->centeredText(tempStr);
+	uim->centeredText("Require Linked Tag Fulfillment");
+	uim->skipLines(2);
 
-	tempStr = uim.display();
-	tempStr = std::toupper(tempStr.at(0));
+	uim->centeredText("Do you require all linked Tags to meet their requested number of Meals? (recommended YES)");
+	uim->skipLines(1);
+	uim->centeredText("If YES, then if a Tag's assigned Meals are unavailable, or not enough can be scheduled, then the program will skip this MultiTag.");
+	uim->centeredText("If NO, then no matter how many Tags are linked, if at least ONE meal is scheduled, the program will commit it to the schedule.");
+	uim->skipLines(3);
+	uim->centeredText("Examples if set to REQUIRE ALL TAGS TO BE FULFILLED:");
+	uim->skipLines(1);
+	uim->centeredText("If this MultiTag has 1 linked Tag which requests 3 Meals but only 2 are available, then a different Tag/MultiTag will be found.");
+	uim->centeredText("If this MultiTag has 2 linked Tags and both request 1 Meal but only 1 Meal is found, then a different Tag/MultiTag will be found.");
+	uim->skipLines(2);
+	uim->centeredText("Examples if set to ALLOW PARTIAL FULFILLMENT:");
+	uim->skipLines(1);
+	uim->centeredText("If this MultiTag has 5 linked Tags, all request 1 Meal but only 1 Meal in total is found, then the day will have only 1 Meal scheduled.");
 
-	// enable/disable according to choice
-	if (tempStr == "Y")
-		mtagPtr->setEnabled(true);
+	strVec = { "1Require all Tags to be fulfilled", "2Allow partial fulfillment" };
+	uim->prompt_List_Case_Insensitive(strVec);
+
+	tempStr = uim->display();
+
+	// set priority depending on user choice
+	if (tempStr == "1")
+		mtagPtr->setRequireFulfillment(true);
 	else
-		mtagPtr->setEnabled(false);
-
+		mtagPtr->setRequireFulfillment(false);
 }
 
-void MealManager::editMealTags(Meal* mealPtr, UIManager& uim)
+void MealManager::deleteMultiTag(MultiTag* mtagPtr)
 {
-	std::string tempStr = "";
-	int tempInt;
-	std::vector<std::string> strVec;
+	// clear linkedTags
+	mtagPtr->clearLinkedTags();
 
-	// if meal has no tags, ask if user wants to assign some
-	if (mealPtr->getTags().size() == 0)
+	// find MultiTag in multiTags
+	auto tagIter = multiTags.begin();
+	bool found = false;
+
+	while (!found && tagIter != multiTags.end())
 	{
-		// ui title
-		uim.centeredText("Assign Tags");
-		uim.skipLines(2);
-
-		uim.centeredText("Meal has no Tags assigned, do you want to assign some?");
-
-		strVec = { "YYes", "NNo" };
-		uim.prompt_List_Case_Insensitive(strVec);
-
-		tempStr = uim.display();
-		tempStr = std::toupper(tempStr.at(0));
-
-		// bypass display tags
-		if (tempStr != "Y")
-			tempStr = "Q";
-	}
-
-	// if no tags exist and user wants to assign them, then ask to create one
-	if (normalTags.size() == 0 && tempStr != "Q")
-	{
-		// ui title
-		uim.centeredText("Assign Tags");
-		uim.skipLines(2);
-
-		uim.centeredText("There are no saved Tags, do you want to create one?");
-
-		strVec = { "YYes", "NNo" };
-		uim.prompt_List_Case_Insensitive(strVec);
-
-		tempStr = uim.display();
-		tempStr = std::toupper(tempStr.at(0));
-
-		// bypass editing tags
-		if (tempStr != "Y")
-			tempStr = "Q";
+		if (*tagIter == mtagPtr)
+			found = true;
 		else
-		{
-			// create a tag
-			Tag* tagPtr = new Tag;
-			createTag(tagPtr, uim);
-
-			// add tag to saved tags and to meal
-			normalTags.push_back(tagPtr);
-			mealPtr->addTag(tagPtr);
-			tagPtr = nullptr;
-
-			// enable meal
-			mealPtr->setIsDisabled(false);
-		}
+			++tagIter;
 	}
-	else if (tempStr != "Q") // display tags and get input if user wants to assign tags
+
+	// remove from multiTags and delete
+	if (found)
 	{
-		// prompt for tag, or quit
-		do
+		multiTags.erase(tagIter);
+		delete mtagPtr;
+		mtagPtr = nullptr;
+	}
+}
+
+void MealManager::editMealTags(Meal* mealPtr)
+{
+	const int TAGS_PER_PAGE = 5;
+	std::string tempStr = "";
+	int tempInt = -1;
+	std::vector<std::string> strVec;
+	int currentPage = 1; // page to display when displaying linked tags
+
+	// while user has not quit menu
+	while (tempStr != "Q")
+	{
+		// if meal has no tags, ask if user wants to assign some
+		if (mealPtr->getTags().size() == 0)
 		{
-			tempInt = displayTags(uim);
-
-			// if user did not choose to quit
-			if (tempInt != -1)
+			// if tags exist to add
+			if (normalTags.size() > 0)
 			{
-				// check if tag already added
-				std::vector<Tag*> mealTags = mealPtr->getTags();
-				Tag* compare = normalTags.at(tempInt);
+				// ui title
+				uim->centeredText("Assign Tags");
+				uim->skipLines(2);
 
-				bool isValid = true;
-				auto mealTagsIter = mealTags.begin();
+				tempStr = "\"" + mealPtr->getName() + "\" has no assigned Tags, do you want to assign some?";
+				uim->centeredText(tempStr);
 
-				while (isValid && mealTagsIter != mealTags.end())
-				{
-					// if match then tag already exists in meal
-					if (compare == *mealTagsIter)
-						isValid = false;
-					++mealTagsIter;
-				}
+				strVec = { "YYes", "NNo" };
+				uim->prompt_List_Case_Insensitive(strVec);
 
-				if (!isValid)
-				{
-					// tell user the tag exists
-					uim.centeredText("Error");
-					uim.skipLines(2);
-					uim.leftAllignedText("Tag is already assigned to Meal.");
-					uim.display();
-				}
+				tempStr = uim->display();
+				tempStr = std::toupper(tempStr.at(0));
+
+				if (tempStr == "Y")
+					tempStr = "A"; // add tags
 				else
-				{
-					// add tag to meal
-					mealPtr->addTag(compare);
-
-					// display confirmation
-					uim.centeredText("Success!");
-					uim.skipLines(2);
-					uim.centeredText("Tag assigned to Meal.");
-					uim.display();
-				}
+					tempStr = "Q"; // quit menu
 			}
-			else // user chose to quit
+			else // no tags to display
 			{
+				tempStr = "\"" + mealPtr->getName() + "\" has no assigned Tags, and there are no new Tags to assign.";
+				uim->centeredText(tempStr);
+				uim->centeredText("Please create more Tags in the Tag Menu.");
+				uim->display();
+
 				tempStr = "Q";
 			}
-		} while (tempStr != "Q");
-		
-	}// else if (tempStr != "Q")
-}
 
-void MealManager::editMultiTagTags(MultiTag* mtagPtr, UIManager& uim)
-{
-	std::string tempStr = "";
-	int tempInt;
-	std::vector<std::string> strVec;
-
-	// if multitag has no tags, ask if user wants to assign some
-	if (mtagPtr->getLinkedTags().size() == 0)
-	{
-		// ui title
-		uim.centeredText("Link Tags");
-		uim.skipLines(2);
-
-		uim.centeredText("MultiTag has no linked Tags, do you want to link some?");
-
-		strVec = { "YYes", "NNo" };
-		uim.prompt_List_Case_Insensitive(strVec);
-
-		tempStr = uim.display();
-		tempStr = std::toupper(tempStr.at(0));
-
-		// bypass display tags
-		if (tempStr != "Y")
-			tempStr = "Q";
-	}
-
-	// if no tags exist and user wants to assign them, then ask to create one
-	if (normalTags.size() == 0 && tempStr != "Q")
-	{
-		// ui title
-		uim.centeredText("Link Tags");
-		uim.skipLines(2);
-
-		uim.centeredText("There are no saved Tags, do you want to create one?");
-
-		strVec = { "YYes", "NNo" };
-		uim.prompt_List_Case_Insensitive(strVec);
-
-		tempStr = uim.display();
-		tempStr = std::toupper(tempStr.at(0));
-
-		// bypass editing tags
-		if (tempStr != "Y")
-			tempStr = "Q";
-		else
+		}
+		else // display assigned tags
 		{
-			// create a tag
-			Tag* tagPtr = new Tag;
-			createTag(tagPtr, uim);
+			// calculate total pages
+			int totalPages = mealPtr->getTags().size() / TAGS_PER_PAGE;
 
-			// add tag to saved tags
-			normalTags.push_back(tagPtr);
+			// check for remainder
+			if (mealPtr->getTags().size() % TAGS_PER_PAGE > 0)
+				++totalPages;
 
-			// prompt for number of Meals with this tag
-			uim.centeredText("Link Tags");
-			uim.skipLines(2);
-			uim.centeredText("How many unique Meals from this Tag do you require in one day?");
-			uim.prompt_FreeInt(0, 100);
-			tempInt = std::stoi(uim.display());
+			// if currentPage is out of bounds, set to 1
+			if (currentPage <= 0 || currentPage > totalPages)
+				currentPage = 1;
 
-			// link Tag to MultiTag
-			mtagPtr->addLinkedTag(tagPtr, tempInt);
+			// create ui header
+			uim->centeredText("Viewing Assigned Tags");
+			// display page x/y
+			tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
+			uim->centeredText(tempStr);
 
-			tagPtr = nullptr;
+			// start index for current page
+			int startIndex = (TAGS_PER_PAGE * (currentPage - 1));
+
+			// create iterator to linkedTags
+			std::vector<Tag*> assignedTagsCopy = mealPtr->getTags();
+			auto tagIter = assignedTagsCopy.begin();
+
+			// increment iter to startIndex
+			for (int count = 0; count < startIndex; ++count)
+				++tagIter;
+
+			// if on last page
+			if (currentPage == totalPages)
+			{
+				// display until end of tags
+				int choiceNum = 1;
+				while (tagIter != assignedTagsCopy.end())
+				{
+					// display tag info
+					displayTagInfo(*tagIter);
+					uim->skipLines(1);
+
+					// create user choice
+					tempStr = std::to_string(choiceNum) + (*tagIter)->getName();
+					strVec.push_back(tempStr);
+
+					++choiceNum;
+					++tagIter;
+				}
+			}
+			else // display TAGS_PER_PAGE of tags
+			{
+				int choiceNum = 1;
+				while (choiceNum <= TAGS_PER_PAGE)
+				{
+					// display tag info
+					displayTagInfo(*tagIter);
+					uim->skipLines(1);
+
+					// create user choice
+					tempStr = std::to_string(choiceNum) + (*tagIter)->getName();
+					strVec.push_back(tempStr);
+
+					++choiceNum;
+					++tagIter;
+				}
+			}
+
+			// create rest of user choices
+			tempStr = "";
+			strVec.push_back(tempStr);
+
+			tempStr = "AAdd a Tag";
+			strVec.push_back(tempStr);
+
+			tempStr = "";
+			strVec.push_back(tempStr);
+
+			tempStr = "NNext Page";
+			strVec.push_back(tempStr);
+
+			tempStr = "PPrevious Page";
+			strVec.push_back(tempStr);
+
+			tempStr = "QQuit Selection";
+			strVec.push_back(tempStr);
+
+			uim->prompt_List_Case_Insensitive(strVec);
+
+			// display and get input
+			tempStr = uim->display();
+			tempStr = std::toupper(tempStr.at(0));
+
+			// if user chose to go to next page
+			if (tempStr == "N")
+			{
+				// increment page number (loops around if at end)
+				if (currentPage == totalPages)
+					currentPage = 1;
+				else
+					++currentPage;
+			}
+			else if (tempStr == "P") // previous page
+			{
+				// decrement page number (loops around if at beginning)
+				if (currentPage == 1)
+					currentPage = totalPages;
+				else
+					--currentPage;
+			}
+			else if (tempStr != "Q" && tempStr != "A") // chose a tag to edit
+			{
+				uim->centeredText("Tag Details");
+				uim->skipLines(2);
+
+				// get index of tag 
+				tempInt = std::stoi(tempStr) - 1;
+
+				// get tag and display info
+				auto assignedTagsIter = assignedTagsCopy.begin();
+				for (int count = 0; count < tempInt; ++count)
+					++assignedTagsIter;
+
+				displayTagInfo(*assignedTagsIter);
+
+				// create choices
+				strVec = {"RRemove Tag", "", "QQuit Selection" };
+				uim->prompt_List_Case_Insensitive(strVec);
+
+				// get choice
+				tempStr = uim->display();
+				tempStr = std::toupper(tempStr.at(0));
+
+				// remove tag
+				if (tempStr == "R")
+				{
+					Tag* tagPtr = *assignedTagsIter;
+
+					uim->centeredText("Confirm Removal");
+					uim->skipLines(2);
+					tempStr = "Are you sure you want to remove \"" + tagPtr->getName() + "\"?";
+					uim->centeredText(tempStr);
+
+					strVec = { "YYes", "NNo" };
+					uim->prompt_List_Case_Insensitive(strVec);
+
+					tempStr = std::toupper(uim->display().at(0));
+
+					// if user chose to remove
+					if (tempStr == "Y")
+					{
+						// remove tag from meal
+						mealPtr->removeTag(tagPtr);
+						// remove meal from tag
+						tagPtr->removeMeal(mealPtr);
+
+						// confirm to user
+						uim->centeredText("Success!");
+						uim->skipLines(2);
+
+						tempStr = "\"" + tagPtr->getName() + "\" was removed from \"" + mealPtr->getName() + "\"";
+						uim->centeredText(tempStr);
+						uim->display();
+
+						tagPtr = nullptr;
+					}
+				}
+			}
+		}
+
+		// assign tags
+		if (tempStr == "A")
+		{
+			// prompt for tag, or quit
+			do
+			{
+				int lastPageVisited = -1;
+				int returnStatus = -2;
+				Tag* compare = nullptr;
+
+				// while user is still choosing tags to link
+				do
+				{
+					// exclude Tags already linked
+					std::vector<Tag*> assignedTags = mealPtr->getTags();;
+
+					// check if no tags to add
+					if (assignedTags.size() == normalTags.size())
+					{
+						uim->centeredText("There are no Tags to assign, please create more in the Tag Menu.");
+						uim->display();
+
+						returnStatus = -1;
+					}
+					else
+						returnStatus = displayTags(lastPageVisited, compare, assignedTags);
+
+				} while (returnStatus == -2);
+
+				// if user chose a tag
+				if (returnStatus == 0)
+				{
+					// check if tag already added
+					std::vector<Tag*> assignedTags = mealPtr->getTags();;
+
+					bool isValid = true;
+					auto tagsIter = assignedTags.begin();
+
+					while (isValid && tagsIter != assignedTags.end())
+					{
+						// if match then tag already exists in meal
+						if (compare == *tagsIter)
+							isValid = false;
+						++tagsIter;
+					}
+
+					if (!isValid)
+					{
+						// tell user the tag exists
+						uim->centeredText("Error");
+						uim->skipLines(2);
+						tempStr = "\"" + compare->getName() + "\" is already assigned to \"" + mealPtr->getName() + "\".";
+						uim->centeredText(tempStr);
+						uim->display();
+					}
+					else
+					{
+						// link Tag to meal
+						mealPtr->addTag(compare);
+						// link meal to tag
+						compare->addMeal(mealPtr);
+
+						// display confirmation
+						uim->centeredText("Success!");
+						uim->skipLines(2);
+
+						tempStr = "\"" + compare->getName() + "\" was assigned to \"" + mealPtr->getName() + "\".";
+						uim->centeredText(tempStr);
+						uim->display();
+
+						compare = nullptr;
+					}
+				}
+				else // user chose to quit
+				{
+					tempStr = "Q";
+				}
+			} while (tempStr != "Q");
 		}
 	}
-	else if (tempStr != "Q") // display tags and get input if user wants to assign tags
-	{
-		// prompt for tag, or quit
-		do
-		{
-			tempInt = displayTags(uim);
-
-			// if user did not choose to quit
-			if (tempInt != -1)
-			{
-				// check if tag already added
-				std::map<Tag*, unsigned int> linkedTags = mtagPtr->getLinkedTags();
-				Tag* compare = normalTags.at(tempInt);
-
-				bool isValid = true;
-				auto tagsIter = linkedTags.begin();
-
-				while (isValid && tagsIter != linkedTags.end())
-				{
-					// if match then tag already exists in meal
-					if (compare == tagsIter->first)
-						isValid = false;
-					++tagsIter;
-				}
-
-				if (!isValid)
-				{
-					// tell user the tag exists
-					uim.centeredText("Error");
-					uim.skipLines(2);
-					uim.leftAllignedText("Tag is already linked to MultiTag.");
-					uim.display();
-				}
-				else
-				{
-					// ask for amount
-					uim.centeredText("Link Tags");
-					uim.skipLines(2);
-					uim.centeredText("How many unique Meals from this Tag do you require in one day?");
-					uim.prompt_FreeInt(0, 100);
-					tempInt = std::stoi(uim.display());
-
-					// link Tag to multitag
-					mtagPtr->addLinkedTag(compare, tempInt);
-					compare = nullptr;
-
-					// display confirmation
-					uim.centeredText("Success!");
-					uim.skipLines(2);
-					uim.centeredText("Tag linked to MultiTag.");
-					uim.display();
-				}
-			}
-			else // user chose to quit
-			{
-				tempStr = "Q";
-			}
-		} while (tempStr != "Q");
-
-	}// else if (tempStr != "Q")
 }
 
-void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
+void MealManager::editMultiTagTags(MultiTag* mtagPtr)
+{
+	const int TAGS_PER_PAGE = 5;
+
+	std::string tempStr = "";
+	int tempInt = 0;
+	std::vector<std::string> strVec;
+	int currentPage = 1; // page to display when displaying linked tags
+
+	// while user has not quit menu
+	while (tempStr != "Q")
+	{
+		// if multitag has no tags, ask if user wants to assign some
+		if (mtagPtr->getLinkedTags().size() == 0)
+		{
+			// if tags exist to add
+			if (normalTags.size() > 0)
+			{
+				// ui title
+				uim->centeredText("Link Tags");
+				uim->skipLines(2);
+
+				tempStr = "\"" + mtagPtr->getName() + "\" has no linked Tags, do you want to link some?";
+				uim->centeredText(tempStr);
+
+				strVec = { "YYes", "NNo" };
+				uim->prompt_List_Case_Insensitive(strVec);
+
+				tempStr = uim->display();
+				tempStr = std::toupper(tempStr.at(0));
+
+				if (tempStr == "Y")
+					tempStr = "A"; // add tags
+				else
+					tempStr = "Q"; // quit menu
+			}
+			else // no tags to display
+			{
+				tempStr = "\"" + mtagPtr->getName() + "\" has no linked Tags, and there are no Tags to link to.";
+				uim->centeredText(tempStr);
+				uim->centeredText("Please create more Tags in the Tag Menu.");
+				uim->display();
+
+				tempStr = "Q";
+			}
+
+		}
+		else // display linked tags
+		{
+			// calculate total pages
+			int totalPages = mtagPtr->getLinkedTags().size() / TAGS_PER_PAGE;
+
+			// check for remainder
+			if (mtagPtr->getLinkedTags().size() % TAGS_PER_PAGE > 0)
+				++totalPages;
+
+			// if currentPage is out of bounds, set to 1
+			if (currentPage <= 0 || currentPage > totalPages)
+				currentPage = 1;
+
+			// create ui header
+			uim->centeredText("Viewing Linked Tags");
+			// display page x/y
+			tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
+			uim->centeredText(tempStr);
+
+			// start index for current page
+			int startIndex = (TAGS_PER_PAGE * (currentPage - 1));
+
+			// create iterator to linkedTags
+			std::map<Tag*, unsigned int> linkedTagsCopy = mtagPtr->getLinkedTags();
+			auto tagIter = linkedTagsCopy.begin();
+
+			// increment iter to startIndex
+			for (int count = 0; count < startIndex; ++count)
+				++tagIter;
+
+			// if on last page
+			if (currentPage == totalPages)
+			{
+				// display until end of tags
+				int choiceNum = 1;
+				while (tagIter != linkedTagsCopy.end())
+				{
+					// display tag info
+					displayTagInfo(tagIter->first);
+					tempStr = "Meals Requested: " + std::to_string(tagIter->second);
+					uim->leftAllignedText(tempStr);
+					uim->skipLines(1);
+
+					// create user choice
+					tempStr = std::to_string(choiceNum) + tagIter->first->getName();
+					strVec.push_back(tempStr);
+
+					++choiceNum;
+					++tagIter;
+				}
+			}
+			else // display TAGS_PER_PAGE of tags
+			{
+				int choiceNum = 1;
+				while (choiceNum <= TAGS_PER_PAGE)
+				{
+					// display tag info
+					displayTagInfo(tagIter->first);
+					tempStr = "Meals Requested: " + std::to_string(tagIter->second);
+					uim->leftAllignedText(tempStr);
+					uim->skipLines(1);
+
+					// create user choice
+					tempStr = std::to_string(choiceNum) + tagIter->first->getName();
+					strVec.push_back(tempStr);
+
+					++choiceNum;
+					++tagIter;
+				}
+			}
+
+			// create rest of user choices
+			tempStr = "";
+			strVec.push_back(tempStr);
+
+			tempStr = "AAdd a Tag";
+			strVec.push_back(tempStr);
+
+			tempStr = "";
+			strVec.push_back(tempStr);
+
+			tempStr = "NNext Page";
+			strVec.push_back(tempStr);
+
+			tempStr = "PPrevious Page";
+			strVec.push_back(tempStr);
+
+			tempStr = "QQuit Selection";
+			strVec.push_back(tempStr);
+
+			uim->prompt_List_Case_Insensitive(strVec);
+
+			// display and get input
+			tempStr = uim->display();
+			tempStr = std::toupper(tempStr.at(0));
+
+			// if user chose to go to next page
+			if (tempStr == "N")
+			{
+				// increment page number (loops around if at end)
+				if (currentPage == totalPages)
+					currentPage = 1;
+				else
+					++currentPage;
+			}
+			else if (tempStr == "P") // previous page
+			{
+				// decrement page number (loops around if at beginning)
+				if (currentPage == 1)
+					currentPage = totalPages;
+				else
+					--currentPage;
+			}
+			else if (tempStr != "Q" && tempStr != "A") // chose a tag to edit
+			{
+				uim->centeredText("Tag Details");
+				uim->skipLines(2);
+
+				// get index of tag 
+				tempInt = std::stoi(tempStr) - 1;
+
+				// get tag and display info
+				auto linkedTagsIter = linkedTagsCopy.begin();
+				for (int count = 0; count < tempInt; ++count)
+					++linkedTagsIter;
+
+				displayTagInfo(linkedTagsIter->first);
+				tempStr = "Meals Requested: " + std::to_string(linkedTagsIter->second);
+				uim->leftAllignedText(tempStr);
+
+				// create choices
+				strVec = { "EEdit Requested Meals", "", "RRemove Tag", "", "QQuit Selection" };
+				uim->prompt_List_Case_Insensitive(strVec);
+
+				// get choice
+				tempStr = uim->display();
+				tempStr = std::toupper(tempStr.at(0));
+
+				// edit requested meals
+				if (tempStr == "E")
+				{
+					unsigned int newVal = 1;
+
+					uim->centeredText("Editing Requested Meals");
+					uim->skipLines(2);
+
+					tempStr = "How many meals from \"" + linkedTagsIter->first->getName() + "\" do you want to eat in one day?";
+					uim->centeredText(tempStr);
+
+					tempStr = "(original value: " + std::to_string(linkedTagsIter->second) + ")";
+					uim->centeredText(tempStr);
+
+					uim->prompt_FreeInt(1, REQUESTED_MEALS_LIMIT);
+					newVal = std::stoi(uim->display());
+
+					// set new value
+					linkedTagsIter->second = newVal;
+
+					// confirm to user
+					uim->centeredText("Success!");
+					uim->skipLines(2);
+
+					tempStr = "Meals Requested set to: " + std::to_string(linkedTagsIter->second);
+					uim->centeredText(tempStr);
+					uim->display();
+				}
+				else if (tempStr == "R") // remove tag
+				{
+					Tag* tagPtr = linkedTagsIter->first;
+
+					uim->centeredText("Confirm Removal");
+					uim->skipLines(2);
+					tempStr = "Are you sure you want to remove \"" + tagPtr->getName() + "\"?";
+					uim->centeredText(tempStr);
+
+					strVec = { "YYes", "NNo" };
+					uim->prompt_List_Case_Insensitive(strVec);
+
+					tempStr = std::toupper(uim->display().at(0));
+
+					// if user chose to remove
+					if (tempStr == "Y")
+					{
+						// remove tag from multiTag
+						mtagPtr->removeLinkedTag(tagPtr);
+
+						// confirm to user
+						uim->centeredText("Success!");
+						uim->skipLines(2);
+
+						tempStr = "\"" + tagPtr->getName() + "\" was removed from \"" + mtagPtr->getName() + "\"";
+						uim->centeredText(tempStr);
+						uim->display();
+
+						tagPtr = nullptr;
+					}
+				}
+			}
+		}
+
+		// assign tags
+		if (tempStr == "A") 
+		{
+			// prompt for tag, or quit
+			do
+			{
+				int lastPageVisited = -1;
+				int returnStatus = -2;
+				Tag* compare = nullptr;
+
+				// while user is still choosing tags to link
+				do
+				{
+					// exclude Tags already linked
+					std::vector<Tag*> linkedTags;
+					if (mtagPtr->getLinkedTags().size() > 0)
+					{
+						std::map<Tag*, unsigned int> linkedTagsMap = mtagPtr->getLinkedTags();
+
+						// get tags into vector
+						for (auto tagIter : linkedTagsMap)
+						{
+							linkedTags.push_back(tagIter.first);
+						}
+					}
+
+					// check if no tags to add
+					if (linkedTags.size() == normalTags.size())
+					{
+						uim->centeredText("There are no Tags to assign, please create more in the Tag Menu.");
+						uim->display();
+
+						returnStatus = -1;
+					}
+					else
+						returnStatus = displayTags(lastPageVisited, compare, linkedTags);
+
+				} while (returnStatus == -2);
+
+				// if user chose a tag
+				if (returnStatus == 0)
+				{
+					// check if tag already added
+					std::map<Tag*, unsigned int> linkedTags = mtagPtr->getLinkedTags();
+
+					bool isValid = true;
+					auto tagsIter = linkedTags.begin();
+
+					while (isValid && tagsIter != linkedTags.end())
+					{
+						// if match then tag already exists in meal
+						if (compare == tagsIter->first)
+							isValid = false;
+						++tagsIter;
+					}
+
+					if (!isValid)
+					{
+						// tell user the tag exists
+						uim->centeredText("Error");
+						uim->skipLines(2);
+						tempStr = "\"" + compare->getName() + "\" is already linked to \"" + mtagPtr->getName() + "\".";
+						uim->centeredText(tempStr);
+						uim->display();
+					}
+					else
+					{
+						// ask for amount
+						uim->centeredText("Link Tags");
+						uim->skipLines(2);
+						tempStr = "How many meals from \"" + compare->getName() + "\" do you want to eat in one day?";
+						uim->centeredText(tempStr);
+						uim->prompt_FreeInt(1, REQUESTED_MEALS_LIMIT);
+						tempInt = std::stoi(uim->display());
+
+						// link Tag to multitag
+						mtagPtr->addLinkedTag(compare, tempInt);
+
+						// display confirmation
+						uim->centeredText("Success!");
+						uim->skipLines(2);
+
+						tempStr = "\"" + compare->getName() + "\" was linked to \"" + mtagPtr->getName() + "\".";
+						uim->centeredText(tempStr);
+						uim->display();
+
+						compare = nullptr;
+					}
+				}
+				else // user chose to quit
+				{
+					tempStr = "Q";
+				}
+			} while (tempStr != "Q");
+		} 
+	}
+}
+
+void MealManager::editMultiTag(MultiTag* mtagPtr)
 {
 	std::string tempStr = "";
 	int tempInt;
@@ -953,21 +1562,55 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	while (tempStr != "Q")
 	{
 		// header
-		uim.centeredText("MultiTag Information");
-		uim.skipLines(2);
+		tempStr = "Viewing \"" + mtagPtr->getName() + "\"";
+		uim->centeredText(tempStr);
+		uim->skipLines(2);
 
 		// display tag info
-		displayMultiTagInfo(mtagPtr, uim);
+		displayMultiTagInfo(mtagPtr);
 
 		// prompt user for attribute to edit or quit
-		strVec = { "1Edit Name", "2Edit Description", "3Set Enabled Days",
-					"4Set priority level", "5Enable/Disable", "6View/Edit Linked Tags", "QQuit Selection" };
-		uim.prompt_List_Case_Insensitive(strVec);
+		strVec = { "1Edit Name", "2Edit Description", "3Edit Enabled Days",
+					"4Edit priority level", "5View/Edit Linked Tags", "6Edit Tag Fulfillment Requirement", "", "DDelete MultiTag", "", "QQuit Selection" };
+		uim->prompt_List_Case_Insensitive(strVec);
 
-		tempStr = uim.display();
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
-		if (tempStr != "Q")
+		// user chose to delete tag
+		if (tempStr == "D")
+		{
+			// confirm deletion
+			uim->centeredText("Confirm Deletion");
+			uim->skipLines(2);
+			uim->centeredText("Are you sure you want to delete this MultiTag?");
+			uim->skipLines(1);
+
+			// display tag info
+			displayMultiTagInfo(mtagPtr);
+
+			strVec = { "YYes", "NNo" };
+
+			uim->prompt_List_Case_Insensitive(strVec);
+			tempStr = uim->display();
+			tempStr = std::toupper(tempStr.at(0));
+
+			// check user's choice
+			if (tempStr == "Y")
+			{
+				deleteMultiTag(mtagPtr);
+
+				// confirm to user
+				uim->centeredText("Success!");
+				uim->skipLines(2);
+				uim->centeredText("MultiTag deleted!");
+				uim->display();
+			}
+
+			// quit menu 
+			tempStr = "Q";
+		}
+		else if (tempStr != "Q")
 		{
 			// get choice
 			tempInt = std::stoi(tempStr);
@@ -975,58 +1618,70 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 			switch (tempInt)
 			{
 			case 1: // edit name
-				uim.centeredText("Edit Name");
-				uim.skipLines(2);
-
-				// display original name
-				tempStr = "Original name: " + mtagPtr->getName();
-				uim.leftAllignedText(tempStr);
-				uim.skipLines(1);
+				tempStr = "Editing \"" + mtagPtr->getName() + "\"";
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
 
 				// prompt and get input
-				uim.leftAllignedText("Enter a new name: ");
-				uim.prompt_FreeString(NAME_LENGTH);
+				uim->centeredText("Enter a new name: ");
+				uim->prompt_FreeString(1, NAME_LENGTH);
 
-				tempStr = uim.display();
+				tempStr = uim->display();
 
 				//set new name
 				mtagPtr->setName(tempStr);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
-				tempStr = "Name changed to " + mtagPtr->getName();
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				tempStr = "Name changed to \"" + mtagPtr->getName() + "\".";
+				uim->centeredText(tempStr);
+				uim->prompt_None();
+				uim->display();
 				break;
 			case 2: // edit description
-				uim.centeredText("Edit Description");
-				uim.skipLines(2);
+				tempStr = "Editing \"" + mtagPtr->getName() + "\"";
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
 
 				// display original description
-				tempStr = "Original description: " + mtagPtr->getDescription();
-				uim.leftAllignedText(tempStr);
-				uim.skipLines(1);
+				tempStr = "Original description:";
+				uim->centeredText(tempStr);
+
+				if (mtagPtr->getDescription().length() == 0)
+					tempStr = "(no description)";
+				else
+					tempStr = "\"" + mtagPtr->getDescription() + "\".";
+
+				uim->centeredText(tempStr);
+				uim->skipLines(1);
 
 				// prompt and get input
-				uim.leftAllignedText("Enter a new description: ");
-				uim.prompt_FreeString(DESC_LENGTH);
+				uim->centeredText("Enter a new description: ");
+				uim->centeredText("(Press <enter> to skip)");
+				uim->prompt_FreeString(0, DESC_LENGTH);
 
-				tempStr = uim.display();
+				tempStr = uim->display();
 
 				//set new description
-				mtagPtr->setName(tempStr);
+				mtagPtr->setDescription(tempStr);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
-				tempStr = "Description changed to " + mtagPtr->getDescription();
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				tempStr = "Description changed to:";
+				uim->centeredText(tempStr);
+
+				if (mtagPtr->getDescription().length() == 0)
+					tempStr = "(no description)";
+				else
+					tempStr = "\"" + mtagPtr->getDescription() + "\".";
+
+				uim->centeredText(tempStr);
+				uim->prompt_None();
+				uim->display();
 				break;
 			case 3: // set enabled days
 			{
@@ -1036,70 +1691,71 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				// let user set enabled days or quit
 				while (tempStr != "Q")
 				{
-					uim.centeredText("Enable/Disable Days");
-					uim.skipLines(2);
+					tempStr = "Editing \"" + mtagPtr->getName() + "\"";
+					uim->centeredText(tempStr);
+					uim->skipLines(2);
 
-					uim.centeredText("Choose days that MuliTag is active on:");
-					uim.skipLines(1);
+					uim->centeredText("Choose the days that this MultiTag will be active on:");
+					uim->skipLines(1);
 
 					tempStr = "MON: ";
 					if (enabledDays.find(MONDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "TUE: ";
 					if (enabledDays.find(TUESDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "WED: ";
 					if (enabledDays.find(WEDNESDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "THU: ";
 					if (enabledDays.find(THURSDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "FRI: ";
 					if (enabledDays.find(FRIDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "SAT: ";
 					if (enabledDays.find(SATURDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "SUN: ";
 					if (enabledDays.find(SUNDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					// print options
 					strVec.clear();
 					strVec = { "1Toggle MONDAY", "2Toggle TUESDAY", "3Toggle WEDNESDAY", "4Toggle THURSDAY",
-							  "5Toggle FRIDAY", "6Toggle SATURDAY", "7Toggle SUNDAY", "- ",
-							  "EEnable ALL", "DDisable ALL","- ", "QExit & Confirm Selection" };
+							  "5Toggle FRIDAY", "6Toggle SATURDAY", "7Toggle SUNDAY", "",
+							  "EEnable ALL", "DDisable ALL","", "QExit & Confirm Selection" };
 
 					// prompt and get input
-					uim.prompt_List_Case_Insensitive(strVec);
-					tempStr = uim.display();
+					uim->prompt_List_Case_Insensitive(strVec);
+					tempStr = uim->display();
 					tempStr = std::toupper(tempStr.at(0));
 
 					if (tempStr == "E")
@@ -1176,127 +1832,127 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 				mtagPtr->setEnabledDays(enabledDays);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
-				uim.centeredText("Enabled Days set!");
-				uim.display();
+				uim->centeredText("Success!");
+				uim->skipLines(2);
+				uim->centeredText("Enabled Days set!");
+				uim->display();
 			}
 			break;
 			case 4: // set priority
 			{
-				uim.centeredText("Set Priority Level");
-				uim.skipLines(2);
+				tempStr = "Editing \"" + mtagPtr->getName() + "\"";
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
 
 				// report status
-				if (mtagPtr->hasPriority())
+				if (mtagPtr->getPriority())
 					tempStr = "This MultiTag has priority over Tags.";
 				else
 					tempStr = "This MultiTag has the same priority as Tags.";
 
-				uim.centeredText(tempStr);
+				uim->centeredText(tempStr);
 
 				// prompt user
 				tempStr = "Do you want to ";
 
-				if (mtagPtr->hasPriority())
-					tempStr += "give this MultiTag priority over Tags?";
+				if (mtagPtr->getPriority())
+					tempStr += "lower priority to be the same as Tags? (Normal Priority)";
 				else
-					tempStr += "lower priority to be the same as Tags?";
+					tempStr += "raise priority over Tags? (High Priority)";
 
-				uim.centeredText(tempStr);
+
+				uim->centeredText(tempStr);
 
 				strVec = { "YYes", "NNo" };
-				uim.prompt_List_Case_Insensitive(strVec);
+				uim->prompt_List_Case_Insensitive(strVec);
 
-				tempStr = uim.display();
+				tempStr = uim->display();
 				tempStr = std::toupper(tempStr.at(0));
 
 				// process user's input
 				if (tempStr == "Y")
 				{
 					// toggle state
-					if (mtagPtr->hasPriority())
+					if (mtagPtr->getPriority())
 						mtagPtr->setHighestPriority(false);
 					else
 						mtagPtr->setHighestPriority(true);
 				}
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "Priority changed to: ";
 
-				if (mtagPtr->hasPriority())
-					tempStr += "SAME AS TAGS.";
+				if (mtagPtr->getPriority())
+					tempStr += "HIGH PRIORITY.";
 				else
-					tempStr += "PRIORITY OVER TAGS.";
+					tempStr += "NORMAL PRIORITY.";
 
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				uim->centeredText(tempStr);
+				uim->prompt_None();
+				uim->display();
 			}
 			break;
-			case 5: // enable/diable
-				uim.centeredText("Enable/Disable");
-				uim.skipLines(2);
+			case 5: // view/edit linked tags
+				editMultiTagTags(mtagPtr);
+				tempStr = ""; // make sure menu will loop
+				break;
+			case 6:
+				// set requireFulfillment
+				tempStr = "Editing \"" + mtagPtr->getName() + "\"";
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
 
-				// display original value
-				tempStr = "MultiTag is set to: ";
+				tempStr = "Current status: ";
 
-				if (mtagPtr->isEnabled())
-					tempStr += "ENABLED";
+				if (mtagPtr->getRequireFulfillment())
+					tempStr += "REQUIRE ALL TAGS TO BE FULFILLED";
 				else
-					tempStr += "DISABLED";
+					tempStr += "ALLOW PARTIAL FULFILLMENT";
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
 
-				uim.leftAllignedText(tempStr);
-				uim.skipLines(1);
+				uim->centeredText("Do you require all linked Tags to meet their requested number of Meals? (recommended YES)");
+				uim->skipLines(1);
+				uim->centeredText("If YES, then if a Tag's assigned Meals are unavailable, or not enough can be scheduled, then the program will skip this MultiTag.");
+				uim->centeredText("If NO, then no matter how many Tags are linked, if at least ONE meal is scheduled, the program will commit it to the schedule.");
+				uim->skipLines(3);
+				uim->centeredText("Examples if set to REQUIRE ALL TAGS TO BE FULFILLED:");
+				uim->skipLines(1);
+				uim->centeredText("If this MultiTag has 1 linked Tag which requests 3 Meals but only 2 are available, then a different Tag/MultiTag will be found.");
+				uim->centeredText("If this MultiTag has 2 linked Tags and both request 1 Meal but only 1 Meal is found, then a different Tag/MultiTag will be found.");
+				uim->skipLines(2);
+				uim->centeredText("Examples if set to ALLOW PARTIAL FULFILLMENT:");
+				uim->skipLines(1);
+				uim->centeredText("If this MultiTag has 5 linked Tags, all request 1 Meal but only 1 Meal in total is found, then the day will have only 1 Meal scheduled.");
 
-				// prompt and get input
-				tempStr = "Do you want to ";
+				strVec = { "1Require all Tags to be fulfilled", "2Allow partial fulfillment" };
+				uim->prompt_List_Case_Insensitive(strVec);
 
-				if (mtagPtr->isEnabled())
-					tempStr += "enable";
+				tempStr = uim->display();
+
+				// set priority depending on user choice
+				if (tempStr == "1")
+					mtagPtr->setRequireFulfillment(true);
 				else
-					tempStr += "disable";
-
-				tempStr += " it?";
-
-				uim.leftAllignedText(tempStr);
-				strVec = { "YYes", "NNo" };
-
-				uim.prompt_List_Case_Insensitive(strVec);
-				tempStr = uim.display();
-				tempStr = std::toupper(tempStr.at(0));
-
-				// process input
-				if (tempStr == "Y")
-				{
-					// invert value
-					if (mtagPtr->isEnabled())
-						mtagPtr->setEnabled(false);
-					else
-						mtagPtr->setEnabled(true);
-				}
+					mtagPtr->setRequireFulfillment(false);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
-				tempStr = "MultiTag is now ";
+				tempStr = "Requirement changed to: ";
 
-				if (mtagPtr->isEnabled())
-					tempStr += "ENABLED.";
+				if (mtagPtr->getRequireFulfillment())
+					tempStr += "REQUIRE ALL TAGS TO BE FULFILLED";
 				else
-					tempStr += "DISABLED.";
+					tempStr += "ALLOW PARTIAL FULFILLMENT";
 
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
-				break;
-			case 6: // view/edit linked tags
-				editMultiTagTags(mtagPtr, uim);
-				tempStr = ""; // make sure menu will loop
+				uim->centeredText(tempStr);
+				uim->prompt_None();
+				uim->display();
 				break;
 			default:
 				// do nothing
@@ -1306,7 +1962,7 @@ void MealManager::editMultiTag(MultiTag* mtagPtr, UIManager& uim)
 	}// while (tempStr != "Q")
 }
 
-void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
+void MealManager::editMeal(Meal* mealPtr)
 {
 	std::string tempStr = "";
 	int tempInt;
@@ -1316,20 +1972,53 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 	while (tempStr != "Q")
 	{
 		// header
-		uim.centeredText("Meal Information");
-		uim.skipLines(2);
+		tempStr = "Viewing \"" + mealPtr->getName() + "\".";
+		uim->centeredText(tempStr);
+		uim->skipLines(2);
 
 		// display meal info
-		displayMealInfo(mealPtr, uim);
+		displayMealInfo(mealPtr);
 
 		// prompt user for attribute to edit or quit
-		strVec = { "1Edit Name", "2Edit Price", "3Edit Duration", "4Edit Days Between Occurrences", "5Enable/Disable Meal", "6Edit Tags", "QQuit Selection" };
-		uim.prompt_List_Case_Insensitive(strVec);
+		strVec = { "1Edit Name", "2Edit Price", "3Edit Duration", "4Edit Days Between Occurrences","5View/Edit Tags", "6Enable/Disable Meal", "", "DDelete Meal", "", "QQuit Selection" };
+		uim->prompt_List_Case_Insensitive(strVec);
 
-		tempStr = uim.display();
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
-		if (tempStr != "Q")
+		if (tempStr == "D") // user chose to delete
+		{
+			// confirm deletion
+			uim->centeredText("Confirm Deletion");
+			uim->skipLines(2);
+			uim->centeredText("Are you sure you want to delete this Meal?");
+			uim->skipLines(1);
+
+			// display meal info
+			displayMealInfo(mealPtr);
+
+			strVec = { "YYes", "NNo" };
+
+			uim->prompt_List_Case_Insensitive(strVec);
+			tempStr = uim->display();
+			tempStr = std::toupper(tempStr.at(0));
+
+			// check user's choice
+			if (tempStr == "Y")
+			{
+				deleteMeal(mealPtr);
+
+				// confirm to user
+				uim->centeredText("Success!");
+				uim->skipLines(2);
+				uim->centeredText("Meal deleted!");
+				uim->display();
+			}
+			
+			// quit menu 
+			tempStr = "Q";
+		}
+		else if (tempStr != "Q")
 		{
 			// get choice
 			tempInt = std::stoi(tempStr);
@@ -1337,158 +2026,124 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 			switch (tempInt)
 			{
 			case 1: // name
-				uim.centeredText("Edit Name");
-				uim.skipLines(2);
-
-				// display original name
-				tempStr = "Original name: " + mealPtr->getName();
-				uim.leftAllignedText(tempStr);
-				uim.skipLines(1);
+				tempStr = "Editing \"" + mealPtr->getName() + "\"";
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
 
 				// prompt and get input
-				uim.leftAllignedText("Enter a new name: ");
-				uim.prompt_FreeString(NAME_LENGTH);
+				uim->centeredText("Enter a new name:");
+				uim->prompt_FreeString(1, NAME_LENGTH);
 
-				tempStr = uim.display();
+				tempStr = uim->display();
 
 				//set new name
 				mealPtr->setName(tempStr);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
-				tempStr = "Name changed to " + mealPtr->getName();
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				tempStr = "Name changed to \"" + mealPtr->getName() + "\".";
+				uim->centeredText(tempStr);
+				uim->display();
 				break;
 			case 2: // price
-				uim.centeredText("Edit Price");
-				uim.skipLines(2);
+				tempStr = "Editing " + mealPtr->getName();
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
 
 				// display original price
 				tempStr = "Original price: " + formatPrice(mealPtr->getPrice());
-
-				uim.leftAllignedText(tempStr);
-				uim.skipLines(1);
+				uim->centeredText(tempStr);
+				uim->skipLines(1);
 
 				// prompt and get input
-				uim.leftAllignedText("Enter a new price: ");
-				uim.prompt_FreeDouble(MINIMUM_PRICE, MAXIMUM_PRICE);
+				uim->centeredText("Enter a new price:");
+				uim->prompt_FreeDouble(MINIMUM_PRICE, MAXIMUM_PRICE);
 
-				tempDouble = std::stod(uim.display());
+				tempDouble = std::stod(uim->display());
 
 				// set new price
 				mealPtr->setPrice(tempDouble);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "Price changed to: " + formatPrice(mealPtr->getPrice());
-
-				uim.centeredText(tempStr);
-				uim.display();
+				uim->centeredText(tempStr);
+				uim->display();
 				break;
 			case 3: // duration
 			{
 				unsigned int mealDuration = mealPtr->getMealDuration();
 
-				uim.centeredText("Edit Duration");
-				uim.skipLines(2);
+				tempStr = "Editing \"" + mealPtr->getName() + "\"";
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
 				
-				tempStr = "This Meal has a duration of " + std::to_string(mealDuration) + " days.";
-				uim.centeredText(tempStr);
-				uim.centeredText("Enter a new Duration:");
-				uim.prompt_FreeInt(1, 30);
-				tempInt = std::stoi(uim.display());
+				tempStr = "\"" + mealPtr->getName() + "\" has a duration of " + std::to_string(mealDuration) + " days.";
+				uim->centeredText(tempStr);
+				uim->skipLines(1);
+
+				uim->centeredText("Enter a new Duration:");
+				uim->prompt_FreeInt(1, MEAL_DURATION_LIMIT);
+				tempInt = std::stoi(uim->display());
 
 				mealPtr->setMealDuration(tempInt);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "Duration changed to: " + std::to_string(mealPtr->getMealDuration()) + " days.";
-
-				uim.centeredText(tempStr);
-				uim.display();
+				uim->centeredText(tempStr);
+				uim->display();
 			}
 				break;
 			case 4: // daysBetweenOccurrences
 			{
 				unsigned int occurrences = mealPtr->getDaysBetweenOccurrences();
 
-				uim.centeredText("Edit Days Between Occurrences");
-				uim.skipLines(2);
+				tempStr = "Editing \"" + mealPtr->getName() + "\"";
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
 
 				tempStr = "When this Meal is scheduled, it must wait " + std::to_string(occurrences) + " days before it can occur again.";
-				uim.centeredText(tempStr);
-				uim.centeredText("Enter a new delay time:");
-				uim.prompt_FreeInt(0, 30);
-				tempInt = std::stoi(uim.display());
+				uim->centeredText(tempStr);
+				uim->skipLines(1);
 
-				mealPtr->setMealDuration(tempInt);
+				uim->centeredText("Enter a new delay time:");
+				tempStr = "(Original value: " + std::to_string(mealPtr->getDaysBetweenOccurrences()) + ")";
+				uim->centeredText(tempStr);
+				uim->prompt_FreeInt(0, DAYS_BETWEEN_OCCURRENCES_LIMIT);
+				tempInt = std::stoi(uim->display());
+
+				mealPtr->setDaysBetweenOccurrences(tempInt);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "Delay time changed to: " + std::to_string(mealPtr->getDaysBetweenOccurrences()) + " days.";
 
-				uim.centeredText(tempStr);
-				uim.display();
+				uim->centeredText(tempStr);
+				uim->display();
 			}
 				break;
-			case 5: // enable/disable
-			{
-				bool mealDisabled = mealPtr->getIsDisabled();
+			case 5: // edit tags
 
-				uim.centeredText("Enable/Disable Meal");
-				uim.skipLines(2);
-
-				// report status
-				tempStr = "This Meal is currently ";
-
-				if (mealDisabled)
-					tempStr += "DISABLED.";
-				else
-					tempStr += "ENABLED.";
-
-				uim.centeredText(tempStr);
-
-				// prompt user
-				tempStr = "Do you want to ";
-
-				if (mealDisabled)
-					tempStr += "enable";
-				else
-					tempStr += "disable";
-
-				tempStr += " it?";
-				uim.centeredText(tempStr);
-
-				strVec = { "YYes", "NNo" };
-				uim.prompt_List_Case_Insensitive(strVec);
-
-				tempStr = uim.display();
-				tempStr = std::toupper(tempStr.at(0));
-
-				// process user's input
-				if (tempStr == "Y")
-				{
-					// toggle state
-					if (mealDisabled)
-						mealPtr->setIsDisabled(false);
-					else
-						mealPtr->setIsDisabled(true);
-				}
-			}
-			break;
-			case 6: // edit tags
-				editMealTags(mealPtr, uim);
+				editMealTags(mealPtr);
 				tempStr = ""; // make sure menu will loop
+				break;
+			case 6: // enable/disable
+			{
+				// toggle state
+				if (mealPtr->isDisabled())
+					mealPtr->setDisabled(false);
+				else
+					mealPtr->setDisabled(true);
+			}
 				break;
 			default:
 				// do nothing
@@ -1498,7 +2153,7 @@ void MealManager::editMeal(Meal* mealPtr, UIManager& uim)
 	}// while (tempStr != "Q")
 }
 
-void MealManager::editTag(Tag* tagPtr, UIManager& uim)
+void MealManager::editTag(Tag* tagPtr)
 {
 	std::string tempStr = "";
 	int tempInt;
@@ -1507,21 +2162,55 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 	while (tempStr != "Q")
 	{
 		// header
-		uim.centeredText("Tag Information");
-		uim.skipLines(2);
+		tempStr = "Viewing \"" + tagPtr->getName() + "\"";
+		uim->centeredText(tempStr);
+		uim->skipLines(2);
 
 		// display tag info
-		displayTagInfo(tagPtr, uim);
+		displayTagInfo(tagPtr);
 
 		// prompt user for attribute to edit or quit
-		strVec = { "1Edit Name", "2Edit Description", "3Set Enabled Days", 
-					"4Set Dependency on MultiTags", "5Set Consecutive Occurrences", "QQuit Selection" };
-		uim.prompt_List_Case_Insensitive(strVec);
+		strVec = { "1Edit Name", "2Edit Description", "3Edit Enabled Days", 
+					"4Edit MultiTag Dependency", "5Edit Consecutive Occurrences", "", "DDelete Tag", "", "QQuit Selection" };
+		uim->prompt_List_Case_Insensitive(strVec);
 
-		tempStr = uim.display();
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
-		if (tempStr != "Q")
+		// user chose to delete tag
+		if (tempStr == "D")
+		{
+			// confirm deletion
+			uim->centeredText("Confirm Deletion");
+			uim->skipLines(2);
+			uim->centeredText("Are you sure you want to delete this Tag?");
+			uim->skipLines(1);
+
+			// display tag info
+			displayTagInfo(tagPtr);
+
+			strVec = { "YYes", "NNo" };
+
+			uim->prompt_List_Case_Insensitive(strVec);
+			tempStr = uim->display();
+			tempStr = std::toupper(tempStr.at(0));
+
+			// check user's choice
+			if (tempStr == "Y")
+			{
+				deleteTag(tagPtr);
+
+				// confirm to user
+				uim->centeredText("Success!");
+				uim->skipLines(2);
+				uim->centeredText("Tag deleted!");
+				uim->display();
+			}
+
+			// quit menu 
+			tempStr = "Q";
+		}
+		else if (tempStr != "Q")
 		{
 			// get choice
 			tempInt = std::stoi(tempStr);
@@ -1529,58 +2218,70 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 			switch (tempInt)
 			{
 			case 1: // edit name
-				uim.centeredText("Edit Name");
-				uim.skipLines(2);
-
-				// display original name
-				tempStr = "Original name: " + tagPtr->getName();
-				uim.leftAllignedText(tempStr);
-				uim.skipLines(1);
+				tempStr = "Editing \"" + tagPtr->getName() + "\"";
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
 
 				// prompt and get input
-				uim.leftAllignedText("Enter a new name: ");
-				uim.prompt_FreeString(NAME_LENGTH);
+				uim->centeredText("Enter a new name:");
+				uim->prompt_FreeString(1, NAME_LENGTH);
 
-				tempStr = uim.display();
+				tempStr = uim->display();
 
 				//set new name
 				tagPtr->setName(tempStr);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
-				tempStr = "Name changed to " + tagPtr->getName();
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				tempStr = "Name changed to \"" + tagPtr->getName() + "\".";
+				uim->centeredText(tempStr);
+				uim->prompt_None();
+				uim->display();
 				break;
 			case 2: // edit description
-				uim.centeredText("Edit Description");
-				uim.skipLines(2);
+				tempStr = "Editing \"" + tagPtr->getName() + "\"";
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
 
 				// display original description
-				tempStr = "Original description: " + tagPtr->getDescription();
-				uim.leftAllignedText(tempStr);
-				uim.skipLines(1);
+				tempStr = "Original description:";
+				uim->centeredText(tempStr);
+
+				if (tagPtr->getDescription().length() == 0)
+					tempStr = "(no description)";
+				else
+					tempStr = "\"" + tagPtr->getDescription() + "\".";
+
+				uim->centeredText(tempStr);
+				uim->skipLines(1);
 
 				// prompt and get input
-				uim.leftAllignedText("Enter a new description: ");
-				uim.prompt_FreeString(DESC_LENGTH);
+				uim->centeredText("Enter a new description:");
+				uim->centeredText("(Press <enter> to skip)");
+				uim->prompt_FreeString(0, DESC_LENGTH);
 
-				tempStr = uim.display();
+				tempStr = uim->display();
 
 				//set new description
-				tagPtr->setName(tempStr);
+				tagPtr->setDescription(tempStr);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
-				tempStr = "Description changed to " + tagPtr->getDescription();
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				tempStr = "Description changed to:";
+				uim->centeredText(tempStr);
+
+				if (tagPtr->getDescription().length() == 0)
+					tempStr = "(no description)";
+				else
+					tempStr = "\"" + tagPtr->getDescription() + "\".";
+
+				uim->centeredText(tempStr);
+				uim->prompt_None();
+				uim->display();
 				break;
 			case 3: // set enabled days
 			{
@@ -1590,70 +2291,71 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 				// let user set enabled days or quit
 				while (tempStr != "Q")
 				{
-					uim.centeredText("Enable/Disable Days");
-					uim.skipLines(2);
+					tempStr = "Editing \"" + tagPtr->getName() + "\"";
+					uim->centeredText(tempStr);
+					uim->skipLines(2);
 
-					uim.centeredText("Choose days that Meals with this Tag may occur on:");
-					uim.skipLines(1);
+					uim->centeredText("Choose the days that this Tag will be active on:");
+					uim->skipLines(1);
 
 					tempStr = "MON: ";
 					if (enabledDays.find(MONDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "TUE: ";
 					if (enabledDays.find(TUESDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "WED: ";
 					if (enabledDays.find(WEDNESDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "THU: ";
 					if (enabledDays.find(THURSDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "FRI: ";
 					if (enabledDays.find(FRIDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "SAT: ";
 					if (enabledDays.find(SATURDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					tempStr = "SUN: ";
 					if (enabledDays.find(SUNDAY)->second)
 						tempStr += "enabled";
 					else
 						tempStr += "disabled";
-					uim.centeredText(tempStr);
+					uim->centeredText(tempStr);
 
 					// print options
 					strVec.clear();
 					strVec = { "1Toggle MONDAY", "2Toggle TUESDAY", "3Toggle WEDNESDAY", "4Toggle THURSDAY",
-							  "5Toggle FRIDAY", "6Toggle SATURDAY", "7Toggle SUNDAY", "- ",
-							  "EEnable ALL", "DDisable ALL","- ", "QExit & Confirm Selection" };
+							  "5Toggle FRIDAY", "6Toggle SATURDAY", "7Toggle SUNDAY", "",
+							  "EEnable ALL", "DDisable ALL","", "QExit & Confirm Selection" };
 
 					// prompt and get input
-					uim.prompt_List_Case_Insensitive(strVec);
-					tempStr = uim.display();
+					uim->prompt_List_Case_Insensitive(strVec);
+					tempStr = uim->display();
 					tempStr = std::toupper(tempStr.at(0));
 
 					if (tempStr == "E")
@@ -1730,41 +2432,42 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 				tagPtr->setEnabledDays(enabledDays);
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
-				uim.centeredText("Enabled Days set!");
-				uim.display();
+				uim->centeredText("Success!");
+				uim->skipLines(2);
+				uim->centeredText("Enabled Days set!");
+				uim->display();
 			}
 			break;
 			case 4: // set dependency
 			{
 				bool dependsOnMultitag = tagPtr->getDependency();
 
-				uim.centeredText("Set Dependency");
-				uim.skipLines(2);
+				tempStr = "Editing \"" + tagPtr->getName() + "\"";
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
 
 				// report status
 				if (dependsOnMultitag)
-					tempStr = "This Tag is only active when linked with a MuliTag.";
+					tempStr = "This Tag is only active when linked with a MuliTag. (advanced behavior)";
 				else
-					tempStr = "This Tag does not rely on a MultiTag (default behavior).";
+					tempStr = "This Tag does not rely on a MultiTag. (default behavior)";
 
-				uim.centeredText(tempStr);
+				uim->centeredText(tempStr);
 
 				// prompt user
 				tempStr = "Do you want to ";
 
 				if (dependsOnMultitag)
-					tempStr += "use this Tag without being linked to a MultiTag? (default behavior)";
+					tempStr += "enable this Tag regardless of being linked to a MultiTag? (default behavior)";
 				else
 					tempStr += "disable this Tag unless linked to a MultiTag? (advanced behavior)";
 
-				uim.centeredText(tempStr);
+				uim->centeredText(tempStr);
 
 				strVec = { "YYes", "NNo" };
-				uim.prompt_List_Case_Insensitive(strVec);
+				uim->prompt_List_Case_Insensitive(strVec);
 
-				tempStr = uim.display();
+				tempStr = uim->display();
 				tempStr = std::toupper(tempStr.at(0));
 
 				// process user's input
@@ -1778,46 +2481,53 @@ void MealManager::editTag(Tag* tagPtr, UIManager& uim)
 				}
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
-				tempStr = "Dependency changed to: ";
+				if (tempStr == "Y")
+					tempStr = "Dependency changed to: ";
+				else
+					tempStr = "Dependency kept to: ";
 
 				if (tagPtr->getDependency())
 					tempStr += "DEPENDS ON MULTITAG.";
 				else
 					tempStr += "DOES NOT REQUIRE MULTITAG.";
 
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				uim->centeredText(tempStr);
+				uim->prompt_None();
+				uim->display();
 			}
 				break;
 			case 5: // set consecutive occurrences
-				uim.centeredText("Set Consecutive Occurrences");
-				uim.skipLines(2);
+				tempStr = "Editing \"" + tagPtr->getName() + "\"";
+				uim->centeredText(tempStr);
+				uim->skipLines(2);
 
 				// display original value
 				tempStr = "Original value: " + std::to_string(tagPtr->getConsecutiveLimit())
 					 + " consecutive occurrences allowed.";
-				uim.leftAllignedText(tempStr);
-				uim.skipLines(1);
+				uim->centeredText(tempStr);
+				uim->skipLines(1);
 
 				// prompt and get input
-				uim.leftAllignedText("How many consecutive days can a Meal with this Tag occur for?");
-				uim.prompt_FreeInt(0, 1000);
+				uim->centeredText("How many consecutive days can a Meal with this Tag occur for?");
+				uim->skipLines(1);
+				uim->centeredText("This setting is Tag-specific, not Meal-specific. It applies to all Meals assigned to this Tag.");
+				uim->centeredText("(A value of 1 means that Meals will occur every other day at most, a value of 3 allows 3 days of Meals from this Tag to occur in a row.)");
+				uim->prompt_FreeInt(1, CONSECUTIVE_DAYS_LIMIT);
 
 				// set new value
-				tagPtr->setConsecutiveLimit(std::stoi(uim.display()));
+				tagPtr->setConsecutiveLimit(std::stoi(uim->display()));
 
 				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
+				uim->centeredText("Success!");
+				uim->skipLines(2);
 
 				tempStr = "Consecutive occurrences set to " + std::to_string(tagPtr->getConsecutiveLimit());
-				uim.leftAllignedText(tempStr);
-				uim.prompt_None();
-				uim.display();
+				uim->centeredText(tempStr);
+				uim->prompt_None();
+				uim->display();
 				break;
 			default:
 				// do nothing
@@ -1841,15 +2551,10 @@ std::string MealManager::formatPrice(const double& price)
 	return formatStr;
 }
 
-std::string MealManager::formatEnabledDays(const Meal* mealPtr)
+std::string MealManager::formatEnabledDays(const std::map<DaysOfTheWeek, bool>& enabledDays)
 {
-	std::string returnStr = "";
+	std::string returnStr = "[";
 	bool oneDayEnabled = false; // used to determine format between days
-
-	// get enabled days
-	std::map<DaysOfTheWeek, bool> enabledDays = mealPtr->getEnabledDays();
-
-	returnStr = "[";
 
 	// check days that are disabled by tags
 	if (enabledDays.at(MONDAY))
@@ -1929,69 +2634,215 @@ std::string MealManager::formatEnabledDays(const Meal* mealPtr)
 	return returnStr;
 }
 
-int MealManager::displayMeals(UIManager& uim)
+void MealManager::optimizeData(std::map<DaysOfTheWeek, std::vector<MultiTag*>>& highPriorityMultiTags, 
+	std::map<DaysOfTheWeek, std::vector<MultiTag*>>& normalPriorityMultiTags, 
+	std::map<DaysOfTheWeek, std::vector<Tag*>>& normalPriorityTags)
 {
+	DaysOfTheWeek day = MONDAY; // adds elements to function's params for each day of the week
+
+	// ensure params are clear
+	highPriorityMultiTags.clear();
+	normalPriorityMultiTags.clear();
+	normalPriorityTags.clear();
+
+	// create an entry for each day of the week
+	do
+	{
+		std::vector<Tag*> tagEntry;
+		std::vector<MultiTag*> multiTagEntry;
+
+		// create element in params
+		highPriorityMultiTags.emplace(day, multiTagEntry);
+		normalPriorityMultiTags.emplace(day, multiTagEntry);
+		normalPriorityTags.emplace(day, tagEntry);
+
+		day = nextDay(day); // go to next day
+	} while (day != MONDAY);
+
+	// populates normalPriorityTags
+	do
+	{
+		// check all tags
+		for (auto tagIter : normalTags)
+		{
+			// check if enabled for current day and does not depend on a multitag
+			if (tagIter->getEnabledDays().at(day) && !tagIter->getDependency())
+			{
+				// copy vector of normalTags in normalPriorityTags
+				std::vector<Tag*> tagEntry = normalPriorityTags.at(day);
+
+				// add tagIter to tagEntry
+				tagEntry.push_back(tagIter);
+
+				// store back into normalPriorityTags
+				normalPriorityTags.at(day) = tagEntry;
+			}
+		}
+		day = nextDay(day); // go to next day
+	} while (day != MONDAY);
+
+	// populates highPriorityMultiTags and normalPriorityMultiTags
+	do
+	{
+		// check all multiTags
+		for (auto multiTagIter : multiTags)
+		{
+			// check if enabled for current day
+			if (multiTagIter->getEnabledDays().at(day))
+			{
+				// check if multiTagsIter is disabled by its linked tags
+				std::map<Tag*, unsigned int> linkedTags = multiTagIter->getLinkedTags();
+
+				bool isDisabled = true;
+				auto linkedTagIter = linkedTags.begin();
+				while (isDisabled && linkedTagIter != linkedTags.end())
+				{
+					// if linked tag is enabled, then quit loop
+					if (linkedTagIter->first->getEnabledDays().at(day))
+						isDisabled = false;
+					else
+						++linkedTagIter;
+				}
+
+				// if multitag is not disabled
+				if (!isDisabled)
+				{
+					// check if multiTag is high or normal priority
+					if (multiTagIter->getPriority())
+					{
+						// copy vector of high priority multitags
+						std::vector<MultiTag*> tagEntry = highPriorityMultiTags.at(day);
+
+						// add multiTag to vector
+						tagEntry.push_back(multiTagIter);
+
+						// store back into highPriorityMultiTags
+						highPriorityMultiTags.at(day) = tagEntry;
+					}
+					else
+					{
+						// copy vector of normal priority multitags
+						std::vector<MultiTag*> tagEntry = normalPriorityMultiTags.at(day);
+
+						// add multiTag to vector
+						tagEntry.push_back(multiTagIter);
+
+						// store back into normalPriorityMultiTags
+						normalPriorityMultiTags.at(day) = tagEntry;
+					}
+				}
+			}
+		}
+		day = nextDay(day); // go to next day
+	} while (day != MONDAY);
+}
+
+Meal* MealManager::displayMeals(int& lastPageVisited)
+{
+	const int MEALS_PER_PAGE = 5; 
+
 	std::string tempStr = "";
 	std::vector<std::string> strVec;
+	Meal* returnPtr = nullptr;
 	int tempInt = -1;
+
+	// if there are no meals to list, let user create one 
+	if (meals.size() == 0)
+	{
+		uim->centeredText("There are no Meals to display, do you want to create one?");
+
+		strVec = { "YYes", "NNo" };
+		uim->prompt_List_Case_Insensitive(strVec);
+
+		tempStr = uim->display();
+		tempStr = std::toupper(tempStr.at(0));
+
+		// if user chose yes
+		if (tempStr == "Y")
+		{
+			// create a meal
+			Meal* mealPtr = new Meal;
+			createMeal(mealPtr);
+			mealPtr = nullptr;
+		}
+	}
 
 	// if there are meals to list
 	if (meals.size() > 0)
 	{
 		// if meals > 10, then display in pages
-		if (meals.size() > 10)
+		if (meals.size() > MEALS_PER_PAGE)
 		{
 			tempStr = "";
 
 			int currentPage = 1;
-			int totalPages = meals.size() / 10; // remainder may be present
+			int totalPages = meals.size() / MEALS_PER_PAGE; // remainder may be present
 
 			// if remainder, then add an extra page
-			if (meals.size() % 10 > 0)
+			if (meals.size() % MEALS_PER_PAGE > 0)
 				++totalPages;
+
+			// if lastPageVisited is valid, then replace currentPage with lastPageVisited
+			if (lastPageVisited >= 1 && lastPageVisited <= totalPages)
+				currentPage = lastPageVisited;
 
 			// loop while user has not quit menu
 			while (tempStr != "Q")
 			{
-				uim.centeredText("Meals");
+				uim->centeredText("Viewing Meals");
 				// display "Page x/y"
 				tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
-				uim.centeredText(tempStr);
-				uim.skipLines(2);
-				uim.centeredText("Choose a Meal:");
+				uim->centeredText(tempStr);
 
 				// start index for the current page
-				int startIndex = (10 * (currentPage - 1));
+				int startIndex = (MEALS_PER_PAGE * (currentPage - 1));
 
-				//if displaying a page that is NOT last page, then display 10 items
+				//if displaying a page that is NOT last page, then display MEALS_PER_PAGE items
 				if (currentPage < totalPages)
 				{
 					// create iterator at index's position
 					auto mealIter = meals.begin() + startIndex;
 
-					// create prompts for meals
-					for (int count = 0; count < 10; ++count)
+					// create prompts for meals and display meal
+					for (int count = 1; count <= MEALS_PER_PAGE; ++count)
 					{
+						displayMealInfo(*mealIter);
+						uim->skipLines(1);
 						tempStr = std::to_string(count) + (*mealIter)->getName();
 						strVec.push_back(tempStr);
+
+						++mealIter;
 					}
 				}
-				else // the current page is the last page, so there may be less than 10 elements to display
+				else // the current page is the last page, so there may be less than MEALS_PER_PAGE elements to display
 				{
 					// create iterator at index's position
 					auto mealIter = meals.begin() + startIndex;
-					int count = 0; // used to print prompt number
+					int count = 1; // used to print prompt number
 
 					// create prompts for the rest of the elements
-					while (mealIter != meals.end())
+					do
 					{
+						displayMealInfo(*mealIter);
+						uim->skipLines(1);
 						tempStr = std::to_string(count) + (*mealIter)->getName();
 						strVec.push_back(tempStr);
+
 						++count;
-					}
+						++mealIter;
+					} while (mealIter != meals.end());
 				}
 
 				// add prompts to go to next page, previous, and quit
+				tempStr = "";
+				strVec.push_back(tempStr);
+
+				tempStr = "CCreate a Meal";
+				strVec.push_back(tempStr);
+
+				tempStr = "";
+				strVec.push_back(tempStr);
+
 				tempStr = "NNext Page";
 				strVec.push_back(tempStr);
 
@@ -2002,12 +2853,25 @@ int MealManager::displayMeals(UIManager& uim)
 				strVec.push_back(tempStr);
 
 				// display UI and get input
-				uim.prompt_List_Case_Insensitive(strVec);
-				tempStr = uim.display();
+				uim->prompt_List_Case_Insensitive(strVec);
+				tempStr = uim->display();
 				tempStr = std::toupper(tempStr.at(0));
 
-				// check if choice is N, P, or Q
-				if (tempStr == "N")
+				// check choices
+				if (tempStr == "C")
+				{
+					// create a new meal
+					Meal* mealPtr = new Meal;
+					createMeal(mealPtr);
+					mealPtr = nullptr;
+
+					// confirm to user
+					uim->centeredText("Success!");
+					uim->skipLines(2);
+					uim->centeredText("Meal creation successful!");
+					uim->display();
+				}
+				else if (tempStr == "N")
 				{
 					// increment page number (loops around if at end)
 					if (currentPage == totalPages)
@@ -2029,9 +2893,14 @@ int MealManager::displayMeals(UIManager& uim)
 					tempInt = std::stoi(tempStr);
 
 					// convert into meal's index
+					--tempInt; // user's choices started at 1
 					tempInt += startIndex;
 
-					// exit loop
+					// get pointer
+					returnPtr = meals.at(tempInt);
+
+					// exit loop and return lastPageVisited
+					lastPageVisited = currentPage;
 					tempStr = "Q";
 				}
 			} // while (tempStr != "Q")
@@ -2042,31 +2911,58 @@ int MealManager::displayMeals(UIManager& uim)
 			// while user has not chosen to quit 
 			while (tempStr != "Q")
 			{
-				uim.centeredText("Meals");
-				uim.skipLines(2);
-				uim.centeredText("Choose a Meal:");
+				uim->centeredText("Viewing Meals");
+				uim->skipLines(1);
 
 				// create prompts
-				int choice = 0;
+				int choice = 1;
 				for (auto mealIter : meals)
 				{
+					displayMealInfo(mealIter);
+					uim->skipLines(1);
 					tempStr = std::to_string(choice) + mealIter->getName();
 					strVec.push_back(tempStr);
 					++choice;
 				}
 				// add prompts to quit
+				tempStr = "";
+				strVec.push_back(tempStr);
+
+				tempStr = "CCreate a Meal";
+				strVec.push_back(tempStr);
+
+				tempStr = "";
+				strVec.push_back(tempStr);
+
 				tempStr = "QQuit Selection";
 				strVec.push_back(tempStr);
 
-				uim.prompt_List_Case_Insensitive(strVec);
-				tempStr = uim.display();
+				uim->prompt_List_Case_Insensitive(strVec);
+				tempStr = uim->display();
 				tempStr = std::toupper(tempStr.at(0));
 
-				// user chose a meal to edit
-				if (tempStr != "Q")
+				// process choices
+				if (tempStr == "C")
+				{
+					// create a new meal
+					Meal* mealPtr = new Meal;
+					createMeal(mealPtr);
+					mealPtr = nullptr;
+
+					// confirm to user
+					uim->centeredText("Success!");
+					uim->skipLines(2);
+					uim->centeredText("Meal creation successful!");
+					uim->display();
+				}
+				else if (tempStr != "Q")
 				{
 					// get index of meal
 					tempInt = std::stoi(tempStr);
+					--tempInt; // user's choices started at 1
+
+					// get pointer
+					returnPtr = meals.at(tempInt);
 
 					// exit loop
 					tempStr = "Q";
@@ -2074,228 +2970,315 @@ int MealManager::displayMeals(UIManager& uim)
 			}// while (tempStr != "Q")
 		} // else display all meals
 	}
-	else // display error
-	{
-		uim.centeredText("Error");
-		uim.skipLines(2);
-		uim.centeredText("You have no Meals to display.");
-		uim.prompt_None();
-		uim.display();
-	}
 	
-	return tempInt;
+	return returnPtr;
 }
 
-int MealManager::displayTags(UIManager& uim)
+int MealManager::displayTags(int& lastPageVisited, Tag*& tagPtr, const std::vector<Tag*>& excludeTags)
 {
+	const int TAGS_PER_PAGE = 5;
+
 	std::string tempStr = "";
 	std::vector<std::string> strVec;
+	std::vector<Tag*> availableTags = normalTags; // make all tags available to display
 	int tempInt = -1;
 
-	// check if tags exist
-	if (normalTags.size() > 0)
+	// ensure tagPtr is set to nullptr
+	tagPtr = nullptr;
+
+	// check if tags need to be excluded
+	if (availableTags.size() > 0 && excludeTags.size() > 0)
 	{
-		if (normalTags.size() <= 10) // can print all tags in 1 page
+		// loop while tags need to be excluded
+		for (auto excludeTagsIter : excludeTags)
 		{
-			uim.centeredText("Tags");
-			uim.skipLines(2);
-			uim.centeredText("Choose a Tag:");
-			uim.skipLines(1);
+			bool found = false;
+			auto availableTagsIter = availableTags.begin();
 
-			// display tags with description and create prompt
-			int count = 0;
-			for (auto tagIter : normalTags)
+			while (!found && availableTagsIter != availableTags.end())
 			{
-				displayTagInfo(tagIter, uim);
-				/*
-				tempStr = "Name: " + tagIter->getName();
-				uim.leftAllignedText(tempStr);
-				tempStr = "Description: " + tagIter->getDescription();
-				uim.leftAllignedText(tempStr);
-				*/
-				uim.skipLines(1);
+				// check if match
+				if (*availableTagsIter == excludeTagsIter)
+				{
+					found = true;
 
-				tempStr = std::to_string(count) + tagIter->getName();
-				strVec.push_back(tempStr);
-				++count;
+					// remove this tag from availableTags
+					availableTags.erase(availableTagsIter);
+				}
+				else
+					++availableTagsIter;
+			}
+		}
+	}
+
+
+	// if there are no tags to list, let user create one 
+	if (availableTags.size() == 0)
+	{
+		uim->centeredText("There are no Tags to display, do you want to create one?");
+
+		strVec = { "YYes", "NNo" };
+		uim->prompt_List_Case_Insensitive(strVec);
+
+		tempStr = uim->display();
+		tempStr = std::toupper(tempStr.at(0));
+
+		// if user chose yes
+		if (tempStr == "Y")
+		{
+			// create a tag
+			tagPtr = new Tag;
+			createTag(tagPtr);
+
+			// return TagCreated status and quit
+			tempInt = -2;
+		}
+	}
+	else // display tags
+	{
+		int currentPage = 1; // default to first page
+
+		// calculate total pages
+		int totalPages = availableTags.size() / TAGS_PER_PAGE; // remainder may be present
+
+		// if remainder, then add an extra page
+		if (availableTags.size() % TAGS_PER_PAGE > 0)
+			++totalPages;
+
+		// if lastPageVisited is valid, then replace currentPage with lastPageVisited
+		if (lastPageVisited >= 1 && lastPageVisited <= totalPages)
+			currentPage = lastPageVisited;
+
+		// while user did not quit
+		while (tempStr != "Q")
+		{
+			// ui header
+			uim->centeredText("Viewing Tags");
+			// display "Page x/y"
+			tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
+			uim->centeredText(tempStr);
+
+			// start index for the current page
+			int startIndex = (TAGS_PER_PAGE * (currentPage - 1));
+
+			// create iterator at index's position
+			auto tagIter = availableTags.begin() + startIndex;
+
+			//if displaying a page that is NOT last page, then display TAGS_PER_PAGE items
+			if (currentPage < totalPages)
+			{
+
+				// display tags
+				for (int count = 1; count <= TAGS_PER_PAGE; ++count)
+				{
+					displayTagInfo(*tagIter);
+					uim->skipLines(1);
+
+					tempStr = std::to_string(count) + (*tagIter)->getName();
+					strVec.push_back(tempStr);
+
+					++tagIter;
+				}
+			}
+			else // the current page is the last page, so display until end of availableTAgs
+			{
+				int count = 1; // used to print prompt number
+
+				// create prompts for the rest of the elements
+				while (tagIter != availableTags.end())
+				{
+					displayTagInfo(*tagIter);
+					uim->skipLines(1);
+
+					tempStr = std::to_string(count) + (*tagIter)->getName();
+					strVec.push_back(tempStr);
+
+					++tagIter;
+					++count;
+				}
 			}
 
-			// add quit option
+			// add prompts to go to next page, previous, and quit
+			tempStr = "";
+			strVec.push_back(tempStr);
+
+			tempStr = "CCreate a Tag";
+			strVec.push_back(tempStr);
+
+			tempStr = "";
+			strVec.push_back(tempStr);
+
+			tempStr = "NNext Page";
+			strVec.push_back(tempStr);
+
+			tempStr = "PPrevious Page";
+			strVec.push_back(tempStr);
+
 			tempStr = "QQuit Selection";
 			strVec.push_back(tempStr);
 
-			// prompt and get input
-			uim.prompt_List_Case_Insensitive(strVec);
-			tempStr = uim.display();
+			// display UI and get input
+			uim->prompt_List_Case_Insensitive(strVec);
+			tempStr = uim->display();
 			tempStr = std::toupper(tempStr.at(0));
 
-			// if user did not quit
-			if (tempStr != "Q")
+			// process inputs
+			if (tempStr == "C")
 			{
-				// get choice
-				tempInt = std::stoi(tempStr);
+				// create a new tag
+				tagPtr = new Tag;
+				createTag(tagPtr);
+
+				// confirm to user
+				uim->centeredText("Success!");
+				uim->skipLines(2);
+				uim->centeredText("Tag creation successful!");
+				uim->display();
+
+				// return TagCreated status and quit
+				tempInt = -2;
+				tempStr = "Q";
 			}
-		}
-		else // print tags in pages
-		{
-			tempStr = "";
-
-			int currentPage = 1;
-			int totalPages = normalTags.size() / 10; // remainder may be present
-
-			// if remainder, then add an extra page
-			if (normalTags.size() % 10 > 0)
-				++totalPages;
-
-			// loop while user has not quit menu
-			while (tempStr != "Q")
+			else if (tempStr == "N")
 			{
-				uim.centeredText("Tags");
-				// display "Page x/y"
-				tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
-				uim.centeredText(tempStr);
-				uim.skipLines(2);
-				uim.centeredText("Choose a Tag:");
+				// increment page number (loops around if at end)
+				if (currentPage == totalPages)
+					currentPage = 1;
+				else
+					++currentPage;
+			}
+			else if (tempStr == "P")
+			{
+				// decrement page number (loops around if at beginning)
+				if (currentPage == 1)
+					currentPage = totalPages;
+				else
+					--currentPage;
+			}
+			else if (tempStr != "Q")
+			{
+				// get choice, set to correct index
+				tempInt = std::stoi(tempStr) - 1;
+				tempInt += startIndex; // add offset
 
-				// start index for the current page
-				int startIndex = (10 * (currentPage - 1));
+				// get Tag
+				tagPtr = availableTags.at(tempInt);
 
-				//if displaying a page that is NOT last page, then display 10 items
-				if (currentPage < totalPages)
-				{
-					// create iterator at index's position
-					auto tagIter = normalTags.begin() + startIndex;
+				// return tagSelected status
+				tempInt = 0;
 
-					// display tag with description and create prompt
-					for (int count = 0; count < 10; ++count)
-					{
-						displayTagInfo(*tagIter, uim);
-						/*uim.centeredText((*tagIter)->getName());
-						uim.leftAllignedText((*tagIter)->getDescription());*/
-						uim.skipLines(1);
+				// end loop
+				tempStr = "Q";
+				lastPageVisited = currentPage;
+			}
+			else // user chose to quit
+				tempInt = -1; // return exited status
+		}
 
-						tempStr = std::to_string(count) + (*tagIter)->getName();
-						strVec.push_back(tempStr);
-						++count;
-					}
-				}
-				else // the current page is the last page, so there may be less than 10 elements to display
-				{
-					// create iterator at index's position
-					auto tagIter = normalTags.begin() + startIndex;
-					int count = 0; // used to print prompt number
+			
+	} // else display tags
 
-					// create prompts for the rest of the elements
-					while (tagIter != normalTags.end())
-					{
-						displayTagInfo(*tagIter, uim);
-						/*uim.centeredText((*tagIter)->getName());
-						uim.leftAllignedText((*tagIter)->getDescription());*/
-						uim.skipLines(1);
-
-						tempStr = std::to_string(count) + (*tagIter)->getName();
-						strVec.push_back(tempStr);
-						++count;
-					}
-				}
-
-				// add prompts to go to next page, previous, and quit
-				tempStr = "NNext Page";
-				strVec.push_back(tempStr);
-
-				tempStr = "PPrevious Page";
-				strVec.push_back(tempStr);
-
-				tempStr = "QQuit Selection";
-				strVec.push_back(tempStr);
-
-				// display UI and get input
-				uim.prompt_List_Case_Insensitive(strVec);
-				tempStr = uim.display();
-				tempStr = std::toupper(tempStr.at(0));
-
-				// check if choice is N, P, or Q
-				if (tempStr == "N")
-				{
-					// increment page number (loops around if at end)
-					if (currentPage == totalPages)
-						currentPage = 1;
-					else
-						++currentPage;
-				}
-				else if (tempStr == "P")
-				{
-					// decrement page number (loops around if at beginning)
-					if (currentPage == 1)
-						currentPage = totalPages;
-					else
-						--currentPage;
-				}
-				else if (tempStr != "Q")
-				{
-					// get choice, set to correct index
-					tempInt = std::stoi(tempStr);
-					tempInt += startIndex;
-
-					// end loop
-					tempStr = "Q";
-				}
-			} // while (tempStr != "Q")
-		} // else print tag in pages
-	} // if more than 0 tags
-	else // display error 
-	{
-		uim.centeredText("Error");
-		uim.skipLines(2);
-		uim.centeredText("No Tags to display.");
-		uim.display();
-	}
 	return tempInt;
 }
 
-int MealManager::displayMultiTags(UIManager& uim)
+MultiTag* MealManager::displayMultiTags(int& lastPageVisited)
 {
+	const int MULTITAGS_PER_PAGE = 5;
+
 	std::string tempStr = "";
 	std::vector<std::string> strVec;
+	MultiTag* returnPtr = nullptr;
 	int tempInt = -1;
+
+	// if there are no multitags to list, let user create one 
+	if (multiTags.size() == 0)
+	{
+		uim->centeredText("There are no MultiTags to display, do you want to create one?");
+
+		strVec = { "YYes", "NNo" };
+		uim->prompt_List_Case_Insensitive(strVec);
+
+		tempStr = uim->display();
+		tempStr = std::toupper(tempStr.at(0));
+
+		// if user chose yes
+		if (tempStr == "Y")
+		{
+			// create a tag
+			MultiTag* mtagPtr = new MultiTag;
+			createMultiTag(mtagPtr);
+			mtagPtr = nullptr;
+		}
+	}
 
 	// check if multitags exist
 	if (multiTags.size() > 0)
 	{
 		// can print all multitags in 1 page
-		if (multiTags.size() <= 10) 
+		if (multiTags.size() <= MULTITAGS_PER_PAGE)
 		{
-			uim.centeredText("Multi Tags");
-			uim.skipLines(2);
-			uim.centeredText("Choose a MultiTag:");
-			uim.skipLines(1);
-
-			// display multitags with description and create prompt
-			int count = 0;
-			for (auto tagIter : multiTags)
+			// while user has not quit
+			while (tempStr != "Q")
 			{
-				displayMultiTagInfo(tagIter, uim);
-				uim.skipLines(1);
+				uim->centeredText("Viewing MultiTags");
+				uim->skipLines(1);
 
-				tempStr = std::to_string(count) + tagIter->getName();
+				// display multitags with description and create prompt
+				int count = 1;
+				for (auto tagIter : multiTags)
+				{
+					displayMultiTagInfo(tagIter);
+					uim->skipLines(1);
+
+					tempStr = std::to_string(count) + tagIter->getName();
+					strVec.push_back(tempStr);
+					++count;
+				}
+
+				// add create and quit option
+				tempStr = "";
 				strVec.push_back(tempStr);
-				++count;
-			}
 
-			// add quit option
-			tempStr = "QQuit Selection";
-			strVec.push_back(tempStr);
+				tempStr = "CCreate a MultiTag";
+				strVec.push_back(tempStr);
 
-			// prompt and get input
-			uim.prompt_List_Case_Insensitive(strVec);
-			tempStr = uim.display();
-			tempStr = std::toupper(tempStr.at(0));
+				tempStr = "";
+				strVec.push_back(tempStr);
 
-			// if user did not quit
-			if (tempStr != "Q")
-			{
-				// get choice
-				tempInt = std::stoi(tempStr);
+				tempStr = "QQuit Selection";
+				strVec.push_back(tempStr);
+
+				// prompt and get input
+				uim->prompt_List_Case_Insensitive(strVec);
+				tempStr = uim->display();
+				tempStr = std::toupper(tempStr.at(0));
+
+				// process inputs
+				if (tempStr == "C")
+				{
+					// create a new multitag
+					MultiTag* mtagPtr = new MultiTag;
+					createMultiTag(mtagPtr);
+					mtagPtr = nullptr;
+
+					// confirm to user
+					uim->centeredText("Success!");
+					uim->skipLines(2);
+					uim->centeredText("MultiTag creation successful!");
+					uim->display();
+				}
+				else if (tempStr != "Q")
+				{
+					// get choice
+					tempInt = std::stoi(tempStr);
+					--tempInt; // choices start at 1
+
+					// get pointer
+					returnPtr = multiTags.at(tempInt);
+
+					// exit menu
+					tempStr = "Q";
+				}
 			}
 		}
 		else // print tags in pages
@@ -2303,65 +3286,75 @@ int MealManager::displayMultiTags(UIManager& uim)
 			tempStr = "";
 
 			int currentPage = 1;
-			int totalPages = normalTags.size() / 10; // remainder may be present
+			int totalPages = multiTags.size() / MULTITAGS_PER_PAGE; // remainder may be present
 
 			// if remainder, then add an extra page
-			if (multiTags.size() % 10 > 0)
+			if (multiTags.size() % MULTITAGS_PER_PAGE > 0)
 				++totalPages;
+
+			// if lastPageVisited is valid, then replace currentPage with lastPageVisited
+			if (lastPageVisited >= 1 && lastPageVisited <= totalPages)
+				currentPage = lastPageVisited;
 
 			// loop while user has not quit menu
 			while (tempStr != "Q")
 			{
-				uim.centeredText("MultiTags");
+				uim->centeredText("Viewing MultiTags");
 				// display "Page x/y"
 				tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
-				uim.centeredText(tempStr);
-				uim.skipLines(2);
-				uim.centeredText("Choose a MultiTag:");
+				uim->centeredText(tempStr);
 
 				// start index for the current page
-				int startIndex = (10 * (currentPage - 1));
+				int startIndex = (MULTITAGS_PER_PAGE * (currentPage - 1));
 
-				//if displaying a page that is NOT last page, then display 10 items
+				//if displaying a page that is NOT last page, then display MULTITAGS_PER_PAGE items
 				if (currentPage < totalPages)
 				{
 					// create iterator at index's position
 					auto tagIter = multiTags.begin() + startIndex;
 
 					// display tag with description and create prompt
-					for (int count = 0; count < 10; ++count)
+					for (int count = 1; count <= MULTITAGS_PER_PAGE; ++count)
 					{
-						displayMultiTagInfo(*tagIter, uim);
-						/*uim.centeredText((*tagIter)->getName());
-						uim.leftAllignedText((*tagIter)->getDescription());*/
-						uim.skipLines(1);
+						displayMultiTagInfo(*tagIter);
+						uim->skipLines(1);
 
 						tempStr = std::to_string(count) + (*tagIter)->getName();
 						strVec.push_back(tempStr);
-						++count;
+
+						++tagIter;
 					}
 				}
 				else // the current page is the last page, so there may be less than 10 elements to display
 				{
 					// create iterator at index's position
 					auto tagIter = multiTags.begin() + startIndex;
-					int count = 0; // used to print prompt number
+					int count = 1; // used to print prompt number
 
 					// create prompts for the rest of the elements
 					while (tagIter != multiTags.end())
 					{
-						displayMultiTagInfo(*tagIter, uim);
-						/*uim.centeredText((*tagIter)->getName());
-						uim.leftAllignedText((*tagIter)->getDescription());*/
-						uim.skipLines(1);
+						displayMultiTagInfo(*tagIter);
+						uim->skipLines(1);
 
 						tempStr = std::to_string(count) + (*tagIter)->getName();
 						strVec.push_back(tempStr);
+
+						++tagIter;
 						++count;
 					}
 				}
 
 				// add prompts to go to next page, previous, and quit
+				tempStr = "";
+				strVec.push_back(tempStr);
+
+				tempStr = "CCreate a MultiTag";
+				strVec.push_back(tempStr);
+
+				tempStr = "";
+				strVec.push_back(tempStr);
+
 				tempStr = "NNext Page";
 				strVec.push_back(tempStr);
 
@@ -2372,12 +3365,25 @@ int MealManager::displayMultiTags(UIManager& uim)
 				strVec.push_back(tempStr);
 
 				// display UI and get input
-				uim.prompt_List_Case_Insensitive(strVec);
-				tempStr = uim.display();
+				uim->prompt_List_Case_Insensitive(strVec);
+				tempStr = uim->display();
 				tempStr = std::toupper(tempStr.at(0));
 
-				// check if choice is N, P, or Q
-				if (tempStr == "N")
+				// process inputs
+				if (tempStr == "C")
+				{
+					// create a new multitag
+					MultiTag* mtagPtr = new MultiTag;
+					createMultiTag(mtagPtr);
+					mtagPtr = nullptr;
+
+					// confirm to user
+					uim->centeredText("Success!");
+					uim->skipLines(2);
+					uim->centeredText("MultiTag creation successful!");
+					uim->display();
+				}
+				else if (tempStr == "N")
 				{
 					// increment page number (loops around if at end)
 					if (currentPage == totalPages)
@@ -2397,276 +3403,152 @@ int MealManager::displayMultiTags(UIManager& uim)
 				{
 					// get choice, set to correct index
 					tempInt = std::stoi(tempStr);
+					--tempInt; // user's prompts began at 1
 					tempInt += startIndex;
+
+					// get pointer
+					returnPtr = multiTags.at(tempInt);
 
 					// end loop
 					tempStr = "Q";
+					lastPageVisited = currentPage;
 				}
 			} // while (tempStr != "Q")
 		} // else print tag in pages
 	} // if more than 0 tags
-	else // display error 
-	{
-		uim.centeredText("Error");
-		uim.skipLines(2);
-		uim.centeredText("No MultiTags to display.");
-		uim.display();
-	}
-	return tempInt;
+
+	return returnPtr;
 }
 
-void MealManager::displayMealInfo(const Meal* mealPtr, UIManager& uim)
+void MealManager::displayMealInfo(const Meal* mealPtr)
 {
 	std::string tempStr = "";
 	
 	// name
 	tempStr = "Name: " + mealPtr->getName();
-	uim.leftAllignedText(tempStr);
+	uim->leftAllignedText(tempStr);
 
 	// price
 	tempStr = "Price: " + formatPrice(mealPtr->getPrice());
-	uim.leftAllignedText(tempStr);
+	uim->leftAllignedText(tempStr);
+
+	// duration 
+	tempStr = "Duration: " + std::to_string(mealPtr->getMealDuration()) + " days.";
+	uim->leftAllignedText(tempStr);
 
 	// tags
-	uim.skipLines(1);
-	uim.leftAllignedText("Tags:");
-	uim.skipLines(1);
+	tempStr = std::to_string(mealPtr->getTags().size());
+	
+	if (mealPtr->getTags().size() == 1)
+		tempStr += " Tag assigned.";
+	else tempStr += " Tags assigned.";
 
-	for (auto tagIter : mealPtr->getTags())
-	{
-		uim.leftAllignedText(tagIter->getName());
-	}
+	uim->leftAllignedText(tempStr);
 
 	// enabledDays
-	uim.skipLines(1);
-	if (mealPtr->getIsDisabled())
-		uim.leftAllignedText("Is disabled.");
+	if (mealPtr->isDisabled())
+		uim->leftAllignedText("Meal is disabled.");
 	else
 	{
-		tempStr = "Enabled on: " + formatEnabledDays(mealPtr);
+		tempStr = "Enabled on: " + formatEnabledDays(mealPtr->getEnabledDays());
 
 		// check if disabled by tags
 		if (tempStr == "Enabled on: []")
-			uim.leftAllignedText("Is disabled by Tags.");
+			uim->leftAllignedText("Meal is disabled by assigned Tags.");
 		else
-			uim.leftAllignedText(tempStr);
+			uim->leftAllignedText(tempStr);
 	}
 }
 
-void MealManager::displayTagInfo(const Tag* tagPtr, UIManager& uim)
+void MealManager::displayTagInfo(const Tag* tagPtr)
 {
 	std::string tempStr = "";
 
 	// name
 	tempStr = "Name: " + tagPtr->getName();
-	uim.leftAllignedText(tempStr);
+	uim->leftAllignedText(tempStr);
 
 	// description
-	tempStr = "Description: " + tagPtr->getDescription();
-	uim.leftAllignedText(tempStr);
+	tempStr = "Description: ";
+	if (tagPtr->getDescription().size() == 0)
+		tempStr += "(no description)";
+	else 
+		tempStr += tagPtr->getDescription();
 
-	// consecutiveLimit
-	tempStr = "Consecutive Meals allowed: " + std::to_string(tagPtr->getConsecutiveLimit());
-	uim.leftAllignedText(tempStr);
+	uim->leftAllignedText(tempStr);
 
 	// hasPriority
 	tempStr = "Depends on MultiTag: ";
 
 	if (tagPtr->getDependency())
-		tempStr += "YES";
+		tempStr += "YES     ";
 	else
-		tempStr += "NO";
-	uim.leftAllignedText(tempStr);
+		tempStr += "NO      ";
+
+	// consecutiveLimit
+	tempStr += "Consecutive occurrences allowed: " + std::to_string(tagPtr->getConsecutiveLimit());
+	uim->leftAllignedText(tempStr);
 
 	// enabledDays
-	std::map<DaysOfTheWeek, bool> enabledDays = tagPtr->getEnabledDays();
-	bool hasADayEnabled = false; // changes formatting if at least one day is enabled
+	tempStr = "Enabled on: " + formatEnabledDays(tagPtr->getEnabledDays());
 
-	tempStr = "Enabled on: [";
-
-	if (enabledDays.at(MONDAY))
-	{
-		tempStr += "M";
-		hasADayEnabled = true;
-	}
-
-	if (enabledDays.at(TUESDAY))
-	{
-		if (hasADayEnabled)
-			tempStr += ", ";
-		else
-			hasADayEnabled = true;
-
-		tempStr += "T";
-	}
-
-	if (enabledDays.at(WEDNESDAY))
-	{
-		if (hasADayEnabled)
-			tempStr += ", ";
-		else
-			hasADayEnabled = true;
-
-		tempStr += "W";
-	}
-
-	if (enabledDays.at(THURSDAY))
-	{
-		if (hasADayEnabled)
-			tempStr += ", ";
-		else
-			hasADayEnabled = true;
-
-		tempStr += "Th";
-	}
-
-	if (enabledDays.at(FRIDAY))
-	{
-		if (hasADayEnabled)
-			tempStr += ", ";
-		else
-			hasADayEnabled = true;
-
-		tempStr += "F";
-	}
-
-	if (enabledDays.at(SATURDAY))
-	{
-		if (hasADayEnabled)
-			tempStr += ", ";
-		else
-			hasADayEnabled = true;
-
-		tempStr += "Sa";
-	}
-
-	if (enabledDays.at(SUNDAY))
-	{
-		if (hasADayEnabled)
-			tempStr += ", ";
-		else
-			hasADayEnabled = true;
-
-		tempStr += "Su";
-	}
-
-	tempStr += "]";
-
-	// check if any days were enabled
-	if (hasADayEnabled)
-		uim.leftAllignedText(tempStr);
+	// check if disabled by tags
+	if (tempStr == "Enabled on: []")
+		uim->leftAllignedText("Tag is disabled on all days.");
 	else
-		uim.leftAllignedText("Tag disables all days.");
+		uim->leftAllignedText(tempStr);
+
+	// number of assigned meals
+	tempStr = "Assigned Meals: " + std::to_string(tagPtr->getLinkedMeals().size());
+	uim->leftAllignedText(tempStr);
 }
 
-void MealManager::displayMultiTagInfo(const MultiTag* mtagPtr, UIManager& uim)
+void MealManager::displayMultiTagInfo(const MultiTag* mtagPtr)
 {
 	std::string tempStr = "";
 
 	// name
 	tempStr = "Name: " + mtagPtr->getName();
-	uim.leftAllignedText(tempStr);
+	uim->leftAllignedText(tempStr);
 
 	// description
-	tempStr = "Description: " + mtagPtr->getDescription();
-	uim.leftAllignedText(tempStr);
+	tempStr = "Description: ";
+	if (mtagPtr->getDescription().size() == 0)
+		tempStr += "(no description)";
+	else 
+		tempStr += mtagPtr->getDescription();
+
+	uim->leftAllignedText(tempStr);
 
 	// hasPriority
 	tempStr = "Has priority over Tags: ";
 
-	if (mtagPtr->hasPriority())
+	if (mtagPtr->getPriority())
 		tempStr += "YES";
 	else
 		tempStr += "NO";
-	uim.leftAllignedText(tempStr);
+	uim->leftAllignedText(tempStr);
 
-	// check if disabled
-	if (mtagPtr->isEnabled())
-	{
-		// enabledDays
-		std::map<DaysOfTheWeek, bool> enabledDays = mtagPtr->getEnabledDays();
-		bool hasADayEnabled = false; // changes formatting if at least one day is enabled
+	// enabledDays
+	tempStr = "Enabled on: " + formatEnabledDays(mtagPtr->getEnabledDays());
 
-		tempStr = "Enabled on: [";
+	// check if MultiTag has all days disabled
+	if (tempStr == "Enabled on: []")
+		uim->leftAllignedText("All days are disabled.");
+	else
+		uim->leftAllignedText(tempStr);
 
-		if (enabledDays.at(MONDAY))
-		{
-			tempStr += "M";
-			hasADayEnabled = true;
-		}
+	// requires fulfillment
+	tempStr = "Require all Tags to be fulfilled: ";
 
-		if (enabledDays.at(TUESDAY))
-		{
-			if (hasADayEnabled)
-				tempStr += ", ";
-			else
-				hasADayEnabled = true;
+	if (mtagPtr->getRequireFulfillment())
+		tempStr += "YES";
+	else
+		tempStr += "NO";
 
-			tempStr += "T";
-		}
-
-		if (enabledDays.at(WEDNESDAY))
-		{
-			if (hasADayEnabled)
-				tempStr += ", ";
-			else
-				hasADayEnabled = true;
-
-			tempStr += "W";
-		}
-
-		if (enabledDays.at(THURSDAY))
-		{
-			if (hasADayEnabled)
-				tempStr += ", ";
-			else
-				hasADayEnabled = true;
-
-			tempStr += "Th";
-		}
-
-		if (enabledDays.at(FRIDAY))
-		{
-			if (hasADayEnabled)
-				tempStr += ", ";
-			else
-				hasADayEnabled = true;
-
-			tempStr += "F";
-		}
-
-		if (enabledDays.at(SATURDAY))
-		{
-			if (hasADayEnabled)
-				tempStr += ", ";
-			else
-				hasADayEnabled = true;
-
-			tempStr += "Sa";
-		}
-
-		if (enabledDays.at(SUNDAY))
-		{
-			if (hasADayEnabled)
-				tempStr += ", ";
-			else
-				hasADayEnabled = true;
-
-			tempStr += "Su";
-		}
-
-		tempStr += "]";
-
-		// check if any days were enabled
-		if (hasADayEnabled)
-			uim.leftAllignedText(tempStr);
-		else
-			uim.leftAllignedText("MultiTag disables all days.");
-	}
-	else // tag is disabled 
-	{
-		uim.leftAllignedText("MultiTag is disabled.");
-	}
+	// number of linked tags
+	tempStr += "     Linked Tags: " + std::to_string(mtagPtr->getLinkedTags().size());
+	uim->leftAllignedText(tempStr);
 }
 
 void MealManager::writeMeal(const Meal* mealPtr, std::ofstream& oFile)
@@ -2687,7 +3569,7 @@ void MealManager::writeMeal(const Meal* mealPtr, std::ofstream& oFile)
 
 	// isDisabled
 	oFile << "\t<IsDisabled>\n";
-	oFile << "\t" << mealPtr->getIsDisabled() << "\n";
+	oFile << "\t" << mealPtr->isDisabled() << "\n";
 	oFile << "\t</IsDisabled>";
 
 	oFile << "\n";
@@ -2778,17 +3660,17 @@ void MealManager::writeMultiTag(const MultiTag* mtagPtr, std::ofstream& oFile)
 
 	oFile << "\n";
 
-	// enabled
-	oFile << "\t<IsEnabled>\n";
-	oFile << "\t" << mtagPtr->isEnabled() << "\n";
-	oFile << "\t</IsEnabled>";
+	// highestPriority
+	oFile << "\t<HasPriority>\n";
+	oFile << "\t" << mtagPtr->getPriority() << "\n";
+	oFile << "\t</HasPriority>";
 
 	oFile << "\n";
 
-	// highestPriority
-	oFile << "\t<HasPriority>\n";
-	oFile << "\t" << mtagPtr->hasPriority() << "\n";
-	oFile << "\t</HasPriority>";
+	// requiresFulfillment
+	oFile << "\t<RequiresFulfillment>\n";
+	oFile << "\t" << mtagPtr->getRequireFulfillment() << "\n";
+	oFile << "\t</RequiresFulfillment>";
 
 	oFile << "\n";
 
@@ -2821,10 +3703,12 @@ void MealManager::writeMultiTag(const MultiTag* mtagPtr, std::ofstream& oFile)
 	oFile << "\t</LinkedTags>";
 }
 
-bool MealManager::readMeals(std::ifstream& iFile)
+int MealManager::readMeals(std::ifstream& iFile)
 {
+	int returnVal = 0; // 0 = good, 1 = error (aborted import), 2 = corrupted (used default values)
 	bool error = false; // true when encountering a read error
 	bool done = false; // when read all meals
+	bool corrupted = false; // true if read values are invalid
 	Meal* mealPtr = nullptr; // for creating meals
 	std::string tempStr; // read lines from file
 
@@ -2839,8 +3723,17 @@ bool MealManager::readMeals(std::ifstream& iFile)
 
 			// get name
 			std::getline(iFile, tempStr);
+
 			// remove tab at beginning
 			tempStr.erase(0, 1);
+
+			// check if string is correct length
+			if (tempStr.length() > NAME_LENGTH)
+			{
+				tempStr = tempStr.substr(0, NAME_LENGTH); // insert up to character limit
+				corrupted = true;
+			}
+
 			// set name
 			mealPtr->setName(tempStr);
 
@@ -2869,10 +3762,28 @@ bool MealManager::readMeals(std::ifstream& iFile)
 			{
 				// get price
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set price
-				mealPtr->setPrice(std::stod(tempStr));
+
+				// validate price
+				try
+				{
+					double price = std::stod(tempStr);
+
+					if (price <= MAXIMUM_PRICE && price >= MINIMUM_PRICE)
+						mealPtr->setPrice(price);
+					else
+					{
+						mealPtr->setPrice(0); // invalid price, default to 0
+						corrupted = true;
+					}
+				}
+				catch (...) // value not valid, default to 0
+				{
+					mealPtr->setPrice(0);
+					corrupted = true;
+				}
 
 				// read end header, verify
 				std::getline(iFile, tempStr);
@@ -2898,10 +3809,18 @@ bool MealManager::readMeals(std::ifstream& iFile)
 			{
 				// get value
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set value
-				mealPtr->setIsDisabled(std::stoi(tempStr));
+
+				// validate before setting value
+				if (std::isdigit(tempStr.at(0)))
+					mealPtr->setDisabled(std::stoi(tempStr.substr(0, 1)));
+				else
+				{
+					mealPtr->setDisabled(true); // default to true 
+					corrupted = true;
+				}
 
 				// read end header, verify
 				std::getline(iFile, tempStr);
@@ -2927,10 +3846,60 @@ bool MealManager::readMeals(std::ifstream& iFile)
 			{
 				// get value
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set value
-				mealPtr->setMealDuration(std::stoi(tempStr));
+
+				// validate before setting value
+				if (std::isdigit(tempStr.at(0)))
+				{
+					int digits = std::to_string(MEAL_DURATION_LIMIT).length(); // maximum number of digits
+					int charLimit = 0;
+					bool isValid = true;
+
+					if (digits >= tempStr.length()) // string has less than maximum number of digits
+						charLimit = tempStr.length();
+					else // string is too long
+					{
+						charLimit = digits;
+						corrupted = true;
+
+						tempStr = tempStr.substr(0, digits); // limit to correct number of digits
+					}
+
+					// validate every character in tempStr
+					int index = 0;
+					while (isValid && index < charLimit)
+					{
+						if (!std::isdigit(tempStr.at(index)))
+							isValid = false;
+						++index;
+					}
+
+					if (isValid) // is a number 
+					{
+						unsigned int number = std::stoi(tempStr);
+
+						// check if number is <= limit
+						if (number <= MEAL_DURATION_LIMIT)
+							mealPtr->setMealDuration(number);
+						else // default to 1
+						{
+							mealPtr->setMealDuration(1);
+							corrupted = true;
+						}
+					}
+					else // NaN, default to 1
+					{
+						mealPtr->setMealDuration(1);
+						corrupted = true;
+					}
+				}
+				else // NaN, default to 1
+				{
+					mealPtr->setMealDuration(1);
+					corrupted = true;
+				}
 
 				// read end header, verify
 				std::getline(iFile, tempStr);
@@ -2956,10 +3925,60 @@ bool MealManager::readMeals(std::ifstream& iFile)
 			{
 				// get value
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set value
-				mealPtr->setDaysBetweenOccurrences(std::stoi(tempStr));
+
+				// validate before setting value
+				if (std::isdigit(tempStr.at(0)))
+				{
+					int digits = std::to_string(DAYS_BETWEEN_OCCURRENCES_LIMIT).length(); // maximum number of digits
+					int charLimit = 0;
+					bool isValid = true;
+
+					if (digits >= tempStr.length()) // string has less than maximum number of digits
+						charLimit = tempStr.length();
+					else // string is too long
+					{
+						charLimit = digits;
+						corrupted = true;
+
+						tempStr = tempStr.substr(0, digits); // limit to correct number of digits
+					}
+
+					// validate every character in tempStr
+					int index = 0;
+					while (isValid && index < charLimit)
+					{
+						if (!std::isdigit(tempStr.at(index)))
+							isValid = false;
+						++index;
+					}
+
+					if (isValid) // is a number 
+					{
+						unsigned int number = std::stoi(tempStr);
+
+						// check if number is <= limit
+						if (number <= DAYS_BETWEEN_OCCURRENCES_LIMIT)
+							mealPtr->setDaysBetweenOccurrences(number);
+						else // default to 0
+						{
+							mealPtr->setDaysBetweenOccurrences(0);
+							corrupted = true;
+						}
+					}
+					else // NaN, default to 0
+					{
+						mealPtr->setDaysBetweenOccurrences(0);
+						corrupted = true;
+					}
+				}
+				else // NaN, default to 0
+				{
+					mealPtr->setDaysBetweenOccurrences(0);
+					corrupted = true;
+				}
 
 				// read end header, verify
 				std::getline(iFile, tempStr);
@@ -2995,18 +4014,27 @@ bool MealManager::readMeals(std::ifstream& iFile)
 
 						// get name of tag
 						std::getline(iFile, tempStr);
+
 						// remove 2 tabs
 						tempStr.erase(0, 2);
+
+						// validate length
+						if (tempStr.length() > NAME_LENGTH)
+						{
+							tempStr = tempStr.substr(0, NAME_LENGTH);
+							corrupted = true;
+						}
 
 						// find a tag with this name
 						auto tagIter = normalTags.begin();
 						while (!matchFound && tagIter != normalTags.end())
 						{
-							// if match found, assign tag to meal
+							// if match found, assign tag to meal, and meal to tag
 							if (tempStr == (*tagIter)->getName())
 							{
 								matchFound = true;
 								mealPtr->addTag(*tagIter);
+								(*tagIter)->addMeal(mealPtr);
 							}
 							else
 								++tagIter;
@@ -3060,13 +4088,21 @@ bool MealManager::readMeals(std::ifstream& iFile)
 	if (error && mealPtr != nullptr)
 		delete mealPtr;
 
-	return error;
+	if (error) // if had to abort, return value
+		returnVal = error;
+	else if (corrupted) // if corruption detected
+		returnVal = 2;
+
+	return returnVal;
 }
 
-bool MealManager::readTags(std::ifstream& iFile)
+int MealManager::readTags(std::ifstream& iFile)
 {
+	int returnVal = 0; // 0 = good, 1 = error (aborted import), 2 = corrupted (used default values)
 	bool error = false; // true when encountering a read error
 	bool done = false; // when read all tags
+	bool corrupted = false;
+
 	Tag* tagPtr = nullptr; // for creating Tags
 	std::string tempStr; // read lines from file
 	std::map<DaysOfTheWeek, bool> enabledDays = // to create EnabledDays in Tags
@@ -3084,9 +4120,18 @@ bool MealManager::readTags(std::ifstream& iFile)
 
 			// get name
 			std::getline(iFile, tempStr);
+
 			// remove tab at beginning
 			tempStr.erase(0, 1);
-			// set name
+
+			// check if string is correct length
+			if (tempStr.length() > NAME_LENGTH)
+			{
+				tempStr= tempStr.substr(0, NAME_LENGTH); // get up to character limit
+				corrupted = true;
+			}
+
+			// set value
 			tagPtr->setName(tempStr);
 
 			// read end header, verify
@@ -3114,9 +4159,18 @@ bool MealManager::readTags(std::ifstream& iFile)
 			{
 				// get description
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set description
+
+				// check if string is correct length
+				if (tempStr.length() > DESC_LENGTH)
+				{
+					tempStr = tempStr.substr(0, DESC_LENGTH); // get up to character limit
+					corrupted = true;
+				}
+
+				// set value
 				tagPtr->setDescription(tempStr);
 
 				// read end header, verify
@@ -3143,10 +4197,18 @@ bool MealManager::readTags(std::ifstream& iFile)
 			{
 				// get value
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set value
-				tagPtr->setDependency(std::stoi(tempStr));
+
+				// validate before setting value
+				if (std::isdigit(tempStr.at(0)))
+					tagPtr->setDependency(std::stoi(tempStr.substr(0, 1)));
+				else
+				{
+					tagPtr->setDependency(false); // default to false 
+					corrupted = true;
+				}
 
 				// read end header, verify
 				std::getline(iFile, tempStr);
@@ -3172,10 +4234,60 @@ bool MealManager::readTags(std::ifstream& iFile)
 			{
 				// get value
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set value
-				tagPtr->setConsecutiveLimit(std::stoi(tempStr));
+
+				// validate before setting value
+				if (std::isdigit(tempStr.at(0)))
+				{
+					int digits = std::to_string(CONSECUTIVE_DAYS_LIMIT).length(); // maximum number of digits
+					int charLimit = 0;
+					bool isValid = true;
+
+					if (digits >= tempStr.length()) // string has less than maximum number of digits
+						charLimit = tempStr.length();
+					else // string is too long
+					{
+						charLimit = digits;
+						corrupted = true;
+
+						tempStr = tempStr.substr(0, digits); // limit to correct number of digits
+					}
+
+					// validate every character in tempStr
+					int index = 0;
+					while (isValid && index < charLimit)
+					{
+						if (!std::isdigit(tempStr.at(index)))
+							isValid = false;
+						++index;
+					}
+
+					if (isValid) // is a number 
+					{
+						unsigned int number = std::stoi(tempStr);
+
+						// check if number is <= limit
+						if (number <= CONSECUTIVE_DAYS_LIMIT)
+							tagPtr->setConsecutiveLimit(number);
+						else // default to 0
+						{
+							tagPtr->setConsecutiveLimit(0);
+							corrupted = true;
+						}
+					}
+					else // NaN, default to 0
+					{
+						tagPtr->setConsecutiveLimit(0);
+						corrupted = true;
+					}
+				}
+				else // NaN, default to 0
+				{
+					tagPtr->setConsecutiveLimit(0);
+					corrupted = true;
+				}
 
 				// read end header, verify
 				std::getline(iFile, tempStr);
@@ -3204,8 +4316,16 @@ bool MealManager::readTags(std::ifstream& iFile)
 				{
 					// get value
 					std::getline(iFile, tempStr);
+
 					// remove tab at beginning
 					tempStr.erase(0, 1);
+
+					// validate before setting value
+					if (!std::isdigit(tempStr.at(0)) || tempStr.length() > 1)
+					{
+						tempStr = "0"; // default to false 
+						corrupted = true;
+					}
 
 					// set value
 					switch (day)
@@ -3279,15 +4399,24 @@ bool MealManager::readTags(std::ifstream& iFile)
 	if (iFile.eof())
 		error = true;
 
-	return error;
+	if (error)
+		returnVal = 1;
+	else if (corrupted)
+		returnVal = 2;
+
+	return returnVal;
 }
 
-bool MealManager::readMultiTags(std::ifstream& iFile)
+int MealManager::readMultiTags(std::ifstream& iFile)
 {
+	int returnVal = 0; // 0 = good, 1 = error (aborted import), 2 = corrupted (used default values)
 	bool error = false; // true when encountering a read error
 	bool done = false; // when read all tags
+	bool corrupted = false;
+
 	MultiTag* mtagPtr = nullptr; // for creating MultiTags
 	std::string tempStr; // read lines from file
+
 	std::map<DaysOfTheWeek, bool> enabledDays = // to create EnabledDays in Tags
 	{ {MONDAY, false}, {TUESDAY, false}, {WEDNESDAY, false}, {THURSDAY, false},
 		{FRIDAY, false}, {SATURDAY, false}, {SUNDAY, false} };
@@ -3303,9 +4432,18 @@ bool MealManager::readMultiTags(std::ifstream& iFile)
 
 			// get name
 			std::getline(iFile, tempStr);
+
 			// remove tab at beginning
 			tempStr.erase(0, 1);
-			// set name
+
+			// check if string is correct length
+			if (tempStr.length() > NAME_LENGTH)
+			{
+				tempStr = tempStr.substr(0, NAME_LENGTH); // get up to character limit
+				corrupted = true;
+			}
+
+			// set value
 			mtagPtr->setName(tempStr);
 
 			// read end header, verify
@@ -3333,43 +4471,23 @@ bool MealManager::readMultiTags(std::ifstream& iFile)
 			{
 				// get description
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set description
+
+				// check if string is correct length
+				if (tempStr.length() > DESC_LENGTH)
+				{
+					tempStr = tempStr.substr(0, DESC_LENGTH); // get up to character limit
+					corrupted = true;
+				}
+
+				// set value
 				mtagPtr->setDescription(tempStr);
 
 				// read end header, verify
 				std::getline(iFile, tempStr);
 				if (tempStr != "\t</Description>")
-				{
-					done = true;
-					error = true;
-				}
-			}
-			else // error
-			{
-				done = true;
-				error = true;
-			}
-		}
-
-		// continue if no error and not done
-		if (!error && !done)
-		{
-			// check if isEnabled exists
-			std::getline(iFile, tempStr);
-			if (tempStr == "\t<IsEnabled>")
-			{
-				// get value
-				std::getline(iFile, tempStr);
-				// remove tab at beginning
-				tempStr.erase(0, 1);
-				// set value
-				mtagPtr->setEnabled(std::stoi(tempStr));
-
-				// read end header, verify
-				std::getline(iFile, tempStr);
-				if (tempStr != "\t</IsEnabled>")
 				{
 					done = true;
 					error = true;
@@ -3391,14 +4509,59 @@ bool MealManager::readMultiTags(std::ifstream& iFile)
 			{
 				// get value
 				std::getline(iFile, tempStr);
+
 				// remove tab at beginning
 				tempStr.erase(0, 1);
-				// set value
-				mtagPtr->setHighestPriority(std::stoi(tempStr));
+
+				// validate before setting value
+				if (std::isdigit(tempStr.at(0)))
+					mtagPtr->setHighestPriority(std::stoi(tempStr.substr(0, 1)));
+				else
+				{
+					mtagPtr->setHighestPriority(false); // default to false 
+					corrupted = true;
+				}
 
 				// read end header, verify
 				std::getline(iFile, tempStr);
 				if (tempStr != "\t</HasPriority>")
+				{
+					done = true;
+					error = true;
+				}
+			}
+			else // error
+			{
+				done = true;
+				error = true;
+			}
+		}
+
+		// continue if no error and not done
+		if (!error && !done)
+		{
+			// check if requiresFulfillment exists
+			std::getline(iFile, tempStr);
+			if (tempStr == "\t<RequiresFulfillment>")
+			{
+				// get value
+				std::getline(iFile, tempStr);
+
+				// remove tab at beginning
+				tempStr.erase(0, 1);
+
+				// validate before setting value
+				if (std::isdigit(tempStr.at(0)))
+					mtagPtr->setRequireFulfillment(std::stoi(tempStr.substr(0, 1)));
+				else
+				{
+					mtagPtr->setRequireFulfillment(false); // default to false 
+					corrupted = true;
+				}
+
+				// read end header, verify
+				std::getline(iFile, tempStr);
+				if (tempStr != "\t</RequiresFulfillment>")
 				{
 					done = true;
 					error = true;
@@ -3423,8 +4586,16 @@ bool MealManager::readMultiTags(std::ifstream& iFile)
 				{
 					// get value
 					std::getline(iFile, tempStr);
+
 					// remove tab at beginning
 					tempStr.erase(0, 1);
+
+					// validate before setting value
+					if (!std::isdigit(tempStr.at(0)) || tempStr.length() > 1)
+					{
+						tempStr = "0"; // default to false 
+						corrupted = true;
+					}
 
 					// set value
 					switch (day)
@@ -3496,6 +4667,13 @@ bool MealManager::readMultiTags(std::ifstream& iFile)
 						// remove 2 tabs
 						tempStr.erase(0, 2);
 
+						// check if string is correct length
+						if (tempStr.length() > NAME_LENGTH)
+						{
+							tempStr = tempStr.substr(0, NAME_LENGTH); // get up to character limit
+							corrupted = true;
+						}
+
 						// find a tag with this name
 						auto tagIter = normalTags.begin();
 						while (!matchFound && tagIter != normalTags.end())
@@ -3515,6 +4693,55 @@ bool MealManager::readMultiTags(std::ifstream& iFile)
 
 						// remove 2 tabs
 						tempStr.erase(0, 2);
+
+						// validate before setting value
+						if (std::isdigit(tempStr.at(0)))
+						{
+							int digits = std::to_string(REQUESTED_MEALS_LIMIT).length(); // maximum number of digits
+							int charLimit = 0;
+							bool isValid = true;
+
+							if (digits >= tempStr.length()) // string has less than maximum number of digits
+								charLimit = tempStr.length();
+							else // string is too long
+							{
+								charLimit = digits;
+								corrupted = true;
+
+								tempStr = tempStr.substr(0, digits); // limit to correct number of digits
+							}
+
+							// validate every character in tempStr
+							int index = 0;
+							while (isValid && index < charLimit)
+							{
+								if (!std::isdigit(tempStr.at(index)))
+									isValid = false;
+								++index;
+							}
+
+							if (isValid) // is a number 
+							{
+								unsigned int number = std::stoi(tempStr);
+
+								// check if number is > limit
+								if (number > REQUESTED_MEALS_LIMIT)
+								{
+									tempStr = "1"; // defaults to 1
+									corrupted = true;
+								}
+							}
+							else // NaN, default to 1
+							{
+								tempStr = "1";
+								corrupted = true;
+							}
+						}
+						else // NaN, default to 1
+						{
+							tempStr = "1";
+							corrupted = true;
+						}
 
 						// set values
 						mtagPtr->addLinkedTag(tagPtr, std::stoi(tempStr));
@@ -3571,403 +4798,1169 @@ bool MealManager::readMultiTags(std::ifstream& iFile)
 	if (iFile.eof())
 		error = true;
 
-	return error;
+	if (error)
+		returnVal = error;
+	else if (corrupted)
+		returnVal = 2;
+
+	return returnVal;
 }
 
-void MealManager::generateSchedule(std::ostream& oFile)
+bool MealManager::validateTag(const Tag* tagPtr, const unsigned int& currentDayNumber, const unsigned int& calculationPeriod, const std::vector<Meal*>& assignedMeals, const std::vector<std::vector<Meal*>>& scheduledMeals)
 {
-}
+	bool validTag = false;
+	int lookBack; // checks previous days
+	int lookBackLimit; // the furthest day in the past necessary to check
 
-void MealManager::mealEditor(UIManager& uim)
-{
-	std::string tempStr;
-	int tempInt = 0;
-	std::vector<std::string> strVec;
-	Meal* mealPtr = nullptr;
+	// set to previous day if one exists
+	if (currentDayNumber > 0)
+		lookBack = currentDayNumber - 1;
+	else
+		lookBack = 0;
 
-	while (tempInt != 4)
+	// find earliest day to check if safe
+	if (currentDayNumber >= tagPtr->getConsecutiveLimit())
+		lookBackLimit = currentDayNumber - tagPtr->getConsecutiveLimit();
+	else
+		lookBackLimit = 0;
+
+	auto assignedMealsIter = assignedMeals.begin(); // iter to meals assigned to the tag
+
+	// if consecutiveLimit is greater than calculationPeriod, or not enough days has passed, then skip detailed check
+	if (tagPtr->getConsecutiveLimit() < calculationPeriod && currentDayNumber >= tagPtr->getConsecutiveLimit() && currentDayNumber > 0)
 	{
-		uim.centeredText("Meal Menu");
-		uim.skipLines(2);
-
-		tempStr = "You have " + std::to_string(meals.size()) + " meals saved.";
-		uim.centeredText(tempStr);
-
-		strVec = { "1View/Edit Meals", "2Create Meal", "3Delete Meal", "QQuit to Main Menu" };
-		uim.prompt_List_Case_Insensitive(strVec);
-
-		tempStr = uim.display();
-		tempStr = std::toupper(tempStr.at(0));
-
-		// check if user wants to quit
-		if (tempStr == "Q")
-			tempInt = 4;
-		else
-			tempInt = std::stoi(tempStr);
-
-		switch (tempInt)
+		// loop until all days checked or a gap in scheduled days is found
+		while (!validTag && lookBack >= lookBackLimit)
 		{
-		case 1: // list all meals and allow editing
-			// display meals and get user's choice, or quit
-			do
+			// get meals of day lookBack
+			std::vector<Meal*> checkMeals = scheduledMeals.at(lookBack);
+
+			auto scheduledMealsIter = checkMeals.begin();
+			bool matchFound = false; // true when any of the previous day's meals was assigned to the tag being checked
+
+			// check all meals of the day
+			while (!validTag && scheduledMealsIter != checkMeals.end())
 			{
-				tempInt = displayMeals(uim);
-
-				// if user did not quit
-				if (tempInt != -1)
+				// loop to compare scheduled meals with assigned meals
+				while (!matchFound && assignedMealsIter != assignedMeals.end())
 				{
-					// get meal and call editor
-					Meal* mealPtr = meals.at(tempInt);
-					editMeal(mealPtr, uim);
+					// if a meal matches
+					if (*assignedMealsIter == *scheduledMealsIter)
+						matchFound = true;
+
+					++assignedMealsIter;
 				}
-				else // force quit
-					tempStr = "Q";
 
-			} while (tempStr != "Q");
-			break;
-		case 2: // create a new meal and add to meals stored
-			mealPtr = new Meal;
+				++scheduledMealsIter;
+			}
 
-			createMeal(mealPtr, uim);
+			// if no match was found, then the tag is valid
+			if (!matchFound)
+				validTag = true;
 
-			// add meal to meals 
-			meals.push_back(mealPtr);
-			mealPtr = nullptr;
+			--lookBack;
+		}
+	}
+	else
+		validTag = true;
 
-			// confirm to user
-			uim.centeredText("Success!");
-			uim.skipLines(2);
-			uim.centeredText("Meal creation successful!");
-			uim.display();
-			break;
-		case 3: // delete meals
-			// display meals and get user's choice, or quit
-			do
+	return validTag;
+}
+
+bool MealManager::validateMeal(const Meal* mealPtr, const unsigned int& currentDayNumber)
+{
+	bool validMeal = false;
+
+	// if meal is enabled, check further
+	if (!mealPtr->isDisabled())
+	{
+		// if meal was never scheduled, then daysBetweenOccurrences will not prevent scheduling
+		if (mealPtr->getDaysScheduled().size() > 0)
+		{
+			// get most recent day scheduled
+			unsigned int lastDayScheduled = mealPtr->getDaysScheduled().back();
+
+			// calculate how long to wait until selectedMeal can be scheduled again
+			unsigned int waitUntil = lastDayScheduled + mealPtr->getDaysBetweenOccurrences() + 1;
+
+			// if enough days has passed, then meal is valid
+			if (currentDayNumber >= waitUntil)
+				validMeal = true;
+		}
+		else
+			validMeal = true;
+	}
+
+	return validMeal;
+}
+
+void MealManager::addFutureMeals(std::vector<Meal*>& futureMeals, const unsigned int& currentDayNumber, const unsigned int& calculationPeriod, std::vector<std::vector<Meal*>>& scheduledMeals)
+{
+	// schedule all meals in futureMeals
+	for (auto mealIter : futureMeals)
+	{
+		// add each future day meal is scheduled into Meal::daysScheduled
+		for (unsigned int daysInAdvance = 1; daysInAdvance < mealIter->getMealDuration(); ++daysInAdvance)
+		{
+			// if the future day is not beyond the calculationPeriod
+			if (currentDayNumber + daysInAdvance < calculationPeriod)
 			{
-				tempInt = displayMeals(uim);
+				// update Meal::daysScheduled
+				mealIter->addDayScheduled(currentDayNumber + daysInAdvance);
 
-				// if user did not quit
-				if (tempInt != -1)
+				// if a vector of meals has already been created in the future day, then add this meal to it
+				if (scheduledMeals.size() - 1 >= currentDayNumber + daysInAdvance)
 				{
-					// get meal
-					mealPtr = meals.at(tempInt);
+					// retreive existing future day's meals
+					std::vector<Meal*> existingFutureDay = scheduledMeals.at(currentDayNumber + daysInAdvance);
 
-					// confirm deletion
-					uim.centeredText("Confirm Deletion");
-					uim.skipLines(2);
-					uim.centeredText("Are you sure you want to delete this Meal?");
-					uim.skipLines(1);
+					// add this meal to the scheduled meals in a future day
+					existingFutureDay.push_back(mealIter);
 
-					// display meal info
-					displayMealInfo(mealPtr, uim);
-
-					strVec = { "YYes", "NNo" };
-					
-					uim.prompt_List_Case_Insensitive(strVec);
-					tempStr = uim.display();
-					tempStr = std::toupper(tempStr.at(0));
-
-					// check user's choice
-					if (tempStr == "Y")
-					{
-						auto mealsIter = meals.begin();
-						bool found = false;
-
-						// get iterator to same element as mealPtr
-						while (!found && mealsIter != meals.end())
-						{
-							// if names match, then found
-							if ((*mealsIter)->getName() == mealPtr->getName())
-								found = true;
-							else
-								++mealsIter;
-						}
-
-						// remove references to Tags
-						std::vector<Tag*> emptyvec = { nullptr };
-						mealPtr->setTags(emptyvec);
-
-						// delete meal
-						delete mealPtr;
-						meals.erase(mealsIter);
-						mealPtr = nullptr;
-						
-						// confirm to user
-						uim.centeredText("Success!");
-						uim.skipLines(2);
-						uim.centeredText("Meal deleted!");
-						uim.display();
-
-						// exit loop
-						tempStr = "Q";
-					}
+					// update the meals in the future day
+					scheduledMeals.at(currentDayNumber + daysInAdvance) = existingFutureDay;
 				}
-				else // force quit
-					tempStr = "Q";
+				else // create meals on future day in scheduledMeals
+				{
+					std::vector<Meal*> futureDay; // meals scheduled for a future day
+					futureDay.push_back(mealIter); // add meal to futureDay
 
-			} while (tempStr != "Q");
-			break;
-		default:
-			tempInt = 4;
+					// create an entry for meals in a future day
+					scheduledMeals.push_back(futureDay);
+				}
+			}
+
 		}
 	}
 }
 
-void MealManager::tagEditor(UIManager& uim)
+bool MealManager::scheduleMultiTags(const std::vector<MultiTag*>& availableMultiTags, const unsigned int& currentDayNumber,
+	const unsigned int& calculationPeriod, const DaysOfTheWeek& currentDay, std::vector<std::vector<Meal*>>& scheduledMeals)
 {
-	std::string tempStr = "";
-	int tempInt = 0;
-	std::vector<std::string> strVec;
-	Tag* tagPtr = nullptr;
-	MultiTag* mtagPtr = nullptr;
+	std::vector<int> searchedMultiTags; // stores indices of multitags that were accessed
+	bool mealFound = false;
 
-
-	// while user has not quit menu
-	while (tempInt != 10)
+	// while there are multitags to choose from
+	while (!mealFound && searchedMultiTags.size() < availableMultiTags.size())
 	{
-		uim.centeredText("Tag Menu");
-		uim.skipLines(2);
+		bool validMultiTag = false;
 
-		tempStr = "You have " + std::to_string(normalTags.size()) + " normal Tags and "
-			+ std::to_string(multiTags.size()) + " MultiTags saved.";
-		uim.centeredText(tempStr);
-		uim.skipLines(2);
+		// randomly choose index
+		int multitagIndex = rand() % availableMultiTags.size();
 
-		// prompt menu
-		strVec = { "1View/Edit Tags", "2View/Edit MultiTags","3Create a Tag", "4Delete a Tag", "QQuit to Main Menu" };
-		uim.prompt_List_Case_Insensitive(strVec);
+		// retrieve multiTag
+		MultiTag* chosenMultiTag = availableMultiTags.at(multitagIndex);
 
-		tempStr = uim.display();
+		// if no indices previously searched, then ok to proceed
+		if (searchedMultiTags.size() == 0)
+		{
+			searchedMultiTags.push_back(multitagIndex);
+			validMultiTag = true;
+		}
+		else // need to check if index was already searched
+		{
+			bool indexMatch = false;
+			auto searchedMultiTagsIter = searchedMultiTags.begin();
+
+			while (!indexMatch && searchedMultiTagsIter != searchedMultiTags.end())
+			{
+				if (multitagIndex == *searchedMultiTagsIter)
+					indexMatch = true;
+				else
+					++searchedMultiTagsIter;
+			}
+
+			// if no match, then ok to proceed
+			if (!indexMatch)
+			{
+				searchedMultiTags.push_back(multitagIndex);
+				validMultiTag = true;
+			}
+		}
+
+		// if a valid index was found, search tags for a meal
+		if (validMultiTag)
+		{
+			std::map<Tag*, unsigned int> availableTags = chosenMultiTag->getLinkedTags(); // get linked tags of multitag
+			std::vector<Meal*> mealsOfDay; // meals scheduled for the current day
+			std::vector<Meal*> futureMeals; // meals that last more than one day are grouped together
+			unsigned int requiredMeals = 0; // meals needed to consider MultiTag valid
+			unsigned int totalMealsScheduled = 0; // meals scheduled for MultiTag
+
+			// check if MultiTag requires all Tags to be fulfilled
+			if (chosenMultiTag->getRequireFulfillment())
+			{
+				// sum all of the required meals
+				for (auto linkedTags : availableTags)
+				{
+					requiredMeals += linkedTags.second;
+				}
+			}
+			else requiredMeals = 1; // only require 1 meal
+
+			// update mealsOfDay if meals were already scheduled (multi-day meals)
+			if (scheduledMeals.size() >= currentDayNumber + 1)
+				mealsOfDay = scheduledMeals.at(currentDayNumber);
+
+			// all linked tags' requested Meals must be fulfilled
+			for (auto tagIter : availableTags)
+			{
+				unsigned int mealsScheduled = 0; // meals scheduled for Tag
+				std::vector<Meal*> assignedMeals = tagIter.first->getLinkedMeals(); // meals that are assigned to the current Tag
+				std::vector<int> searchedMeals; // tracks which meals were already searched
+
+				// check if tag is enabled and has meals
+				if (tagIter.first->getEnabledDays().at(currentDay) && assignedMeals.size() > 0)
+				{
+					bool validTag = false;
+
+					// checks tag's params and returns T if valid, F if not
+					validTag = validateTag(tagIter.first, currentDayNumber, calculationPeriod, assignedMeals, scheduledMeals);
+
+					// begin to schedule meals if tag is allowed to schedule meals
+					if (validTag)
+					{
+						// ends loop when requested number of meals are met or all meals were searched
+						while (mealsScheduled < tagIter.second && searchedMeals.size() < assignedMeals.size())
+						{
+							bool validMeal = false;
+
+							// randomly choose index of a meal
+							int mealIndex = rand() % assignedMeals.size();
+
+							// get meal
+							Meal* selectedMeal = assignedMeals.at(mealIndex);
+
+							// if no meals were searched, then add this meal to searchedMeals
+							if (searchedMeals.size() == 0)
+							{
+								searchedMeals.push_back(mealIndex);
+								validMeal = validateMeal(selectedMeal, currentDayNumber);
+							}
+							else // check if meal has been used before
+							{
+								bool matchFound = false;
+								auto searchedMealsIter = searchedMeals.begin();
+
+								// compare mealIndex with those that have been previously used
+								while (!matchFound && searchedMealsIter != searchedMeals.end())
+								{
+									if (mealIndex == *searchedMealsIter)
+										matchFound = true;
+									else
+										++searchedMealsIter;
+								}
+
+								// if no match, then meal is a candidate to be scheduled
+								if (!matchFound)
+								{
+									searchedMeals.push_back(mealIndex);
+									validMeal = validateMeal(selectedMeal, currentDayNumber);
+								}
+							}
+
+							// if meal is valid so far, then check if it has already been scheduled (a multi-day meal)
+							if (validMeal)
+							{
+								// if there are meals to check
+								if (mealsOfDay.size() > 0)
+								{
+									auto mealIter = mealsOfDay.begin();
+									bool found = false;
+
+									while (!found && mealIter != mealsOfDay.end())
+									{
+										if (*mealIter == selectedMeal)
+										{
+											found = true;
+											validMeal = false;
+										}
+										else
+											++mealIter;
+									}
+								}
+							}
+
+							// try to schedule the selected meal if it is valid
+							if (validMeal)
+							{
+								// add meal to mealsOfDay
+								mealsOfDay.push_back(selectedMeal);
+								++mealsScheduled;
+								++totalMealsScheduled;
+
+								// update daysScheduled
+								selectedMeal->addDayScheduled(currentDayNumber);
+
+								// if selectedMeal lasts for more than 1 day, then add to futureMeals
+								if (selectedMeal->getMealDuration() > 1)
+									futureMeals.push_back(selectedMeal);
+							}
+
+						} // while: ends loop when requested number of meals are met or all meals were searched
+
+						// DEBUG INFO
+						// if not enough meals were found to fulfil tag's requirement
+						/*if (mealsScheduled < tagIter.second)
+						{
+							// display error to user
+							std::cout << "\nWARNING: Tag \"" << tagIter.first->getName() << "\" requests " << tagIter.second << " meals, but only " << std::to_string(mealsScheduled)
+								<< " meals were scheduled.\nPossibly caused by insufficient Meals that are enabled and linked to Tag, and/or Tag settings are too strict."
+								<< "\nThis occurred on: " << dayToString(currentDay) << ", day #" << std::to_string(currentDayNumber) << std::endl;
+
+						}*/
+					} // if (validTag)
+				} // if tag is enabled and has meals
+			} // for (auto tagIter : availableTags)
+
+			// if there are enough meals to schedule
+			if (totalMealsScheduled >= requiredMeals)
+			{
+				mealFound = true;
+				// add mealsOfDay to scheduledMeals
+				if (scheduledMeals.size() >= currentDayNumber + 1)
+					scheduledMeals.at(currentDayNumber) = mealsOfDay;
+				else
+					scheduledMeals.push_back(mealsOfDay);
+			}
+
+			// if there are meals that last longer than 1 day, add them to future days in the schedule
+			if (futureMeals.size() > 0)
+			{
+				addFutureMeals(futureMeals, currentDayNumber, calculationPeriod, scheduledMeals);
+			}
+		} // if (validMultiTag)
+	} // while there are multitags to choose from
+
+	return mealFound;
+}
+
+bool MealManager::scheduleNormalTags(const std::vector<Tag*>& availableTags, const unsigned int& currentDayNumber, const unsigned int& calculationPeriod, const DaysOfTheWeek& currentDay, std::vector<std::vector<Meal*>>& scheduledMeals)
+{
+	bool mealFound = false;
+
+	std::vector<int> searchedTags; // stores indices of tags that were accessed
+
+	// no meal found and there are tags to choose from
+	while (!mealFound && searchedTags.size() < availableTags.size())
+	{
+		bool validIndex = false;
+
+		// randomly choose index
+		int tagIndex = rand() % availableTags.size();
+
+		// retreive Tag
+		Tag* chosenTag = availableTags.at(tagIndex);
+		
+		// get meals assigned chosenTag
+		std::vector<Meal*> assignedMeals = chosenTag->getLinkedMeals();
+
+		// if no indices searched, then ok to proceed
+		if (searchedTags.size() == 0)
+		{
+			searchedTags.push_back(tagIndex);
+			validIndex = true;
+		}
+		else // need to check if tag already searched
+		{
+			bool indexMatch = false;
+			auto searchedTagsIter = searchedTags.begin();
+
+			while (!indexMatch && searchedTagsIter != searchedTags.end())
+			{
+				if (tagIndex == *searchedTagsIter)
+					indexMatch = true;
+				else
+					++searchedTagsIter;
+			}
+
+			// if no match, then ok to proceed
+			if (!indexMatch)
+			{
+				searchedTags.push_back(tagIndex);
+				validIndex = true;
+			}
+		}
+
+		// begin checking tag if index is valid
+		if (validIndex)
+		{
+			// check if tag is enabled and has meals
+			if (chosenTag->getEnabledDays().at(currentDay) && assignedMeals.size() > 0)
+			{
+				bool validTag = false;
+
+				// checks tag's params and returns T if tag is valid, F if not
+				validTag = validateTag(chosenTag, currentDayNumber, calculationPeriod, assignedMeals, scheduledMeals);
+
+				// begin to schedule meals if tag is valid
+				if (validTag)
+				{
+					std::vector<int> searchedMeals; // stores index of all meals searched within the chosenTag
+					std::vector<Meal*> mealsOfDay; // meals scheduled/to be scheduled on the current day
+
+					// update mealsOfDay if meals were already scheduled (multi-day meals)
+					if (scheduledMeals.size() >= currentDayNumber + 1)
+						mealsOfDay = scheduledMeals.at(currentDayNumber);
+
+					// ends loop when a meal was found or all meals were searched
+					while (!mealFound && searchedMeals.size() < assignedMeals.size())
+					{
+						bool validMeal = false;
+
+						// randomly choose index of a meal
+						int mealIndex = rand() % assignedMeals.size();
+
+						// get meal
+						Meal* selectedMeal = assignedMeals.at(mealIndex);
+
+						// if no meals were searched, then ok to proceed
+						if (searchedMeals.size() == 0)
+						{
+							searchedMeals.push_back(mealIndex);
+							validMeal = validateMeal(selectedMeal, currentDayNumber);
+						}
+						else // check if meal has been used before
+						{
+							bool matchFound = false;
+							auto searchedMealsIter = searchedMeals.begin();
+
+							// compare mealIndex with those that have been previously used
+							while (!matchFound && searchedMealsIter != searchedMeals.end())
+							{
+								if (mealIndex == *searchedMealsIter)
+									matchFound = true;
+								else
+									++searchedMealsIter;
+							}
+
+							// if no match, then check if meal's daysBetweenOccurrences allows it to be scheduled
+							if (!matchFound)
+							{
+								searchedMeals.push_back(mealIndex);
+								validMeal = validateMeal(selectedMeal, currentDayNumber);
+							}
+						}
+
+						// if meal is valid so far, then check if it has already been scheduled (a multi-day meal)
+						if (validMeal)
+						{
+							// if there are meals to check
+							if (mealsOfDay.size() > 0)
+							{
+								auto mealIter = mealsOfDay.begin();
+								bool found = false;
+
+								while (!found && mealIter != mealsOfDay.end())
+								{
+									if (*mealIter == selectedMeal)
+									{
+										found = true;
+										validMeal = false;
+									}
+									else
+										++mealIter;
+								}
+							}
+						}
+
+						// try to schedule the selected meal if it is valid
+						if (validMeal)
+						{
+							mealFound = true;
+
+							// add meal to mealsOfDay
+							mealsOfDay.push_back(selectedMeal);
+
+							// update daysScheduled
+							selectedMeal->addDayScheduled(currentDayNumber);
+
+							// add mealsOfDay to scheduledMeals
+							if (scheduledMeals.size() >= currentDayNumber + 1) // an entry for the day already exists
+								scheduledMeals.at(currentDayNumber) = mealsOfDay;
+							else
+								scheduledMeals.push_back(mealsOfDay);
+
+							// if selectedMeal lasts for more than 1 day, then add to futureMeals
+							if (selectedMeal->getMealDuration() > 1)
+							{
+								addFutureMeals(mealsOfDay, currentDayNumber, calculationPeriod, scheduledMeals);
+							}
+						}
+
+					} // while: ends loop when a meal was found or all meals were searched
+				} // if (validTag)
+			} // if tag is enabled and has meals
+		} // if (validIndex)
+	} // while no meal found and there are tags to choose from
+
+	return mealFound;
+}
+
+void MealManager::printSchedule(const std::vector<std::vector<Meal*>>& mealPlan, const unsigned int& erroredDays, const double& totalCost, const double& budgetLimit, std::ofstream& oFile)
+{
+	const unsigned int LINE_WIDTH = 80; // output line width in characters
+
+	std::string lineDivider = ""; // divides sections of the meal plan
+	DaysOfTheWeek currentDay = MONDAY; // used to display meals of each day
+	unsigned int weekCount = 0; // tracks each week
+
+	// create divider of length LINE_WIDTH
+	for (int index = 0; index < LINE_WIDTH; ++index)
+		lineDivider += "-";
+
+
+	// header
+	oFile << centeredText("Meal Plan", LINE_WIDTH) << "\n";
+
+	oFile << lineDivider << "\n";
+
+	// creation time 
+	// get system time 
+	auto now = std::chrono::system_clock::now();
+	std::time_t currentTime = std::chrono::system_clock::to_time_t(now);;
+
+	oFile << "Created on: " << ctime(&currentTime);
+
+	// plan duration
+	oFile << "Duration: " << std::to_string(mealPlan.size() / 7) << " weeks (" << std::to_string(mealPlan.size()) << " days)\n";
+
+	// budget limit 
+	oFile << "Budget limit: " << formatPrice(budgetLimit) << "\n";
+
+	// calculated cost
+	oFile << "Calculated cost: " << formatPrice(totalCost) << "\n";
+
+	// number of errors
+	oFile << "Days with errors: " << std::to_string(erroredDays) << "\n";
+
+	// iterates through each day of mealPlan
+	auto mealIter = mealPlan.begin();
+	while (mealIter != mealPlan.end())
+	{
+		// if today is the start of a new week, print week header
+		if (currentDay == MONDAY)
+		{
+			std::string tempStr = "WEEK "; // outputs "WEEK XX : cost yyyy"
+			double costOfWeek = 0; // total of all meals in the upcoming week
+			DaysOfTheWeek dayInWeek = MONDAY; // start on monday of current week
+			auto weekIter = mealIter; // copy iterator
+
+			++weekCount;
+
+			// if weekCount is only 1 digit
+			if (weekCount < 10)
+				tempStr += "0";
+
+			tempStr += std::to_string(weekCount);
+
+			tempStr += " : cost ";
+
+			// sum the price of all meals in the current week
+			do
+			{
+				std::vector<Meal*> mealsInDay = *weekIter;
+
+				for (auto meal : mealsInDay)
+				{
+					costOfWeek += meal->getPrice();
+				}
+
+				++weekIter;
+				dayInWeek = nextDay(dayInWeek);
+			} while (dayInWeek != MONDAY && weekIter != mealPlan.end());
+			tempStr += formatPrice(costOfWeek);
+
+			// begin printing week header
+			oFile << lineDivider << "\n"; // divides previous week
+			oFile << lineDivider << "\n";
+			
+			oFile << centeredText(tempStr, LINE_WIDTH) << "\n\n";
+		}
+
+		// day name
+		std::string tempStr = ">> " + dayToString(currentDay) + " <<";
+		oFile << centeredText(tempStr, LINE_WIDTH) << "\n";
+		tempStr = "";
+
+		// meals in the current day
+		std::vector<Meal*> daysMeals = *mealIter;
+
+		for (auto meal : daysMeals)
+		{
+			// meal name
+			oFile << centeredText(meal->getName(), LINE_WIDTH) << "\n";
+
+			// check if this is a multi-day meal
+			if (meal->getMealDuration() > 1)
+			{
+				int occurranceNumber = 0; // number of times the meal has occurred over its duration
+				auto lookBack = mealIter; // copy iter at current day
+				bool doneChecking = false; // true when a gap of scheduled days is found or checked to the first day
+
+				// check previous days to count occurranceNumber
+				while (!doneChecking)
+				{
+					// lookBack is on the first day, stop checking further back
+					if (lookBack == mealPlan.begin())
+					{
+						doneChecking = true;
+					}
+
+					std::vector<Meal*> mealsOfDay = *lookBack; // get meals of the previous day
+					auto mealsOfDayIter = mealsOfDay.begin();
+
+					bool matchFound = false; // true when the current meal has found to have occurred before
+					while (!matchFound && mealsOfDayIter != mealsOfDay.end())
+					{
+						// if meal occurred in the past
+						if (*mealsOfDayIter == meal)
+						{
+							++occurranceNumber;
+							matchFound = true;
+						}
+						else
+							++mealsOfDayIter;
+					}
+
+					// if no match found in the previous day, then a gap was found
+					if (!matchFound)
+						doneChecking = true;
+
+					// if done checking, dont go further back
+					if (!doneChecking)
+						--lookBack;
+				}
+
+				// since all occurrances are counted, need to reset occurranceNumber every time it counts to duration
+				if (occurranceNumber > meal->getMealDuration())
+				{
+					occurranceNumber = occurranceNumber % meal->getMealDuration();
+					
+					// set to 3 instead of 0
+					if (occurranceNumber == 0)
+						occurranceNumber = 3;
+				}
+
+				// if this is the first occurrance, then display price with occcurrance number
+				if (occurranceNumber == 1)
+				{
+					// meal price
+					tempStr = "price: " + formatPrice(meal->getPrice());
+					oFile << centeredText(tempStr, LINE_WIDTH) << "\n";
+
+					// occurrance number
+					tempStr = "[Day " + std::to_string(occurranceNumber) + " of " + std::to_string(meal->getMealDuration()) + "]";
+				}
+				else
+				{
+					// occurrance number
+					tempStr = "[Day " + std::to_string(occurranceNumber) + " of " + std::to_string(meal->getMealDuration()) + "]";
+				}
+
+			}
+			else // display price normally
+			{
+				// meal price
+				tempStr = "price: " + formatPrice(meal->getPrice());
+			}
+			oFile << centeredText(tempStr, LINE_WIDTH) << "\n\n";
+			tempStr = "";
+		}
+
+		currentDay = nextDay(currentDay);
+		++mealIter;
+	}
+
+	oFile << lineDivider << "\n";
+}
+
+std::string MealManager::centeredText(const std::string& str, const unsigned int& lineWidth)
+{
+	std::string returnStr = "";
+
+	int emptySpaces; // number of empty spaces needed to center text
+
+	// calculate starting point
+	emptySpaces = (lineWidth / 2) - (str.length() / 2);
+
+	// place empty spaces before text
+	for (int index = 0; index < emptySpaces; index++)
+		returnStr += " ";
+
+	// print input string
+	returnStr += str;
+
+	emptySpaces += str.length(); // use emptySpaces as an index
+
+	// place empty spaces after text
+	for (emptySpaces; emptySpaces < lineWidth; emptySpaces++)
+		returnStr += " ";
+
+	return returnStr;
+}
+
+bool MealManager::generateSchedule(const std::string& fileName, std::ofstream& oFile, unsigned int& failedPlanErrors, double& failedPlanCost)
+{
+	const unsigned int MIN_CALCULATION_LENGTH = 1; // 1 week
+	const unsigned int MAX_CALCULATION_LENGTH = 52; // just under a year (in weeks)
+	const unsigned int MIN_BUDGET = 0;
+	const unsigned int MAX_BUDGET = 100000;
+	const unsigned int GENERATED_PLANS = 500; // number of meal plans to make
+	const double ERROR_THRESHOLD_PER_WEEK = 0.5; // amount of errored days allowed per week
+
+	bool errorPresent = false; // return value
+	bool insufficientData = true; // stops generation if no meals or tags exist
+	double budget = 0; // budget for the calculated period
+	unsigned int calculationPeriod = 0; // period of calculation
+	unsigned int failedDays[GENERATED_PLANS] = { 0 }; // number of days that calculation was unable to find a meal
+	
+	failedPlanErrors = 0;
+	failedPlanCost = 0;
+
+	DaysOfTheWeek currentDay = MONDAY; // start of the week
+	std::vector<std::vector<Meal*>> scheduledMeals[GENERATED_PLANS]; // meals scheduled for each attempt 
+
+	std::string tempStr = "";
+	std::vector<std::string> strVec;
+
+	// optmized data
+	std::map<DaysOfTheWeek, std::vector<MultiTag*>> highPriorityMultiTags; // multiTags with elevated priority, sorted by available day
+	std::map<DaysOfTheWeek, std::vector<MultiTag*>> normalPriorityMultiTags; // multiTags with priority of Tag, sorted by available day
+	std::map<DaysOfTheWeek, std::vector<Tag*>> normalPriorityTags; // Tags, sorted by available day
+
+	// check if meals and tags exist, otherwise cannot make a plan
+	if (meals.size() > 0 && normalTags.size() > 0)
+	{
+		insufficientData = false;
+	}
+	else // tell uesr
+	{
+		errorPresent = true;
+
+		uim->centeredText("Error");
+		uim->skipLines(2);
+		uim->centeredText("You have not created any Meals or Tags.");
+		uim->centeredText("Please create some and try again.");
+		uim->display();
+	}
+
+	// loop until user is ok with settings
+	while (!insufficientData && tempStr != "Q")
+	{
+		// prompt for calculationPeriod
+		uim->centeredText("Schedule Length");
+		uim->skipLines(2);
+		uim->centeredText("How many weeks do you want to schedule for?");
+		uim->prompt_FreeInt(MIN_CALCULATION_LENGTH, MAX_CALCULATION_LENGTH);
+		calculationPeriod = std::stoi(uim->display());
+
+		// prompt for budget
+		uim->centeredText("Budget Limit");
+		uim->skipLines(2);
+		tempStr = "What is your budget over a " + std::to_string(calculationPeriod) + " week period?";
+		uim->centeredText(tempStr);
+		uim->prompt_FreeDouble(MIN_BUDGET, MAX_BUDGET);
+		budget = std::stod(uim->display());
+
+		// summary of users choices
+		uim->centeredText("Confirm Settings");
+		uim->skipLines(2);
+		uim->centeredText("Is this OK?");
+		uim->skipLines(1);
+		
+		tempStr = "BUDGET LIMIT: " + formatPrice(budget);
+		uim->centeredText(tempStr);
+		
+		tempStr = "SCHEDULE LENGTH: " + std::to_string(calculationPeriod) + " weeks";
+		uim->centeredText(tempStr);
+
+		strVec = { "YYes", "NNo" };
+		uim->prompt_List_Case_Insensitive(strVec);
+
+		tempStr = uim->display();
 		tempStr = std::toupper(tempStr.at(0));
 
-		// check if user wants to quit
-		if (tempStr == "Q")
-			tempInt = 10;
-		else
-			tempInt = std::stoi(tempStr);
+		// exit loop if user accepts settings
+		if (tempStr == "Y")
+			tempStr = "Q";
+	}
 
-		switch (tempInt)
+	if (!insufficientData) // tell user to be patient
+	{
+		std::stringstream skipPrompt = std::stringstream("\n"); // skips prompt in the following ui window
+
+		uim->centeredText("Please wait");
+		uim->skipLines(3);
+		uim->centeredText("Your Meal Plan is being created.");
+		uim->skipLines(1);
+		uim->centeredText("Wait time may vary between a few seconds and a few minutes, depending on the speed of your computer.");
+		uim->display(std::cout, skipPrompt);
+		std::cout << "\n\n";
+	}
+
+	// convert weeks into days
+	calculationPeriod *= 7;
+
+	// OPTIMIZATION
+	if (!insufficientData)
+		optimizeData(highPriorityMultiTags, normalPriorityMultiTags, normalPriorityTags);
+
+	// CALCULATION
+	if (!insufficientData)
+	{	
+		// calculates GENERATED_PLANS number of complete meal plans
+		for (unsigned int attemptNum = 0; attemptNum < GENERATED_PLANS; ++attemptNum)
 		{
-		case 1: // view/edit tags
-			//display tags and get user's choice or quit
-			do
-			{
-				tempInt = displayTags(uim);
+			currentDay = MONDAY;
 
-				// if usser did not quit
-				if (tempInt != -1)
+			// calculate one complete meal plan
+			for (unsigned int dayNumber = 0; dayNumber < calculationPeriod; ++dayNumber)
+			{
+
+				bool createdMeals = false; // if meal creation failed on a certain priority, attempts to use next lower priority
+
+				// check if a high priority MT is available
+				if (highPriorityMultiTags.find(currentDay)->second.size() > 0)
 				{
-					// get tag and call editor
-					tagPtr = normalTags.at(tempInt);
-					editTag(tagPtr, uim);
+					createdMeals = scheduleMultiTags(highPriorityMultiTags.find(currentDay)->second, dayNumber,
+						calculationPeriod, currentDay, scheduledMeals[attemptNum]);
+
 				}
 
-			} while (tempInt != -1);
-			break;
-		case 2: // view/edit multitags
-			//display multitags and get user's choice or quit
-			do
-			{
-				tempInt = displayMultiTags(uim);
-
-				// if user did not quit
-				if (tempInt != -1)
+				// if above priority failed, check next lower priority
+				if (!createdMeals &&
+					normalPriorityMultiTags.find(currentDay)->second.size() > 0 &&
+					normalPriorityTags.find(currentDay)->second.size()) // if both MTs and tags are available
 				{
-					// get tag and call editor
-					mtagPtr = multiTags.at(tempInt);
-					editMultiTag(mtagPtr, uim);
+					// flip coin to decide which to choose from
+					int coinFlip = rand() % 1000 + 1; // 1-1000
+
+					if (coinFlip > 500) // choose MTs
+					{
+						createdMeals = scheduleMultiTags(normalPriorityMultiTags.find(currentDay)->second, dayNumber,
+							calculationPeriod, currentDay, scheduledMeals[attemptNum]);
+					}
+					else // choose tags
+					{
+						createdMeals = scheduleNormalTags(normalPriorityTags.find(currentDay)->second, dayNumber,
+							calculationPeriod, currentDay, scheduledMeals[attemptNum]);
+					}
 				}
 
-			} while (tempInt != -1);
-			break;
-		case 3: // create tag
-			uim.centeredText("Choose a type of Tag to create:");
-			
-			strVec = { "1Tag", "2MultiTag" };
-			uim.prompt_List_Case_Insensitive(strVec);
-
-			tempStr = uim.display();
-			
-			// if user chose to create a Tag
-			if (tempStr == "1")
-			{
-				tagPtr = new Tag;
-
-				createTag(tagPtr, uim);
-
-				// add tag to normalTags
-				normalTags.push_back(tagPtr);
-				tagPtr = nullptr;
-
-				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
-				uim.centeredText("Tag creation successful!");
-				uim.display();
-			}
-			else // user wants to create a MultiTag
-			{
-				mtagPtr = new MultiTag;
-
-				createMultiTag(mtagPtr, uim);
-
-				// add multitag to multitags
-				multiTags.push_back(mtagPtr);
-				mtagPtr = nullptr;
-
-				// confirm to user
-				uim.centeredText("Success!");
-				uim.skipLines(2);
-				uim.centeredText("MultiTag creation successful!");
-				uim.display();
-			}
-			break;
-		case 4: // delete tag
-			uim.centeredText("Choose a type of Tag to delete:");
-
-			strVec = { "1Tag", "2MultiTag" };
-			uim.prompt_List_Case_Insensitive(strVec);
-
-			tempStr = uim.display();
-
-			// user wants to delete a Tag
-			if (tempStr == "1")
-			{
-				// display tags and get user's choice, or quit
-				do
+				// if above priority failed, check next lower priority
+				if (!createdMeals && normalPriorityMultiTags.find(currentDay)->second.size() > 0) // if only MTs are available
 				{
-					tempInt = displayTags(uim);
+					createdMeals = scheduleMultiTags(normalPriorityMultiTags.find(currentDay)->second, dayNumber,
+						calculationPeriod, currentDay, scheduledMeals[attemptNum]);
+				}
 
-					// if user did not quit
-					if (tempInt != -1)
+				// if above priority failed, check next lower priority
+				if (!createdMeals && normalPriorityTags.find(currentDay)->second.size() > 0) // if only tags are available
+				{
+					createdMeals = scheduleNormalTags(normalPriorityTags.find(currentDay)->second, dayNumber,
+						calculationPeriod, currentDay, scheduledMeals[attemptNum]);
+				}
+
+				if (!createdMeals) // no tags available
+				{
+					std::vector<Meal*> daysMeals; // the meals for one day
+					// insert dummy meal
+					Meal* mealPtr = new Meal;
+					mealPtr->setName("NO AVAILABLE MEALS");
+					mealPtr->setPrice(0);
+					mealPtr->setDisabled(true);
+
+					daysMeals.push_back(mealPtr);
+					scheduledMeals[attemptNum].push_back(daysMeals);
+					++failedDays[attemptNum];
+
+					mealPtr = nullptr;
+
+					// warn user
+					//std::cout << "\nWARNING: No available meals on: " << dayToString(currentDay) << ", day #" << std::to_string(dayNumber) << std::endl;
+				}
+				currentDay = nextDay(currentDay); // go to next day
+			} // for: calculates a meal for every day 
+
+			// reset meals' scheduledDays
+			for (auto mealIter : meals)
+			{
+				std::vector<unsigned int> resetDays;
+				mealIter->setDaysScheduled(resetDays);
+			}
+		} // for: calculates an entire plan
+	}
+	
+	// select the plan that had the least number of errors and met budget
+	std::vector<std::vector<Meal*>> finalPlan; // plan with least errors
+	double finalCost = 0; // cost of all the meals in the plan
+	unsigned int finalErrors = 0;
+
+	if (!insufficientData)
+	{
+		bool planFound = false;
+		std::map<unsigned int, std::pair<std::vector<std::vector<Meal*>>, double>> errorsToPlans; // maps errors to scheduled plans with total cost for plan
+		unsigned int lowestErrors = 0;
+
+		int planIndex = 0;
+		// while a perfect plan was not found, and can check for more plans
+		do
+		{
+			// if plan has no errors
+			if (failedDays[planIndex] == 0)
+			{
+				// check budget
+				double totalCost = 0;
+
+				// sum the cost of all meals
+				for (int index = 0; index < scheduledMeals[planIndex].size(); ++index)
+				{
+					// get day of meals
+					std::vector<Meal*> currentDay = scheduledMeals[planIndex].at(index);
+
+					for (auto mealIter : currentDay)
 					{
-						// get tag
-						tagPtr = normalTags.at(tempInt);
-
-						// confirm deletion
-						uim.centeredText("Confirm Deletion");
-						uim.skipLines(2);
-						uim.centeredText("Are you sure you want to delete this Tag?");
-						uim.skipLines(1);
-
-						// display meal info
-						displayTagInfo(tagPtr, uim);
-
-						strVec = { "YYes", "NNo" };
-
-						uim.prompt_List_Case_Insensitive(strVec);
-						tempStr = uim.display();
-						tempStr = std::toupper(tempStr.at(0));
-
-						// check user's choice
-						if (tempStr == "Y")
+						// if meal lasts multiple days, divide the cost over its duration
+						if (mealIter->getMealDuration() > 1)
 						{
-							auto tagsIter = normalTags.begin();
-							bool found = false;
+							totalCost += (mealIter->getPrice() / mealIter->getMealDuration());
+						}
+						else
+							totalCost += mealIter->getPrice();
+					}
+				}
 
-							// get iterator to same element as tagsPtr
-							while (!found && tagsIter != normalTags.end())
+				// if totalCost is within budget, then plan is ok to use
+				if (totalCost <= budget)
+				{
+					planFound = true;
+					lowestErrors = 0;
+					errorsToPlans.emplace(lowestErrors, std::pair<std::vector<std::vector<Meal*>>, double>(scheduledMeals[planIndex], totalCost));
+				}
+			}
+			else // set lowestErrors 
+			{
+				// if lowestErrors was never set, then prepare to set it to this plan
+				if (errorsToPlans.size() == 0)
+				{
+					// check if more errors than error threshold
+					unsigned int calculatedWeeks = calculationPeriod / 7;
+					double allowedErrors = calculatedWeeks * ERROR_THRESHOLD_PER_WEEK;
+
+					// only considers plans that do not exceed allowedErrors
+					if (failedDays[planIndex] <= allowedErrors)
+					{
+						// check budget
+						double totalCost = 0;
+
+						// sum the cost of all meals
+						for (int index = 0; index < scheduledMeals[planIndex].size(); ++index)
+						{
+							// get day of meals
+							std::vector<Meal*> currentDay = scheduledMeals[planIndex].at(index);
+
+							for (auto mealIter : currentDay)
 							{
-								// if names match, then found
-								if ((*tagsIter)->getName() == tagPtr->getName())
-									found = true;
+								// if meal lasts multiple days, divide the cost over its duration
+								if (mealIter->getMealDuration() > 1)
+								{
+									totalCost += (mealIter->getPrice() / mealIter->getMealDuration());
+								}
 								else
-									++tagsIter;
+									totalCost += mealIter->getPrice();
 							}
+						}
 
-							// delete Tag
-							delete tagPtr;
-							normalTags.erase(tagsIter);
-							tagPtr = nullptr;
-
-							// confirm to user
-							uim.centeredText("Success!");
-							uim.skipLines(2);
-							uim.centeredText("Tag deleted!");
-							uim.display();
-
-							// exit loop
-							tempStr = "Q";
+						// if totalCost is within budget, then plan is ok to use
+						if (totalCost <= budget)
+						{
+							lowestErrors = failedDays[planIndex];
+							errorsToPlans.emplace(lowestErrors, std::pair<std::vector<std::vector<Meal*>>, double>(scheduledMeals[planIndex], totalCost));
 						}
 					}
-					else // force quit
-						tempStr = "Q";
-
-				} while (tempStr != "Q");
-			}
-			else // user wants to delete a MultiTag
-			{
-				// display multitags and get user's choice, or quit
-				do
+				}
+				else if (failedDays[planIndex] < lowestErrors) // if a better plan was found
 				{
-					tempInt = displayMultiTags(uim);
+					// check budget
+					double totalCost = 0;
 
-					// if user did not quit
-					if (tempInt != -1)
+					// sum the cost of all meals
+					for (int index = 0; index < scheduledMeals[planIndex].size(); ++index)
 					{
-						// get multitag
-						mtagPtr = multiTags.at(tempInt);
+						// get day of meals
+						std::vector<Meal*> currentDay = scheduledMeals[planIndex].at(index);
 
-						// confirm deletion
-						uim.centeredText("Confirm Deletion");
-						uim.skipLines(2);
-						uim.centeredText("Are you sure you want to delete this MultiTag?");
-						uim.skipLines(1);
-
-						// display meal info
-						displayMultiTagInfo(mtagPtr, uim);
-
-						strVec = { "YYes", "NNo" };
-
-						uim.prompt_List_Case_Insensitive(strVec);
-						tempStr = uim.display();
-						tempStr = std::toupper(tempStr.at(0));
-
-						// check user's choice
-						if (tempStr == "Y")
+						for (auto mealIter : currentDay)
 						{
-							auto tagsIter = multiTags.begin();
-							bool found = false;
-
-							// get iterator to same element as mtagPtr
-							while (!found && tagsIter != multiTags.end())
+							// if meal lasts multiple days, divide the cost over its duration
+							if (mealIter->getMealDuration() > 1)
 							{
-								// if names match, then found
-								if ((*tagsIter)->getName() == mtagPtr->getName())
-									found = true;
-								else
-									++tagsIter;
+								totalCost += (mealIter->getPrice() / mealIter->getMealDuration());
 							}
-
-							// remove all references to Tags
-							std::map<Tag*, unsigned int> emptyVec = { {nullptr, 0} };
-							mtagPtr->setLinkedTags(emptyVec);
-
-							// delete MultiTag
-							delete mtagPtr;
-							multiTags.erase(tagsIter);
-							mtagPtr = nullptr;
-
-							// confirm to user
-							uim.centeredText("Success!");
-							uim.skipLines(2);
-							uim.centeredText("MultiTag deleted!");
-							uim.display();
-
-							// exit loop
-							tempStr = "Q";
+							else
+								totalCost += mealIter->getPrice();
 						}
 					}
-					else // force quit
-						tempStr = "Q";
 
-				} while (tempStr != "Q");
+					// if totalCost is within budget, then plan is ok to use
+					if (totalCost <= budget)
+					{
+						// attempt to insert new element
+						auto iter = errorsToPlans.insert(std::pair<unsigned int, std::pair<std::vector<std::vector<Meal*>>, double>>(lowestErrors, { scheduledMeals[planIndex], totalCost }));
+
+						// check if key already exists
+						if (iter.second == false)
+						{
+							// replace value at key
+							errorsToPlans[lowestErrors] = std::pair<std::vector<std::vector<Meal*>>, double>(scheduledMeals[planIndex], totalCost);
+						}
+					}
+				}
 			}
-			break;
-		default:
-			tempInt = 10;
-		}// switch (inputInt)
-	}// while (tempInt != 10)
+			++planIndex;
+		} while (!planFound && planIndex < GENERATED_PLANS);
+
+		// set finalPlan to plan with lowestErrors that met budget
+		if (errorsToPlans.size() > 0)
+		{
+			finalPlan = errorsToPlans.at(lowestErrors).first;
+			finalCost = errorsToPlans.at(lowestErrors).second;
+			finalErrors = lowestErrors;
+		}
+		else // no suitable plans found
+		{
+			errorPresent = true;
+
+			// retreive total budget and errors from the first plan generated
+			failedPlanErrors = failedDays[0];
+
+			// check budget
+			failedPlanCost = 0;
+
+			// sum the cost of all meals
+			for (int index = 0; index < scheduledMeals[0].size(); ++index)
+			{
+				// get day of meals
+				std::vector<Meal*> currentDay = scheduledMeals[0].at(index);
+
+				for (auto mealIter : currentDay)
+				{
+					// if meal lasts multiple days, divide the cost over its duration
+					if (mealIter->getMealDuration() > 1)
+					{
+						failedPlanCost += (mealIter->getPrice() / mealIter->getMealDuration());
+					}
+					else
+						failedPlanCost += mealIter->getPrice();
+				}
+			}
+		}
+	}// if (!insufficientData)
+	
+
+	// if finalPlan is not empty
+	if (finalPlan.size() > 0)
+	{
+		errorPresent = false;
+
+		oFile.open(fileName);
+		printSchedule(finalPlan, finalErrors, finalCost, budget, oFile);
+		oFile.close();
+	}
+
+	// CLEANUP
+	// checks every plan generated
+	for (int attemptNumber = 0; attemptNumber < GENERATED_PLANS; ++attemptNumber)
+	{
+		// checks every day
+		for (unsigned int dayNumber = 0; dayNumber < calculationPeriod; ++dayNumber)
+		{
+			// checks every meal
+			for (unsigned int mealNumber = 0; mealNumber < scheduledMeals[attemptNumber].at(dayNumber).size(); ++mealNumber)
+			{
+				// if meal is an error meal (i.e. not a real meal), then delete it
+				Meal* mealPtr = scheduledMeals[attemptNumber].at(dayNumber).at(mealNumber);
+
+				if (mealPtr->getName() == "NO AVAILABLE MEALS" && mealPtr->getPrice() == 0.0 && mealPtr->isDisabled() == true)
+				{
+					delete mealPtr;
+					mealPtr = nullptr;
+				}
+			}
+		}
+	} // for: checks every plan generated
+
+	return errorPresent;
+}
+
+void MealManager::mealEditor()
+{
+	std::string tempStr = "";
+	int lastPageVisted = -1;
+
+	// display meals and get user's choice, or quit
+	do
+	{
+		Meal* mealPtr = displayMeals(lastPageVisted);
+
+		// if user did not quit
+		if (mealPtr != nullptr)
+		{
+			// call editor
+			editMeal(mealPtr);
+		}
+		else // force quit
+			tempStr = "Q";
+
+	} while (tempStr != "Q");
+}
+
+void MealManager::tagEditor()
+{
+	std::string tempStr = "";
+	int lastPageVisted = -1;
+	int returnStatus = -2;
+
+	Tag* tagPtr = nullptr;
+
+	// display tags and get user's choice, or quit
+	do
+	{
+		returnStatus = displayTags(lastPageVisted, tagPtr);
+
+		// if user chose a tag
+		if (returnStatus == 0)
+		{
+			// call editor
+			editTag(tagPtr);
+		}
+		else if (returnStatus == -1) // user quit
+			tempStr = "Q";
+
+	} while (tempStr != "Q");
+}
+
+void MealManager::multitagEditor()
+{
+	std::string tempStr = "";
+	int lastPageVisted = -1;
+
+	// display meals and get user's choice, or quit
+	do
+	{
+		MultiTag* mtagPtr = displayMultiTags(lastPageVisted);
+
+		// if user did not quit
+		if (mtagPtr != nullptr)
+		{
+			// call editor
+			editMultiTag(mtagPtr);
+		}
+		else // force quit
+			tempStr = "Q";
+
+	} while (tempStr != "Q");
 }
 
 void MealManager::saveState(const std::string& dataFile, std::ofstream& oFile)
@@ -4055,11 +6048,15 @@ void MealManager::saveState(const std::string& dataFile, std::ofstream& oFile)
 		throw std::string("Cannot open file");
 }
 
-void MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
+int MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
 {
 	std::string tagError = "Error reading Tags";
 	std::string multiTagError = "Error reading MultiTags";
 	std::string mealError = "Error reading Meals";
+
+	int returnVal = 0; // 0 = good, 1 = corrupted
+
+	bool corruptionDetected = false;
 	std::string line; // lines read from file
 
 	// open file
@@ -4074,9 +6071,13 @@ void MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
 		// check if header is correct
 		if (line == "<Tags>")
 		{
+			int returnVal = readTags(iFile);
+
 			// if tags imported with error
-			if (readTags(iFile) != 0)
+			if (returnVal == 1)
 				throw tagError;
+			else if (returnVal == 2)
+				corruptionDetected = true;
 		}
 		else throw tagError;
 
@@ -4088,9 +6089,13 @@ void MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
 		// check if header is correct
 		if (line == "<MultiTags>")
 		{
-			// if MultiTags imported with error
-			if (readMultiTags(iFile) != 0)
+			int returnVal = readMultiTags(iFile);
+
+			// if tags imported with error
+			if (returnVal == 1)
 				throw multiTagError;
+			else if (returnVal == 2)
+				corruptionDetected = true;
 		}
 		else throw multiTagError;
 
@@ -4102,12 +6107,97 @@ void MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
 		// check if header is correct
 		if (line == "<Meals>")
 		{
-			// if meals imported with error
-			if (readMeals(iFile) != 0)
+			int returnVal = readMeals(iFile);
+
+			// if tags imported with error
+			if (returnVal == 1)
 				throw mealError;
+			else if (returnVal == 2)
+				corruptionDetected = true;
 		}
 		else throw mealError;
 
 		iFile.close();
 	}
+
+	if (corruptionDetected)
+		returnVal = 1;
+
+	return returnVal;
+}
+
+DaysOfTheWeek nextDay(const DaysOfTheWeek& day)
+{
+	DaysOfTheWeek returnDay = MONDAY;
+
+	switch (day)
+	{
+	case MONDAY:  returnDay = TUESDAY;
+		break;
+	case TUESDAY:  returnDay = WEDNESDAY;
+		break;
+	case WEDNESDAY:  returnDay = THURSDAY;
+		break;
+	case THURSDAY:  returnDay = FRIDAY;
+		break;
+	case FRIDAY:  returnDay = SATURDAY;
+		break;
+	case SATURDAY:  returnDay = SUNDAY;
+		break;
+	case SUNDAY:  returnDay = MONDAY;
+		break;
+	}
+
+	return  returnDay;
+}
+
+DaysOfTheWeek previousDay(const DaysOfTheWeek& day)
+{
+	DaysOfTheWeek returnDay = MONDAY;
+
+	switch (day)
+	{
+	case MONDAY:  returnDay = SUNDAY;
+		break;
+	case TUESDAY:  returnDay = MONDAY;
+		break;
+	case WEDNESDAY:  returnDay = TUESDAY;
+		break;
+	case THURSDAY:  returnDay = WEDNESDAY;
+		break;
+	case FRIDAY:  returnDay = THURSDAY;
+		break;
+	case SATURDAY:  returnDay = FRIDAY;
+		break;
+	case SUNDAY:  returnDay = SATURDAY;
+		break;
+	}
+
+	return returnDay;
+}
+
+std::string dayToString(const DaysOfTheWeek& day)
+{
+	std::string returnStr = "";
+
+	switch (day)
+	{
+	case MONDAY: returnStr = "MONDAY";
+		break;
+	case TUESDAY: returnStr = "TUESDAY";
+		break;
+	case WEDNESDAY: returnStr = "WEDNESDAY";
+		break;
+	case THURSDAY: returnStr = "THURSDAY";
+		break;
+	case FRIDAY: returnStr = "FRIDAY";
+		break;
+	case SATURDAY: returnStr = "SATURDAY";
+		break;
+	case SUNDAY: returnStr = "SUNDAY";
+		break;
+	default: returnStr = "UNKNOWN";
+	}
+
+	return returnStr;
 }
