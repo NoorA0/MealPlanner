@@ -4,6 +4,7 @@
 #include <chrono>
 #include <ctime>
 #include <sstream>
+#include <algorithm>
 
 MealManager::MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE,
 	const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH, UIManager& uim)
@@ -6122,6 +6123,18 @@ int MealManager::loadState(const std::string& outputFile, std::ifstream& iFile)
 
 	if (corruptionDetected)
 		returnVal = 1;
+
+	// organize by alphabetic order
+	{
+		std::sort(normalTags.begin(), normalTags.end(),
+			[](Tag* lhs, Tag* rhs) { return lhs->getName() < rhs->getName(); });
+
+		std::sort(meals.begin(), meals.end(), 
+			[](Meal* lhs, Meal* rhs) { return lhs->getName() < rhs->getName(); });
+
+		std::sort(multiTags.begin(), multiTags.end(),
+			[](MultiTag* lhs, MultiTag* rhs) { return lhs->getName() < rhs->getName(); });
+	}
 
 	return returnVal;
 }
