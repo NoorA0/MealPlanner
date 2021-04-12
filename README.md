@@ -57,15 +57,15 @@ If you're the sole cook of a large household and would like some way to better p
 
 ## Windows
 
-1. Download your appropriate release version, open the zip file, and extract the folder to your preferred location.
+1. Download your appropriate release version, create a folder and place the executable file inside of it.
 
 2. Run MealPlanner.exe 
 
 ## Mac/Linux
 
-1. Download your appropriate release version, open the zip file, and extract the folder to your preferred location.
+1. Download your appropriate release version, create a folder and place MealPlanner inside of it.
 
-2. Run MealPlanner using a terminal. (On Linux: right click MealPlanner and select "open terminal here", then type `./MealPlanner`)
+2. Run MealPlanner using a terminal. (On Linux: right click the folder and select "open terminal here", then type `./MealPlanner`)
 
 As I don't have a Mac to test on, the instructions may differ slightly, but should be very similar.
 
