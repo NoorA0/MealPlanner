@@ -143,6 +143,19 @@ int main()
 	// set UI dimensions
 	uim.setDimensions(UI_WIDTH, UI_HEIGHT);
 
+	// display license info
+	strVec =
+	{
+	"Meal Planner  Copyright (C) 2021  Noor Alaghbar",
+	"",
+	"This program comes with ABSOLUTELY NO WARRANTY.",
+	"This is free software,and you are welcome to redistribute it under certain conditions.",
+	"",
+	"See LICENSE.txt for more information."
+	};
+	uim.centeredText(strVec);
+	uim.display();
+
 	try
 	{
 		// load existing data
@@ -351,7 +364,8 @@ int main()
 				tempStr = ""; // prevent quitting program
 				break;
 			case 6: // credits
-				uim.centeredText("Meal Planner By Noor Alaghbar");
+				uim.centeredText("Meal Planner");
+				uim.centeredText("Copyright (C) 2021 Noor Alaghbar");
 				uim.centeredText("VERSION 1.0");
 				uim.skipLines(1);
 				uim.centeredText("Contact noorga115@gmail.com for questions/assistance.");
