@@ -1825,9 +1825,10 @@ void MealManager::editMultiTag(MultiTag* mtagPtr)
 				tempStr = "Do you want to ";
 
 				if (mtagPtr->getPriority())
-					tempStr += "give this MultiTag priority over Tags?";
+					tempStr += "lower priority to be the same as Tags? (Normal Priority)";
 				else
-					tempStr += "lower priority to be the same as Tags?";
+					tempStr += "raise priority over Tags? (High Priority)";
+
 
 				uim->centeredText(tempStr);
 
@@ -1854,11 +1855,11 @@ void MealManager::editMultiTag(MultiTag* mtagPtr)
 				tempStr = "Priority changed to: ";
 
 				if (mtagPtr->getPriority())
-					tempStr += "SAME AS TAGS.";
+					tempStr += "HIGH PRIORITY.";
 				else
-					tempStr += "PRIORITY OVER TAGS.";
+					tempStr += "NORMAL PRIORITY.";
 
-				uim->leftAllignedText(tempStr);
+				uim->centeredText(tempStr);
 				uim->prompt_None();
 				uim->display();
 			}
