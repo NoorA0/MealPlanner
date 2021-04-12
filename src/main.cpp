@@ -831,12 +831,6 @@ void displayMultiTagManual(UIManager& uim)
 			uim.centeredText("Enabled Days");
 			uim.skipLines(1);
 			uim.centeredText("A MultiTag can be enabled or disabled for every day of the week (Monday, Tuesday, ..., Saturday, Sunday)");
-			break;
-		case 2:
-			uim.centeredText("MultiTag Parameters (cont'd)");
-			// display "Page x/y"
-			tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
-			uim.centeredText(tempStr);
 			uim.skipLines(2);
 			uim.centeredText("Linked Tags");
 			uim.skipLines(1);
@@ -848,12 +842,25 @@ void displayMultiTagManual(UIManager& uim)
 			uim.centeredText("Every Tag linked to a MultiTag can request one or more Meals");
 			uim.centeredText("Normally, only one Meal is scheduled from a Tag on a day of the week.");
 			uim.centeredText("However, requesting more than one Meal makes the program schedule additional Meals that are assigned to the Linked Tag.");
+			break;
+		case 2:
+			uim.centeredText("MultiTag Parameters (cont'd)");
+			// display "Page x/y"
+			tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
+			uim.centeredText(tempStr);
 			uim.skipLines(2);
 			uim.centeredText("High Priority");
 			uim.skipLines(1);
 			uim.centeredText("If this value is set to TRUE, then this MultiTag will be considered before Tags and other MultiTags with normal priority.");
 			uim.centeredText("It is recommended that you set MultiTags to normal priority unless you absolutely need a MultiTag to be chosen before anything else.");
 			uim.centeredText("MultiTags left on high priority WILL prevent other Tags and MultiTags from being used, which may cause bad Meal Plans.");
+			uim.skipLines(2);
+			uim.centeredText("Requires Fulfillment");
+			uim.skipLines(1);
+			uim.centeredText("Since a MultiTag can be linked to multiple Tags, it is possible that not all Tags can schedule a Meal.");
+			uim.centeredText("If you require that all of a MultiTags's linked Tags schedule their requested number of Meals, set this to: REQUIRE FULFILLMENT.");
+			uim.skipLines(1);
+			uim.centeredText("If you're happy with at least 1 Meal in total being scheduled, then set this to: ALLOW PARTIAL FULFILLMENT");
 			uim.skipLines(1);
 			uim.centeredText("(For info on plan generation, see manual page about Meal Plan generation, under \"How do I use this program?\")");
 			break;
@@ -880,13 +887,14 @@ void displayMultiTagManual(UIManager& uim)
 			uim.leftAllignedText("Yet again, you create a Tag, this time called \"Sandwich Toppings\", and assign it to the toppings you created as Meals.");
 			uim.skipLines(1);
 			uim.leftAllignedText("Finally, you create a MultiTag called \"Random Sandwich\", and link it to the newly created Tags.");
-			uim.leftAllignedText("You set the number of requested meals for \"Sandwich Buns\" to 2, while the other Linked Tags request 1 Meal.");
+			uim.leftAllignedText("You set the number of requested meals for \"Sandwich Buns\" to 2 (for a top and bottom), while the other Linked Tags request 1 Meal each.");
 			uim.leftAllignedText("You have also set the Tags to depend on this MultiTag, so that they only get chosen for Meal scheduling if \"Random Sandwhich\" is chosen.");
+			uim.leftAllignedText("Since you want a complete sandwich, you set Requires Fulfillment to REQUIRE FULFILLMENT, so that incomplete sandwiches are not scheduled.");
 			uim.skipLines(2);
-			uim.leftAllignedText("What's the point this? Well, if the Meals and Tags are all enabled, and the program chooses \"Random Sandwhich\" ...");
-			uim.leftAllignedText("Then all of the components of a sandwich will be scheduled on the same day of the week.");
+			uim.leftAllignedText("What's the point this? Well, if the Meals and Tags are all enabled, and the program chooses \"Random Sandwhich\"");
+			uim.leftAllignedText("then all of the components of a sandwich will be scheduled on the same day of the week.");
 			uim.skipLines(1);
-			uim.leftAllignedText("So you will have effectively created a sandwich randomizer!");
+			uim.leftAllignedText("So you will have effectively created a sandwich creator/randomizer!");
 			uim.skipLines(1);
 			uim.centeredText("(for more practical examples, see the next page.)");
 			break;
@@ -896,15 +904,13 @@ void displayMultiTagManual(UIManager& uim)
 			tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
 			uim.centeredText(tempStr);
 			uim.skipLines(2);
-			uim.leftAllignedText("Hopefully the previous page illustrated the utility of using MultiTags, though it's probably not the most practical use of them.");
+			uim.leftAllignedText("Hopefully the previous page illustrated the utility of using MultiTags, though a sandwich randomizer is not the most practical use of one.");
 			uim.skipLines(1);
 			uim.leftAllignedText("In reality, you might want to use MultiTags to plan multiple Meals for each member of a household.");
 			uim.leftAllignedText("In this case, you will assign such Meals to one or more Tags, then link the Tag(s) to a MultiTag.");
-			uim.leftAllignedText("When linking the Tag(s), you must specify how many Meals from the Tag you are requesting to schedule in a single day.");
-			uim.leftAllignedText("You may also request a single Meal from each Tag.");
-			uim.leftAllignedText("If multiple Tags are linked to one MultiTag, then this also results in multiple scheduled Meals in a single day.");
+			uim.leftAllignedText("When linking the Tag(s), you must specify how many Meals you want to schedule from the Tag being linked.");
 			uim.skipLines(1);
-			uim.leftAllignedText("A Linked Tag's Enabled Days will always be respected, so if a Linked Tag is disabled on every day of the week ..");
+			uim.leftAllignedText("A Linked Tag's Enabled Days will always be respected, so if a Linked Tag is disabled on every day of the week");
 			uim.leftAllignedText("but the MultiTag is enabled on all days, then program will NEVER schedule any meals from the Linked Tag.");
 			uim.leftAllignedText("This is because the Linked Tag is effectively disabled, despite the MultiTag being enabled on every day.");
 			uim.skipLines(1);
@@ -958,12 +964,148 @@ void displayMultiTagManual(UIManager& uim)
 
 void displayExamples(UIManager& uim)
 {
+	int currentPage = 1;
+	int totalPages = 4;
+	std::string tempStr = "";
+	std::vector<std::string> strVec;
 
+	// loop while user not quit
+	do
+	{
+		switch (currentPage)
+		{
+		case 1:
+			uim.centeredText("Basic Usage - Minimal Tags");
+			// display "Page x/y"
+			tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
+			uim.centeredText(tempStr);
+			uim.skipLines(2);
+			uim.leftAllignedText("You want to create a Meal Plan for yourself and you can cook 5 Meals. You're not a picky eater, so you don't mind when they occur.");
+			uim.leftAllignedText("Meals must be linked to Tags in order to work, but you don't want to create a bunch of Tags and MultiTags.");
+			uim.skipLines(1);
+			uim.leftAllignedText("The solution is simple, create a single Tag, since you want a Meal for every day of the week, make sure the Tag is enabled on all days.");
+			uim.leftAllignedText("You could name the Tag something like \"Always Enabled\" and add a description if you want.");
+			uim.leftAllignedText("You don't want to use MultiTags, so set MultiTag Dependency to NO. Also, set the number of Consecutive Days to the maximum, 1000 days.");
+			uim.leftAllignedText("As long as the value is greater than the number of days you want to create a Meal Plan on, it will always allow Meals to be scheduled.");
+			uim.skipLines(1);
+			uim.leftAllignedText("Now, create your 5 Meals. Since you're not picky, set each Meal's Days Between Occurrences to 0 days.");
+			uim.leftAllignedText("This allows the Meals to occur whenever a Tag requests it, without waiting between occurrences.");
+			uim.skipLines(1);
+			uim.leftAllignedText("Finally, assign this Tag to each of your 5 Meals. You're done!");
+			uim.leftAllignedText("Create a Meal Plan for whatever duration you wish and set your budget appropriately.");
+			break;
+		case 2:
+			uim.centeredText("Basic Usage - Tags as Filters");
+			// display "Page x/y"
+			tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
+			uim.centeredText(tempStr);
+			uim.skipLines(2);
+			uim.leftAllignedText("Continuing from the previous example, you have 5 Meals and one Tag that allows Meals on every day of the week.");
+			uim.leftAllignedText("Now you've become much busier than before, and some of your Meals take too long to make on a weekday.");
+			uim.leftAllignedText("What you want to do is to eat 3 Meals during the weekdays, and 2 Meals on the weekends.");
+			uim.skipLines(1);
+			uim.leftAllignedText("Start by creating a Tag, perhaps called \"Weekdays Only\", and only enable it on the weekdays.");
+			uim.leftAllignedText("Then create another Tag called \"Weekends Only\", and only enable it on the weekend.");
+			uim.leftAllignedText("You're not that picky about which Meals you eat, so you keep the Consecutive Days to 1000 days.");
+			uim.skipLines(1);
+			uim.leftAllignedText("Finally, unassign the Tag called \"Always Enabled\" from all of your meals, because it can cause Meals to be scheduled on any day.");
+			uim.leftAllignedText("You pick 3 of your Meals and assign them to \"Weekdays Only\", and the last 2 are assigned to \"Weekends Only\".");
+			uim.skipLines(1);
+			uim.leftAllignedText("Done! Now only 3 of the 5 Meals will be scheduled on the weekdays, and the other 2 will only occur on the weekends.");
+			uim.skipLines(1);
+			uim.leftAllignedText("If you wanted more than 3 Meals on the weekends, then feel free to assign Meals to BOTH of your Tags.");
+			uim.leftAllignedText("That way, those Meals can be scheduled on both the weekdends and weekdays.");
+			break;
+		case 3:
+			uim.centeredText("Advanced Usage - Multi-Course Meal");
+			// display "Page x/y"
+			tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
+			uim.centeredText(tempStr);
+			uim.skipLines(2);
+			uim.leftAllignedText("You want to make a multi-course Meal with the following courses: Main, Soup, Appetizer, Salad, and Dessert.");
+			uim.leftAllignedText("Create each Course as its own Tag, and enable them for all days, with Consecutive Days set to 1000.");
+			uim.leftAllignedText("Set each Tag to depend on a MultiTag, since you don't want these courses to be scheduled on their own.");
+			uim.skipLines(1);
+			uim.leftAllignedText("Next, create Meals for all of the possible things you might serve, like 2-3 soups, 5 appetizers, etc.");
+			uim.leftAllignedText("If you want this Multi-Course meal to occur every 2 weeks, the set each Meal's Days Between Occurrences to 14 days.");
+			uim.leftAllignedText("Assign each Meal to the course it is a part of, so soups should only be assigned to the \"Soup\" Tag., and so on.");
+			uim.skipLines(1);
+			uim.leftAllignedText("Since Tags only schedule a single Meal on a day, and you need more than 1 Meal to create a Multi-Course meal");
+			uim.leftAllignedText("You will create a MultiTag called \"Multi-Course Meal\", and link it to each of the courses: \"Main\", \"Soup\", etc.");
+			uim.leftAllignedText("Set the Requested Meals for each linked Tag to 1, unless you want something like 2 Appetizers, then go for it!");
+			uim.leftAllignedText("If you want a Multi-Course meal to occur as soon as possible, and bypass the random choice that the program uses");
+			uim.leftAllignedText("then set the MultiTag to HIGH PRIORITY, otherwise, it will have to be randomly chosen among other Tags before it can be scheduled.");
+			uim.skipLines(1);
+			uim.leftAllignedText("A Multi-Course meal is useless if it's incomplete. So set Require Fulfillment to REQUIRES FULFILLMENT.");
+			uim.skipLines(1);
+			uim.leftAllignedText("Lastly, enable the MultiTag on whichever days of the week you wish.");
+			uim.leftAllignedText("Now you're done! Enjoy that multi-course meal!");
+			break;
+		case 4:
+			uim.centeredText("Advanced Usage - Sandwich Randomizer");
+			// display "Page x/y"
+			tempStr = "[Page " + std::to_string(currentPage) + "/" + std::to_string(totalPages) + "]";
+			uim.centeredText(tempStr);
+			uim.skipLines(2);
+			uim.leftAllignedText("Imagine that you created a Meal called \"Slice of white bread\"");
+			uim.leftAllignedText("This is a poor meal in the traditional sense, but it is a component of a sandwich, which will become useful as you shall see..");
+			uim.leftAllignedText("Now imagine multiple types of bread, all as their own Meals (e.g. Slice of sourdough, Slice of whole wheat, ...).");
+			uim.skipLines(1);
+			uim.leftAllignedText("Next, you create Meals for the insides of a sandwich, perhaps Meals called \"Roast beef\", \"Smoked turkey\", ...");
+			uim.leftAllignedText("You also create Meals for toppings: \"Mustard\", \"Ketchup\", \"Pickles\", ...");
+			uim.skipLines(1);
+			uim.leftAllignedText("Now, you create a Tag called \"Sandwich Buns\", and assign the slices of bread to this Tag.");
+			uim.leftAllignedText("Then another Tag called \"Sandwich Core\" and assign \"Roast beef\", \"Smoked turkey\", ..., to this Tag.");
+			uim.leftAllignedText("Yet again, you create a Tag, this time called \"Sandwich Toppings\", and assign it to the toppings you created as Meals.");
+			uim.skipLines(1);
+			uim.leftAllignedText("Finally, you create a MultiTag called \"Random Sandwich\", and link it to the newly created Tags.");
+			uim.leftAllignedText("You set the number of requested meals for \"Sandwich Buns\" to 2 (for a top and bottom), while the other Linked Tags request 1 Meal each.");
+			uim.leftAllignedText("You have also set the Tags to depend on this MultiTag, so that they only get chosen for Meal scheduling if \"Random Sandwhich\" is chosen.");
+			uim.leftAllignedText("Since you want a complete sandwich, you set Requires Fulfillment to REQUIRE FULFILLMENT, so that incomplete sandwiches are not scheduled.");
+			uim.skipLines(2);
+			uim.leftAllignedText("What's the point this? Well, if the Meals and Tags are all enabled, and the program chooses \"Random Sandwhich\"");
+			uim.leftAllignedText("then all of the components of a sandwich will be scheduled on the same day of the week.");
+			uim.skipLines(1);
+			uim.leftAllignedText("So you will have effectively created a sandwich creator/randomizer!");
+			break;
+		default:
+			// do nothing
+			currentPage = 1;
+		}
 
+		// add prompts to go to next page, previous, and quit
+		tempStr = "NNext Page";
+		strVec.push_back(tempStr);
 
-	uim.centeredText("Examples");
-	uim.skipLines(2);
-	uim.display();
+		tempStr = "PPrevious Page";
+		strVec.push_back(tempStr);
+
+		tempStr = "QQuit to Menu";
+		strVec.push_back(tempStr);
+
+		// display UI and get input
+		uim.prompt_List_Case_Insensitive(strVec);
+		tempStr = uim.display();
+		tempStr = std::toupper(tempStr.at(0));
+
+		// check if choice is N, P, or Q
+		if (tempStr == "N")
+		{
+			// increment page number (loops around if at end)
+			if (currentPage == totalPages)
+				currentPage = 1;
+			else
+				++currentPage;
+		}
+		else if (tempStr == "P")
+		{
+			// decrement page number (loops around if at beginning)
+			if (currentPage == 1)
+				currentPage = totalPages;
+			else
+				--currentPage;
+		}
+	} while (tempStr != "Q");
 }
 
 std::string verifyFileName(const std::string& input)
