@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SettingsWindow</class>
+ <widget class="QMainWindow" name="SettingsWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Settings</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QPushButton" name="editMealsButton">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>80</y>
+      <width>171</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>View/Edit Meals</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="editTagsButton">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>160</y>
+      <width>171</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>View/Edit Tags</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="editMultiTagsButton">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>240</y>
+      <width>171</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>View/Edit MultiTags</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="backMainMenuButton">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>470</y>
+      <width>251</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Back to Main Menu</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

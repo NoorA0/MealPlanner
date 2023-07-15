@@ -31,10 +31,43 @@
 *.out
 *.app
 
+# Generated Makefiles and project files
+Makefile
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+*.qmake.stash
+
+# Generated build directories
+qtfolder/build-*/
+debug/
+release/
+moc_*/
+
+# Generated files by Qt's resource system
+*.qrc.cpp
+*.qrc.hpp
+
+# Generated files by Qt's UI compiler
+ui_*.h
+ui_*.cpp
+
+# Generated files by Qt's meta-object compiler (moc)
+moc_*.cpp
+
+# Generated files by Qt's translation system (lrelease)
+*.qm
+
+# Generated files by Qt's user interface compiler (uic)
+ui_*.h
+
+# Generated files by Qt's preprocessor (qpreprocessor)
+*.cpp~
+
 PreLoad.cmake
 .vs/
 CMakeFiles/
-Makefile
 cmake_install.cmake
 CMakeCache.txt
 ProgramData.txt
