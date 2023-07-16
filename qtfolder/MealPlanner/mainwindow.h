@@ -22,6 +22,10 @@ private slots:
 
     void on_attributionsButton_clicked();
 
+    void on_quitProgramButton_clicked();
+
+    void on_generatePlanButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 };
