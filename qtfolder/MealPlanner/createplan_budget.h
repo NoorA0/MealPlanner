@@ -15,6 +15,14 @@ public:
     explicit createPlan_Budget(QWidget *parent = nullptr);
     ~createPlan_Budget();
 
+signals:
+    void sendPlanBudget(const bool &isValid, const double &budget);
+
+private slots:
+    void on_pushButton_clicked();
+
+    void on_pushButton_2_clicked();
+
 private:
     Ui::createPlan_Budget *ui;
 };

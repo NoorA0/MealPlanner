@@ -11,6 +11,7 @@ CONFIG += c++17
 SOURCES += \
     attributionsdialogue.cpp \
     createplan_budget.cpp \
+    createplan_confirmation.cpp \
     createplan_filename.cpp \
     createplan_length.cpp \
     main.cpp \
@@ -21,6 +22,7 @@ SOURCES += \
 HEADERS += \
     attributionsdialogue.h \
     createplan_budget.h \
+    createplan_confirmation.h \
     createplan_filename.h \
     createplan_length.h \
     mainwindow.h \
@@ -30,6 +32,7 @@ HEADERS += \
 FORMS += \
     attributionsdialogue.ui \
     createplan_budget.ui \
+    createplan_confirmation.ui \
     createplan_filename.ui \
     createplan_length.ui \
     mainwindow.ui \

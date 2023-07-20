@@ -12,3 +12,22 @@ createPlan_Length::~createPlan_Length()
 {
     delete ui;
 }
+
+// OK button clicked
+void createPlan_Length::on_pushButton_clicked()
+{
+    // get and send length
+    int length = ui->spinBox->value();
+
+    emit sendPlanLength(true, length);
+
+    close();
+}
+
+// Cancel button clicked
+void createPlan_Length::on_pushButton_2_clicked()
+{
+    emit sendPlanLength(false, -1.0);
+    close();
+}
+

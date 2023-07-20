@@ -16,6 +16,14 @@ public:
     ~MainWindow();
 
 private slots:
+    void getFileName(const bool &isValid, const QString &newFileName);
+
+    void getPlanLength(const bool &isValid, const int &newLength);
+
+    void getPlanBudget(const bool &isValid, const double &newBudget);
+
+    void getConfirmation(const bool &isValid);
+
     void on_settingsButton_clicked();
 
     void on_manualButton_clicked();
@@ -28,5 +36,9 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    QString fileName;
+    int planLength;
+    double planBudget;
+    bool settingsConfirmed;
 };
 #endif // MAINWINDOW_H

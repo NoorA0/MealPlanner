@@ -5,18 +5,60 @@
 #include "attributionsdialogue.h"
 #include "ui_mainwindow.h"
 #include "createplan_filename.h"
+#include "createplan_length.h"
+#include "createplan_budget.h"
+#include "createplan_confirmation.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
+    fileName = QString();
+    planLength = 0;
+    planBudget = -1.0;
+    settingsConfirmed = false;
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+// gets file name to generate if isValid is true
+void MainWindow::getFileName(const bool &isValid, const QString &newFileName)
+{
+    if (isValid)
+        fileName = newFileName;
+    else
+        fileName = QString(); // set to null string
+}
+
+// gets plan length to generate if isValid is true
+void MainWindow::getPlanLength(const bool &isValid, const int &newLength)
+{
+    if (isValid)
+        planLength = newLength;
+    else
+        planLength = 0;
+}
+
+// gets plan budget to generate if isValid is true
+void MainWindow::getPlanBudget(const bool &isValid, const double &newBudget)
+{
+    if (isValid)
+        planBudget = newBudget;
+    else
+        planBudget = -1.0;
+}
+
+// gets final plan configuration confirmation
+void MainWindow::getConfirmation(const bool &isValid)
+{
+    if (isValid)
+        settingsConfirmed = true;
+    else
+        settingsConfirmed = false;
 }
 
 // clicked settings button
@@ -57,26 +99,85 @@ void MainWindow::on_quitProgramButton_clicked()
 void MainWindow::on_generatePlanButton_clicked()
 {
     // prompt user for file name
-    // default name is "New_Meal_Plan.txt"
-    QString fileName;
+    // default name is stored in createplan_filename.cpp
 
     createPlan_Filename* cpf = new createPlan_Filename(this);
     cpf->setAttribute(Qt::WA_DeleteOnClose);
 
-    // use signal to tell if user quit or entered a filename
-
-    // if not quit, then receive the file name
-
+    // connect signal to receive file name information
+    connect(cpf,
+            SIGNAL(sendFileName(bool,QString)),
+            this,
+            SLOT(getFileName(bool,QString)),
+            Qt::UniqueConnection);
     cpf->exec();
-    qDebug() << "filename: " << fileName;
 
+    // continue if user did not cancel
+    if (fileName.isNull())
+    {
+        return;
+    }
 
+    // prompt for schedule length
+    createPlan_Length* cpl = new createPlan_Length(this);
+    cpl->setAttribute(Qt::WA_DeleteOnClose);
 
-    // if OK, prompt for schedule length
+    // connect signal to receive plan length
+    connect(cpl,
+            SIGNAL(sendPlanLength(bool,int)),
+            this,
+            SLOT(getPlanLength(bool,int)),
+            Qt::UniqueConnection);
+    cpl->exec();
 
-    // if OK, prompt for budget limit
+    // continue if user did not cancel
+    if (planLength < 1)
+    {
+        return;
+    }
+
+    // prompt for budget limit
+    createPlan_Budget* cpb = new createPlan_Budget(this);
+    cpb->setAttribute(Qt::WA_DeleteOnClose);
+
+    // connect signal to receive plan budget
+    connect(cpb,
+            SIGNAL(sendPlanBudget(bool,double)),
+            this,
+            SLOT(getPlanBudget(bool,double)),
+            Qt::UniqueConnection);
+    cpb->exec();
+
+    // continue if user did not cancel
+    if (planBudget <= -1.0)
+    {
+        return;
+    }
 
     // confirm settings
+    createplan_confirmation* cpc = new createplan_confirmation(this,
+                                                               fileName,
+                                                               planLength,
+                                                               planBudget);
+    cpc->setAttribute(Qt::WA_DeleteOnClose);
+
+    // connect signal to receive confirmation
+    connect(cpc,
+            SIGNAL(sendConfirmation(bool)),
+            this,
+            SLOT(getConfirmation(bool)),
+            Qt::UniqueConnection);
+    cpc->exec();
+
+    // continue if user did not cancel
+    if (!settingsConfirmed)
+    {
+        return;
+    }
+
+    qDebug() << "----stats: ----\nfilename: "
+             << fileName << "\nlength (weeks): " << planLength
+             << "\nbudget: " << planBudget;
 
     // error page if failed at any point
 
