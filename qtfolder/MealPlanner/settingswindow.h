@@ -18,6 +18,12 @@ public:
 private slots:
     void on_backMainMenuButton_clicked();
 
+    void on_editMealsButton_clicked();
+
+    void on_editTagsButton_clicked();
+
+    void on_editMultiTagsButton_clicked();
+
 private:
     Ui::SettingsWindow *ui;
 };

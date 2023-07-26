@@ -14,6 +14,7 @@ SOURCES += \
     createplan_confirmation.cpp \
     createplan_filename.cpp \
     createplan_length.cpp \
+    editmealswindow.cpp \
     main.cpp \
     mainwindow.cpp \
     manualwindow.cpp \
@@ -25,6 +26,7 @@ HEADERS += \
     createplan_confirmation.h \
     createplan_filename.h \
     createplan_length.h \
+    editmealswindow.h \
     mainwindow.h \
     manualwindow.h \
     settingswindow.h
@@ -35,6 +37,7 @@ FORMS += \
     createplan_confirmation.ui \
     createplan_filename.ui \
     createplan_length.ui \
+    editmealswindow.ui \
     mainwindow.ui \
     manualwindow.ui \
     settingswindow.ui
