@@ -37,7 +37,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Settings</string>
+     <string>Configure</string>
     </property>
    </widget>
    <widget class="QPushButton" name="manualButton">
