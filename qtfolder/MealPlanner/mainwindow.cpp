@@ -1,5 +1,6 @@
 #include <QDebug>
 #include "mainwindow.h"
+#include "mealmanager.h"
 #include "settingswindow.h"
 #include "manualwindow.h"
 #include "attributionsdialogue.h"

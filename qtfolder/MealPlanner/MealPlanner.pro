@@ -10,26 +10,38 @@ CONFIG += c++17
 
 SOURCES += \
     attributionsdialogue.cpp \
+    basetag.cpp \
     createplan_budget.cpp \
     createplan_confirmation.cpp \
     createplan_filename.cpp \
     createplan_length.cpp \
     editmealswindow.cpp \
+    error_loaddatafailed.cpp \
     main.cpp \
     mainwindow.cpp \
     manualwindow.cpp \
-    settingswindow.cpp
+    meal.cpp \
+    mealmanager.cpp \
+    multitag.cpp \
+    settingswindow.cpp \
+    tag.cpp
 
 HEADERS += \
     attributionsdialogue.h \
+    basetag.h \
     createplan_budget.h \
     createplan_confirmation.h \
     createplan_filename.h \
     createplan_length.h \
     editmealswindow.h \
+    error_loaddatafailed.h \
     mainwindow.h \
     manualwindow.h \
-    settingswindow.h
+    meal.h \
+    mealmanager.h \
+    multitag.h \
+    settingswindow.h \
+    tag.h
 
 FORMS += \
     attributionsdialogue.ui \
@@ -38,6 +50,7 @@ FORMS += \
     createplan_filename.ui \
     createplan_length.ui \
     editmealswindow.ui \
+    error_loaddatafailed.ui \
     mainwindow.ui \
     manualwindow.ui \
     settingswindow.ui
