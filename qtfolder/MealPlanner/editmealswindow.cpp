@@ -1,11 +1,17 @@
 #include "editmealswindow.h"
 #include "ui_editmealswindow.h"
+#include "createmeal_basicparams.h"
 #include <QDebug>
 
-EditMealsWindow::EditMealsWindow(QWidget *parent) :
+EditMealsWindow::EditMealsWindow(QWidget *parent, MealManager *mm) :
     QMainWindow(parent),
     ui(new Ui::EditMealsWindow)
 {
+    if (mm == nullptr)
+        close();
+    else
+        this->mm = mm;
+
     ui->setupUi(this);
     QString itemStats = "\nName: Hamberders\nPrice: 2.05\nDuration: 1 days\nTags Assigned: 7\nEnabled On: [Mon, Tue, Wed, Thu, Fri, Sat, Sun]\n";
     QString itemStats2 = "\nName: Hamberders\nPrice: 2.05\nDuration: 1 days\nTags Assigned: 7\nEnabled On: [Mon, Tue, Wed, Thu, Fri, Sat, Sun]\n";
@@ -47,6 +53,7 @@ void EditMealsWindow::on_pushButton_2_clicked()
 // item double clicked
 void EditMealsWindow::on_listWidget_meals_itemDoubleClicked(QListWidgetItem *item)
 {
+    // TODO: this
     qDebug() << "item was double clicked: \n" << item->text();
 }
 
@@ -62,5 +69,26 @@ void EditMealsWindow::on_listWidget_meals_currentItemChanged(QListWidgetItem *cu
 // edit tags assigned for selected meal
 void EditMealsWindow::on_pushButton_3_clicked()
 {
+    // TODO: this
 
 }
+
+// create new meal
+void EditMealsWindow::on_pushButton_4_clicked()
+{
+    // create meal by getting basic info
+    createmeal_basicparams *window = new createmeal_basicparams(this, this->mm);
+    window->setAttribute(Qt::WA_DeleteOnClose);
+    window->exec();
+
+    // prompt to link with tags
+    // TODO: this
+
+}
+
+// delete selected meal
+void EditMealsWindow::on_pushButton_5_clicked()
+{
+    // TODO: this
+}
+

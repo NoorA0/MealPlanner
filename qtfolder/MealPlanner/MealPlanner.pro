@@ -11,6 +11,8 @@ CONFIG += c++17
 SOURCES += \
     attributionsdialogue.cpp \
     basetag.cpp \
+    createmeal_basicparams.cpp \
+    createmeal_nameconflict.cpp \
     createplan_budget.cpp \
     createplan_confirmation.cpp \
     createplan_filename.cpp \
@@ -29,6 +31,8 @@ SOURCES += \
 HEADERS += \
     attributionsdialogue.h \
     basetag.h \
+    createmeal_basicparams.h \
+    createmeal_nameconflict.h \
     createplan_budget.h \
     createplan_confirmation.h \
     createplan_filename.h \
@@ -45,6 +49,8 @@ HEADERS += \
 
 FORMS += \
     attributionsdialogue.ui \
+    createmeal_basicparams.ui \
+    createmeal_nameconflict.ui \
     createplan_budget.ui \
     createplan_confirmation.ui \
     createplan_filename.ui \

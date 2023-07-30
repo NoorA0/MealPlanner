@@ -6,22 +6,9 @@
 #include <sstream>
 #include <algorithm>
 
-MealManager::MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE,
-                         const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH)
+MealManager::MealManager()
 {
-    // verify values
-    if (MINIMUM_PRICE >= 0)
-        this->MINIMUM_PRICE = MINIMUM_PRICE;
-    else
-        this->MINIMUM_PRICE = 0;
 
-    if (MAXIMUM_PRICE < this->MINIMUM_PRICE)
-        this->MAXIMUM_PRICE = MINIMUM_PRICE;
-    else
-        this->MAXIMUM_PRICE = MAXIMUM_PRICE;
-
-    this->NAME_LENGTH = NAME_LENGTH;
-    this->DESC_LENGTH = DESC_LENGTH;
 }
 
 MealManager::~MealManager()
@@ -58,96 +45,79 @@ MealManager::~MealManager()
     multiTags.clear();
 }
 
-void MealManager::createMeal(Meal* mealptr)
+int MealManager::createMeal(const QString &mealName,
+                            const double &mealPrice,
+                            const int &mealDuration,
+                            const int &mealDBO)
 {
-    bool doneCreating = false;
+    int returnValue = 0;
+    Meal* mealptr;
     bool inputValid = false;
-    QString tempStr = "";
-    int tempInt;
-    double tempDouble;
-    QVector<QString> strVec;
 
-    // ensure mealPtr is instantiated
-    if (mealptr == nullptr)
-        mealptr = new Meal();
+    mealptr = new Meal();
 
-    // loop while user is not done choosing a name
-    while (!doneCreating)
+    // set initial values
+    mealptr->setName(mealName);
+    mealptr->setPrice(mealPrice);
+    mealptr->setMealDuration(mealDuration);
+    mealptr->setDaysBetweenOccurrences(mealDBO);
+
+    // if there are other meals stored, check if names conflict (case insensitive)
+    // also try to find place to insert into (alphabetical order)
+    if (meals.size() > 0)
     {
-        // prompts user for meal info
+        // get uppercase version of name
+        QString upperStr = mealName.toUpper();
 
-        // if there are other meals stored, check if names conflict (case insensitive)
-        // also try to find place to insert into (alphabetical order)
-        if (meals.size() > 0)
+        // compare with names of all meals until a match is found
+        // also find a place to insert into (alphabetical order)
+        bool placeFound = false;
+        inputValid = true;
+        auto mealsIter = meals.begin();
+        while (inputValid && !placeFound && mealsIter != meals.end())
         {
-            // get uppercase version of tempStr
-            QString upperStr = tempStr.toUpper();
+            // get uppercase version of meal's name
+            QString compareName = (*mealsIter)->getName().toUpper();
 
-            // compare with names of all meals until a match is found
-            // also find a place to insert into (alphabetical order)
-            bool placeFound = false;
-            inputValid = true;
-            auto mealsIter = meals.begin();
-            while (inputValid && !placeFound && mealsIter != meals.end())
+            // check if names match
+            if (upperStr == compareName)
+                inputValid = false;
+            else if (upperStr < compareName) // check if is this a good place to insert
             {
-                // get uppercase version of meal's name
-                QString compareName = (*mealsIter)->getName().toUpper();
-
-                // check if names match
-                if (upperStr == compareName)
-                    inputValid = false;
-                else if (upperStr < compareName) // check if is this a good place to insert
-                {
-                    // insert here
-                    placeFound = true;
-                    mealptr->setName(tempStr);
-                    meals.emplace(mealsIter, mealptr);
-                    doneCreating = true;
-                }
-                else // keep looking
-                    ++mealsIter;
+                // insert here
+                placeFound = true;
+                meals.emplace(mealsIter, mealptr);
             }
-
-            // check if name is valid but place not found
-            if (inputValid && !placeFound)
-            {
-                // set name and place at back of meals
-                mealptr->setName(tempStr);
-                meals.push_back(mealptr);
-                doneCreating = true; // exits section of creation
-            }
-            else if (!inputValid) // invalid name, inform user
-            {
-                // output error saying the name is invalid due to already existing
-            }
+            else // keep looking
+                ++mealsIter;
         }
-        else // name is ok, push to back of meals
+
+        // check if name is valid but place not found
+        if (inputValid && !placeFound)
         {
-            mealptr->setName(tempStr);
+            // place at back of meals
             meals.push_back(mealptr);
-            doneCreating = true;
         }
-    }// while (!doneCreating)
+        else if (!inputValid) // invalid name
+        {
+            returnValue = 1;
+        }
+    }
+    else // name is ok, push to back of meals
+    {
+        meals.push_back(mealptr);
+    }
 
-    // price
-    // prompt and get price, store in tempDouble
-    mealptr->setPrice(tempDouble);
+    // enable meal if input was valid, otherwise delete
+    if (inputValid)
+        mealptr->setDisabled(false);
+    else
+    {
+        delete mealptr;
+        mealptr = nullptr;
+    }
 
-    // mealDuration
-    // prompt for meal duration, range between 1 and MEAL_DURATION_LIMIT, inclusive
-    // store in tempInt
-    mealptr->setMealDuration(tempInt);
-
-    // daysBetweenOccurrences
-    // prompt for this, range between 0 and DAYS_BETWEEN_OCCURRENCES_LIMIT, inclusive
-    // store in tempInt
-    mealptr->setDaysBetweenOccurrences(tempInt);
-
-    // enable meal
-    mealptr->setDisabled(false);
-
-    // assign tags to meal
-    editMealTags(mealptr);
+    return returnValue;
 }
 
 void MealManager::deleteMeal(Meal* mealPtr)
@@ -5700,10 +5670,10 @@ void MealManager::multitagEditor()
     } while (tempStr != "Q");
 }
 
-void MealManager::saveState(const QString& dataFile, std::ofstream& oFile)
+void MealManager::saveState(std::ofstream& oFile)
 {
     // open file for writing
-    oFile.open(dataFile);
+    oFile.open(DATA_NAME.toStdString());
 
     // check if open
     if (oFile.is_open())
@@ -5782,10 +5752,10 @@ void MealManager::saveState(const QString& dataFile, std::ofstream& oFile)
         oFile.close();
     }
     else
-        throw QString("Cannot open file");
+        throw QString("Cannot access data file");
 }
 
-int MealManager::loadState(const QString& outputFile, std::ifstream& iFile)
+int MealManager::loadState(std::ifstream& iFile)
 {
     QString tagError = "Error reading Tags";
     QString multiTagError = "Error reading MultiTags";
@@ -5794,10 +5764,10 @@ int MealManager::loadState(const QString& outputFile, std::ifstream& iFile)
     int returnVal = 0; // 0 = good, 1 = corrupted
 
     bool corruptionDetected = false;
-    QString line; // lines read from file
+    std::string line; // lines read from file
 
     // open file
-    iFile.open(outputFile);
+    iFile.open(DATA_NAME.toStdString());
 
     // check if failed
     if (iFile.is_open())

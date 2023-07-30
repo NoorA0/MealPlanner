@@ -10,10 +10,18 @@
 #include "createplan_budget.h"
 #include "createplan_confirmation.h"
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(QWidget *parent, MealManager *mm)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+    if (mm == nullptr)
+    {
+        qDebug() << "MainWindow instantiated with null ref to MealManager!";
+        close();
+    }
+    else
+        this->mm = mm;
+
     ui->setupUi(this);
     fileName = QString();
     planLength = 0;
@@ -24,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+    mm = nullptr;
 }
 
 // gets file name to generate if isValid is true
@@ -66,7 +75,7 @@ void MainWindow::getConfirmation(const bool &isValid)
 void MainWindow::on_settingsButton_clicked()
 {
     hide();
-    SettingsWindow *sw = new SettingsWindow(this);
+    SettingsWindow *sw = new SettingsWindow(this, this->mm);
     sw->setAttribute(Qt::WA_DeleteOnClose);
     sw->show();
 }
@@ -91,9 +100,32 @@ void MainWindow::on_attributionsButton_clicked()
 
 void MainWindow::on_quitProgramButton_clicked()
 {
-    //TODO: implement file saving here
-    close();
+    // save data before quit
+    try
+    {
+        std::ofstream oFile;
+        mm->saveState(oFile);
+    }
+    catch (QString &error)
+    {
+        // write error to log
+        std::ofstream errOut(mm->getLogFileName().toStdString(), std::ios::app);
 
+        if (errOut.is_open())
+        {
+            // get system time
+            auto now = std::chrono::system_clock::now();
+            std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+
+            errOut << ctime(&currentTime);
+            errOut << "ERROR: Could not save program data.\n"
+                   << "REASON: " << error.toStdString() << ".\n"
+                   << "\nThis may be caused by insufficient write permissions or lack of drive space.\n\n";
+        }
+        errOut.close();
+    }
+
+    close();
 }
 
 // clicked generate program

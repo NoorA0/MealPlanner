@@ -2,6 +2,10 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "mealmanager.h"
+#include <fstream>
+#include <chrono>
+#include <ctime>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -12,7 +16,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(QWidget *parent = nullptr,
+               MealManager *mm = nullptr);
     ~MainWindow();
 
 private slots:
@@ -36,6 +41,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    MealManager *mm;
     QString fileName;
     int planLength;
     double planBudget;

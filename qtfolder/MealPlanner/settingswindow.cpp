@@ -2,10 +2,15 @@
 #include "ui_settingswindow.h"
 #include "editmealswindow.h"
 
-SettingsWindow::SettingsWindow(QWidget *parent) :
+SettingsWindow::SettingsWindow(QWidget *parent, MealManager *mm) :
     QMainWindow(parent),
     ui(new Ui::SettingsWindow)
 {
+    if (mm == nullptr)
+        close();
+    else
+        this->mm = mm;
+
     ui->setupUi(this);
 
     connect(ui->backMainMenuButton, &QPushButton::clicked, this, &SettingsWindow::on_backMainMenuButton_clicked);
@@ -33,7 +38,7 @@ void SettingsWindow::on_backMainMenuButton_clicked()
 void SettingsWindow::on_editMealsButton_clicked()
 {
     hide();
-    EditMealsWindow *emw = new EditMealsWindow(this);
+    EditMealsWindow *emw = new EditMealsWindow(this, this->mm);
     emw->setAttribute(Qt::WA_DeleteOnClose);
     emw->show();
 }

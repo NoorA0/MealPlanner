@@ -12,8 +12,7 @@ QString dayToString(const DaysOfTheWeek& day);
 class MealManager
 {
 public:
-    MealManager(const double& MINIMUM_PRICE, const double& MAXIMUM_PRICE,
-                const unsigned int& NAME_LENGTH, const unsigned int& DESC_LENGTH);
+    MealManager();
     ~MealManager();
 
     // failedPlanErrors and failedPlanCost are 0 unless generation fails,
@@ -23,37 +22,56 @@ public:
     void tagEditor();
     void multitagEditor();
 
+    /* createMeal
+    * INPUTS:
+    *	QString mealName  : name of meal
+    *   double mealPrice : price of meal
+    *   int mealDuration : how long the meal lasts
+    *   int mealDBO      : days between meal occurrences
+    *
+    * RETURN: 0 if succeeded, 1 if name conflict
+    *
+    * creates a meal using inputs and adds meal to meals in alphabetical order
+    */
+    int createMeal(const QString &mealName,
+                   const double &mealPrice,
+                   const int &mealDuration,
+                   const int &mealDBO);
+
     // Save/Load
-    void saveState(const QString& dataFile, std::ofstream& oFile);
+    void saveState(std::ofstream& oFile);
 
     // returns 0 if good, 1 if data corrupted
-    int loadState(const QString& outputFile, std::ifstream& iFile);
+    int loadState(std::ifstream& iFile);
+
+    // getters
+    unsigned int getConsecutiveDaysLimit(void) {return CONSECUTIVE_DAYS_LIMIT;}
+    unsigned int getMealDurationLimit(void) {return MEAL_DURATION_LIMIT;}
+    unsigned int getDaysBetweenOccurrencesLimit(void) {return DAYS_BETWEEN_OCCURRENCES_LIMIT;}
+    unsigned int getRequestedMealsLimit(void) {return REQUESTED_MEALS_LIMIT;}
+    QString getDataFileName(void) {return DATA_NAME;}
+    QString getLogFileName(void) {return LOGFILE;}
+    double getMinimumPrice(void) {return MINIMUM_PRICE;}
+    double getMaximumPrice(void) {return MAXIMUM_PRICE;}
+    unsigned int getMaximumNameLength(void) {return NAME_LENGTH;}
+    unsigned int getMaximumDescriptionLength(void) {return DESC_LENGTH;}
 
 private:
     QVector<Tag*> normalTags; // tags assigned to foods
     QVector<MultiTag*> multiTags; // special tags that are linked to normalTags
     QVector<Meal*> meals; // stores all meals
 
-    // initialized on object creation
-    double MINIMUM_PRICE;
-    double MAXIMUM_PRICE;
-    unsigned int NAME_LENGTH;
-    unsigned int DESC_LENGTH;
+    // constant limits/parameters
     const unsigned int CONSECUTIVE_DAYS_LIMIT = 1000;
     const unsigned int MEAL_DURATION_LIMIT = 30;
     const unsigned int DAYS_BETWEEN_OCCURRENCES_LIMIT = 30;
     const unsigned int REQUESTED_MEALS_LIMIT = 100;
-
-    // HELPER FUNCTIONS
-    /* createMeal
-    * INPUTS:
-    *	Meal* mealptr: pointer to instantiated Meal object
-    *
-    * RETURN: none
-    *
-    * CHANGES: mealPtr: sets parameters according to user input, adds meal to meals in alphabetical order
-    */
-    void createMeal(Meal* mealptr);
+    const QString DATA_NAME = "MealPlanner_Data.txt";
+    const QString LOGFILE = "MealPlanner_Logs.txt";
+    const double MINIMUM_PRICE = 0.0;    // lowest price for a single meal
+    const double MAXIMUM_PRICE = 999.99; // highest price for a single meal
+    const unsigned int NAME_LENGTH = 40; // limit for tag and meal names
+    const unsigned int DESC_LENGTH = 80; // limit for tag descriptions
 
     /* deleteMeal
     * INPUTS:
