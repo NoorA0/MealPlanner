@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Error</string>
+   <string>Name Conflict</string>
   </property>
   <widget class="QLabel" name="label">
    <property name="geometry">

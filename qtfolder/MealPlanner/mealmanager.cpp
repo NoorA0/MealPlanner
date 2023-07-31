@@ -120,6 +120,119 @@ int MealManager::createMeal(const QString &mealName,
     return returnValue;
 }
 
+Meal* MealManager::findMeal(const QString &mealName)
+{
+    Meal *retMeal = nullptr;
+    bool inputValid = false;
+
+    // if there are other meals stored, check if names conflict (case insensitive)
+    if (meals.size() > 0)
+    {
+        // get uppercase version of name
+        QString upperStr = mealName.toUpper();
+
+        // compare with names of all meals until a match is found
+        inputValid = true;
+        auto mealsIter = meals.begin();
+        while (inputValid && mealsIter != meals.end())
+        {
+            // get uppercase version of meal's name
+            QString compareName = (*mealsIter)->getName().toUpper();
+
+            // check if names match
+            if (upperStr == compareName)
+            {
+                inputValid = false;
+                retMeal = *mealsIter;
+            }
+            else // keep looking
+                ++mealsIter;
+        }
+    }
+    return retMeal;
+}
+
+bool MealManager::resortMeal(Meal *mealPtr, const QString &newName)
+{
+    bool hasFailed = false;
+
+    // make sure meal exists
+    if (findMeal(mealPtr->getName()) == nullptr)
+    {
+        hasFailed = true;
+    }
+    // if new and old name are functionally the same, rename
+    else if (mealPtr->getName().toUpper() == newName.toUpper())
+    {
+        mealPtr->setName(newName);
+    }
+    // conflict with new name, abort re-sort
+    else if (meals.size() > 0 && findMeal(newName) != nullptr)
+    {
+        hasFailed = true;
+    }
+    // perform re-sort if can find old meal
+    else if (meals.size() > 0)
+    {
+        // prepare to remove meal from meals
+        auto mealsIter = meals.begin();
+        bool mealFound = false;
+
+        // find meal
+        while (!mealFound && mealsIter != meals.end())
+        {
+            if (*mealsIter == mealPtr)
+                mealFound = true;
+            else
+                ++mealsIter;
+        }
+
+        // remove meal
+        if (mealFound)
+        {
+            meals.erase(mealsIter);
+        }
+
+        // rename meal
+        mealPtr->setName(newName);
+
+        // get uppercase version of new name
+        QString upperStr = newName.toUpper();
+
+        // find a place to insert into (alphabetical order)
+        mealFound = false;
+        mealsIter = meals.begin();
+        while (!mealFound && mealsIter != meals.end())
+        {
+            // get uppercase version of meal's name
+            QString compareName = (*mealsIter)->getName().toUpper();
+
+            // position found
+            if (upperStr < compareName) // check if is this a good place to insert
+            {
+                // insert here
+                mealFound = true;
+                meals.emplace(mealsIter, mealPtr);
+            }
+            else // keep looking
+                ++mealsIter;
+        }
+
+        // check if place not found
+        if (!mealFound)
+        {
+            // place at back of meals
+            meals.push_back(mealPtr);
+        }
+    }
+    else // order doesn't matter
+    {
+        mealPtr->setName(newName);
+    }
+    return hasFailed;
+}
+
+
 void MealManager::deleteMeal(Meal* mealPtr)
 {
     // get assigned tags
@@ -137,7 +250,7 @@ void MealManager::deleteMeal(Meal* mealPtr)
         mealPtr->clearTags();
     }
 
-    // remove meal from meals
+    // prepare to remove meal from meals
     bool found = false;
     auto mealIter = meals.begin();
 
@@ -150,6 +263,7 @@ void MealManager::deleteMeal(Meal* mealPtr)
             ++mealIter;
     }
 
+    // delete meal
     if (found)
     {
         meals.erase(mealIter);

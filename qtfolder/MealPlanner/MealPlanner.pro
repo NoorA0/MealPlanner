@@ -13,10 +13,13 @@ SOURCES += \
     basetag.cpp \
     createmeal_basicparams.cpp \
     createmeal_nameconflict.cpp \
+    createmeal_notagswarning.cpp \
+    createmeal_promptlinktags.cpp \
     createplan_budget.cpp \
     createplan_confirmation.cpp \
     createplan_filename.cpp \
     createplan_length.cpp \
+    editmeal_basicparams.cpp \
     editmealswindow.cpp \
     error_loaddatafailed.cpp \
     main.cpp \
@@ -33,10 +36,13 @@ HEADERS += \
     basetag.h \
     createmeal_basicparams.h \
     createmeal_nameconflict.h \
+    createmeal_notagswarning.h \
+    createmeal_promptlinktags.h \
     createplan_budget.h \
     createplan_confirmation.h \
     createplan_filename.h \
     createplan_length.h \
+    editmeal_basicparams.h \
     editmealswindow.h \
     error_loaddatafailed.h \
     mainwindow.h \
@@ -51,10 +57,13 @@ FORMS += \
     attributionsdialogue.ui \
     createmeal_basicparams.ui \
     createmeal_nameconflict.ui \
+    createmeal_notagswarning.ui \
+    createmeal_promptlinktags.ui \
     createplan_budget.ui \
     createplan_confirmation.ui \
     createplan_filename.ui \
     createplan_length.ui \
+    editmeal_basicparams.ui \
     editmealswindow.ui \
     error_loaddatafailed.ui \
     mainwindow.ui \

@@ -38,6 +38,37 @@ public:
                    const int &mealDuration,
                    const int &mealDBO);
 
+    /* findMeal
+    * INPUTS:
+    *	QString mealName  : name of meal
+    *
+    * RETURN: pointer to meal if exists, otherwise nullptr
+    *
+    * searches for a meal with the given name
+    */
+    Meal* findMeal(const QString &mealName);
+
+    /* resortMeal
+    * INPUTS:
+    *	Meal* mealPtr   : pointer to existing meal, with old name
+    *   QString newName : the desired new name for the meal
+    *
+    * RETURN: 0 if succeeded, 1 if meal's old name not found, or name conflict
+    *
+    * changes a meal's name and sorts by alphabetical order in meals
+    */
+    bool resortMeal(Meal *mealPtr, const QString &newName);
+
+    /* deleteMeal
+    * INPUTS:
+    *	Meal* mealptr: pointer to an existing Meal object
+    *
+    * RETURN: none
+    *
+    * CHANGES: mealPtr: Meal is removed from meals, and unlinked from Tags, then deleted and set to nullptr
+    */
+    void deleteMeal(Meal* mealPtr);
+
     // Save/Load
     void saveState(std::ofstream& oFile);
 
@@ -45,6 +76,7 @@ public:
     int loadState(std::ifstream& iFile);
 
     // getters
+    // constants
     unsigned int getConsecutiveDaysLimit(void) {return CONSECUTIVE_DAYS_LIMIT;}
     unsigned int getMealDurationLimit(void) {return MEAL_DURATION_LIMIT;}
     unsigned int getDaysBetweenOccurrencesLimit(void) {return DAYS_BETWEEN_OCCURRENCES_LIMIT;}
@@ -56,11 +88,15 @@ public:
     unsigned int getMaximumNameLength(void) {return NAME_LENGTH;}
     unsigned int getMaximumDescriptionLength(void) {return DESC_LENGTH;}
 
-private:
-    QVector<Tag*> normalTags; // tags assigned to foods
-    QVector<MultiTag*> multiTags; // special tags that are linked to normalTags
-    QVector<Meal*> meals; // stores all meals
+    // variables
+    int getNumberOfNormalTags(void) { return normalTags.size(); }
+    int getNumberOfMultiTags(void) { return multiTags.size(); }
+    int getNumberOfMeals(void) { return meals.size(); }
+    const QVector<Meal*> getMeals(void) { return meals; }
 
+
+
+private:
     // constant limits/parameters
     const unsigned int CONSECUTIVE_DAYS_LIMIT = 1000;
     const unsigned int MEAL_DURATION_LIMIT = 30;
@@ -73,15 +109,10 @@ private:
     const unsigned int NAME_LENGTH = 40; // limit for tag and meal names
     const unsigned int DESC_LENGTH = 80; // limit for tag descriptions
 
-    /* deleteMeal
-    * INPUTS:
-    *	Meal* mealptr: pointer to instantiated Meal object
-    *
-    * RETURN: none
-    *
-    * CHANGES: mealPtr: Meal is removed from meals, and unlinked from Tags, then deleted and set to nullptr
-    */
-    void deleteMeal(Meal* mealPtr);
+    QVector<Tag*> normalTags; // tags assigned to foods
+    QVector<MultiTag*> multiTags; // special tags that are linked to normalTags
+    QVector<Meal*> meals; // stores all meals
+
 
     /* createTag
     * INPUTS:
