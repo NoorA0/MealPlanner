@@ -4,6 +4,7 @@
 #include "createmeal_basicparams.h"
 #include "createmeal_promptlinktags.h"
 #include "createmeal_notagswarning.h"
+#include "deletemeal_confirmation.h"
 #include <QDebug>
 
 EditMealsWindow::EditMealsWindow(QWidget *parent, MealManager *mm) :
@@ -253,16 +254,16 @@ void EditMealsWindow::on_pushButton_4_clicked()
 // delete selected meal
 void EditMealsWindow::on_pushButton_5_clicked()
 {
-    // TODO: create a confirmation dialogue window, move this code to if the user says yes
-
     Meal* mealPtr;
     QString mealKey = ui->listWidget_meals->currentItem()->text();
 
     // get the meal associated with the item
     mealPtr = itemToMeal.find(mealKey).value();
 
-    // delete the meal
-    mm->deleteMeal(mealPtr);
+    // display confirmation window, handles final deletion
+    DeleteMeal_Confirmation *window = new DeleteMeal_Confirmation(this, mm, mealPtr);
+    window->setAttribute(Qt::WA_DeleteOnClose);
+    window->exec();
 
     // refreshes list of meals to display
     RefreshMealsList();

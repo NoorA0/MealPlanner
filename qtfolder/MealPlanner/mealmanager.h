@@ -69,6 +69,32 @@ public:
     */
     void deleteMeal(Meal* mealPtr);
 
+    /* assignMealTags
+    * INPUTS:
+    *	Meal* mealPtr: pointer to existing meal
+    *   QVector<Tag*> newTags: all tags to assign to the meal
+    *
+    * RETURN: none
+    *
+    * CHANGES:
+    *   mealPtr: tags added to Meal.
+    *   tags   : meal added to tags.
+    */
+    void assignMealTags(Meal* mealPtr, QVector<Tag*> newTags);
+
+    /* removeMealTags
+    * INPUTS:
+    *	Meal* mealPtr: pointer to existing meal
+    *   QVector<Tag*> removeTags: all tags to remove from the meal
+    *
+    * RETURN: none
+    *
+    * CHANGES:
+    *   mealPtr: tags removed from Meal.
+    *   tags   : meal removed from tags.
+    */
+    void removeMealTags(Meal* mealPtr, QVector<Tag*> removeTags);
+
     // Save/Load
     void saveState(std::ofstream& oFile);
 
@@ -93,6 +119,8 @@ public:
     int getNumberOfMultiTags(void) { return multiTags.size(); }
     int getNumberOfMeals(void) { return meals.size(); }
     const QVector<Meal*> getMeals(void) { return meals; }
+    const QVector<Tag*> getNormalTags(void) { return normalTags; }
+    const QVector<MultiTag*> getMultiTags(void) { return multiTags; }
 
 
 
@@ -153,17 +181,6 @@ private:
     * CHANGES: mtagPtr: MultiTag is removed from any linked Tags and multiTags, then deleted and set to nullptr
     */
     void deleteMultiTag(MultiTag* mtagPtr);
-
-    /* editMealTags
-    * INPUTS:
-    *	Meal* mealPtr: point to existing meal
-    *
-    * RETURN: none
-    *
-    * CHANGES: mealPtr: existing tags added to passed in Meal.
-    *	if no Tags exist, then a new one is created and added to Meal and normalTags
-    */
-    void editMealTags(Meal* mealPtr);
 
     /* editMultiTag
     * INPUTS:

@@ -19,6 +19,8 @@ SOURCES += \
     createplan_confirmation.cpp \
     createplan_filename.cpp \
     createplan_length.cpp \
+    deletemeal_confirmation.cpp \
+    editmeal_assignedtags.cpp \
     editmeal_basicparams.cpp \
     editmealswindow.cpp \
     error_loaddatafailed.cpp \
@@ -42,6 +44,8 @@ HEADERS += \
     createplan_confirmation.h \
     createplan_filename.h \
     createplan_length.h \
+    deletemeal_confirmation.h \
+    editmeal_assignedtags.h \
     editmeal_basicparams.h \
     editmealswindow.h \
     error_loaddatafailed.h \
@@ -63,6 +67,8 @@ FORMS += \
     createplan_confirmation.ui \
     createplan_filename.ui \
     createplan_length.ui \
+    deletemeal_confirmation.ui \
+    editmeal_assignedtags.ui \
     editmeal_basicparams.ui \
     editmealswindow.ui \
     error_loaddatafailed.ui \

@@ -41,7 +41,7 @@ private:
 
     // helper functions
 
-    /* RebuildMap
+    /* RebuildItems
      *
      * clears itemToMeal and itemsInOrder,
      * then gets all meals in MealManager.
