@@ -15,7 +15,7 @@ class DeleteMeal_Confirmation : public QDialog
 public:
     explicit DeleteMeal_Confirmation(QWidget *parent = nullptr,
                                      MealManager *mm = nullptr,
-                                     Meal* mealPtr   = nullptr);
+                                     Meal *mealPtr   = nullptr);
     ~DeleteMeal_Confirmation();
 
 private slots:

@@ -83,8 +83,15 @@ void EditMeal_BasicParams::on_pushButton_confirm_clicked()
                 // reset name field
                 ui->lineEdit_name->setText(mealPtr->getName());
             }
-            else
+            else // re-sort successful
+            {
+                mealPtr->setPrice(price);
+                mealPtr->setMealDuration(duration);
+                mealPtr->setDaysBetweenOccurrences(dbo);
+                mealPtr->setDisabled(!isEnabled);
+
                 close();
+            }
         }
     }
 }

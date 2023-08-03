@@ -47,6 +47,7 @@ DeleteMeal_Confirmation::~DeleteMeal_Confirmation()
 void DeleteMeal_Confirmation::on_pushButton_clicked()
 {
     mm->deleteMeal(mealPtr);
+    mealPtr = nullptr;
     close();
 }
 

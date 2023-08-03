@@ -16,12 +16,16 @@ CreateMeal_PromptLinkTags::~CreateMeal_PromptLinkTags()
 // assign tags to the new meal
 void CreateMeal_PromptLinkTags::on_pushButton_clicked()
 {
-
+    // assignment done in parent window
+    // so just send reponse
+    emit sendUserResponse(true);
+    close();
 }
 
 // chose to assign tags later
 void CreateMeal_PromptLinkTags::on_pushButton_2_clicked()
 {
+    emit sendUserResponse(false);
     close();
 }
 

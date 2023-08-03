@@ -29,11 +29,11 @@ public:
     *   int mealDuration : how long the meal lasts
     *   int mealDBO      : days between meal occurrences
     *
-    * RETURN: 0 if succeeded, 1 if name conflict
+    * RETURN: a valid pointer to the new Meal if succeeded, nullptr if name conflict
     *
     * creates a meal using inputs and adds meal to meals in alphabetical order
     */
-    int createMeal(const QString &mealName,
+    Meal* createMeal(const QString &mealName,
                    const double &mealPrice,
                    const int &mealDuration,
                    const int &mealDBO);
@@ -95,6 +95,92 @@ public:
     */
     void removeMealTags(Meal* mealPtr, QVector<Tag*> removeTags);
 
+    /* createTag
+    * INPUTS:
+    *	QString name           : name of Tag
+    *   QString description    : describes the tag's purpose
+    *   bool dependsOnMultiTag : set whether or not the tag requires a MultiTag
+    *   int consecutiveLimit   : number of days the tag can occur for consecutively
+    *   QMap<DaysOfTheWeek, bool> enabledDays : the days the Tag is enabled on
+    *
+    * RETURN: a valid pointer to the new Tag if succeeded, nullptr if name conflict
+    *
+    * creates a Tag using inputs and adds Tag to normalTags in alphabetical order of its name
+    */
+    Tag* createNormalTag(const QString &name,
+                   const QString &description,
+                   const bool &dependsOnMultiTag,
+                   const int &consecutiveLimit,
+                   const QMap<DaysOfTheWeek, bool> &enabledDays);
+
+    /* findNormalTag
+    * INPUTS:
+    *	QString tagName  : name of normal Tag
+    *
+    * RETURN: pointer to normal Tag if exists, otherwise nullptr
+    *
+    * searches for a normal Tag with the given name
+    */
+    Tag* findNormalTag(const QString &tagName);
+
+    /* resortNormalTag
+    * INPUTS:
+    *	Tag* tagPtr   : pointer to existing normal tag, with old name
+    *   QString newName : the desired new name for the Tag
+    *
+    * RETURN: 0 if succeeded, 1 if tag's old name not found, or name conflict
+    *
+    * changes a Tag's name and sorts by alphabetical order in normalTags
+    */
+    bool resortNormalTag(Tag *tagPtr, const QString &newName);
+
+    /* deleteTag
+    * INPUTS:
+    *	Tag* tagPtr: pointer to instantiated Tag object
+    *
+    * RETURN: none
+    *
+    * CHANGES: tagPtr: Tag is removed any linked MultiTags, Meals, and normalTags, then deleted and set to nullptr
+    */
+    void deleteNormalTag(Tag* tagPtr);
+
+    /* assignNormalTagMeals
+    * INPUTS:
+    *	Tag* tagPtr: pointer to existing tag
+    *   QVector<Meal*> newMeals: all meals to assign to the tag
+    *
+    * RETURN: none
+    *
+    * CHANGES:
+    *   tagPtr: meals added to tag.
+    *   meals   : tag added to meals.
+    */
+    void assignNormalTagMeals(Tag* tagPtr, QVector<Meal*> newMeals);
+
+    /* removeNormalTagMeals
+    * INPUTS:
+    *	Tag* TagPtr: pointer to existing tag
+    *   QVector<Meal*> removeMeals: all meals to remove from the tag
+    *
+    * RETURN: none
+    *
+    * CHANGES:
+    *   tagPtr: meals removed from tag.
+    *   meals   : tag removed from meals.
+    */
+    void removeNormalTagMeals(Tag* tagPtr, QVector<Meal*> removeMeals);
+
+    /* formatEnabledDays
+    * INPUTS:
+    *	map<DaysOfTheWeek, bool> enabledDays: the enabled days of a Tag or MultiTag
+    *
+    * OUTPUTS: QString: output-friendly version of enabledDays
+    *	example return values:
+    *	[DISABLED] - if all days are FALSE
+    *	[Mon, Tue, Wed, Thu, Fri, Sat, Sun] - if all days are TRUE
+    */
+    QString formatEnabledDays(const QMap<DaysOfTheWeek, bool>& enabledDays);
+
     // Save/Load
     void saveState(std::ofstream& oFile);
 
@@ -142,25 +228,9 @@ private:
     QVector<Meal*> meals; // stores all meals
 
 
-    /* createTag
-    * INPUTS:
-    *	Tag* TagPtr: pointer to instantiated Tag object
-    *
-    * RETURN: none
-    *
-    * CHANGES: tagPtr: sets parameters according to user input, adds Tag to normalTags in alphabetical order
-    */
-    void createTag(Tag* tagPtr);
 
-    /* deleteTag
-    * INPUTS:
-    *	Tag* tagPtr: pointer to instantiated Tag object
-    *
-    * RETURN: none
-    *
-    * CHANGES: tagPtr: Tag is removed any linked MultiTags, Meals, and normalTags, then deleted and set to nullptr
-    */
-    void deleteTag(Tag* tagPtr);
+
+
 
     /* createMultiTag
     * INPUTS:
@@ -232,17 +302,6 @@ private:
     QString formatPrice(const double& price);
 
     // return string of enabledDays, if no days enabled, then will return "[]"
-
-    /* formatEnabledDays
-    * INPUTS:
-    *	map<DaysOfTheWeek, bool> enabledDays: the enabled days of a Tag or MultiTag
-    *
-    * OUTPUTS: string: output-friendly version of enabledDays
-    *	example return values:
-    *	[] - if all days are FALSE
-    *	[M, T, W, Th, F, Sa, Su] - if all days are TRUE
-    */
-    QString formatEnabledDays(const QMap<DaysOfTheWeek, bool>& enabledDays);
 
     /* optimizeData
     * Populates passed params with only enabled Tags/MultiTags/Meals to speed calculations

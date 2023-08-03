@@ -13,8 +13,12 @@ class createmeal_basicparams : public QDialog
     Q_OBJECT
 
 public:
-    explicit createmeal_basicparams(QWidget *parent = nullptr, MealManager *mm = nullptr);
+    explicit createmeal_basicparams(QWidget *parent = nullptr,
+                                    MealManager *mm = nullptr);
     ~createmeal_basicparams();
+
+signals:
+    void sendNewMeal(Meal* createdMeal);
 
 private slots:
     void on_pushButton_confirm_clicked();

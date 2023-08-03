@@ -5,9 +5,11 @@
 #include "createmeal_promptlinktags.h"
 #include "createmeal_notagswarning.h"
 #include "deletemeal_confirmation.h"
+#include "editmeal_assignedtags.h"
 #include <QDebug>
 
-EditMealsWindow::EditMealsWindow(QWidget *parent, MealManager *mm) :
+EditMealsWindow::EditMealsWindow(QWidget *parent,
+                                 MealManager *mm) :
     QMainWindow(parent),
     ui(new Ui::EditMealsWindow)
 {
@@ -64,7 +66,7 @@ void EditMealsWindow::RebuildItems(void)
         {
             // get enabled days
             QMap<DaysOfTheWeek, bool> mealEnabledDays = mealPtr->getEnabledDays();
-            tempStr += "\nEnabled on: " + CreateDaysEnabledString(mealEnabledDays) + "\n";
+            tempStr += "\nEnabled on: " + mm->formatEnabledDays(mealEnabledDays) + "\n";
         }
 
         // create new item
@@ -86,63 +88,6 @@ void EditMealsWindow::RefreshMealsList(void)
     {
         ui->listWidget_meals->addItem(item);
     }
-}
-
-QString EditMealsWindow::CreateDaysEnabledString(const QMap<DaysOfTheWeek, bool> enabledDays)
-{
-    QString retStr = "[";
-    bool needComma = false;
-
-    // check all days of the week
-    if (enabledDays.find(MONDAY).value())
-    {
-        retStr += "Mon";
-        needComma = true;
-    }
-
-    if (enabledDays.find(TUESDAY).value())
-    {
-        if (needComma)
-            retStr += ", ";
-        retStr += "Tue";
-    }
-
-    if (enabledDays.find(WEDNESDAY).value())
-    {
-        if (needComma)
-            retStr += ", ";
-        retStr += "Wed";
-    }
-
-    if (enabledDays.find(THURSDAY).value())
-    {
-        if (needComma)
-            retStr += ", ";
-        retStr += "Thu";
-    }
-
-    if (enabledDays.find(FRIDAY).value())
-    {
-        if (needComma)
-            retStr += ", ";
-        retStr += "Fri";
-    }
-
-    if (enabledDays.find(SATURDAY).value())
-    {
-        if (needComma)
-            retStr += ", ";
-        retStr += "Sat";
-    }
-
-    if (enabledDays.find(SUNDAY).value())
-    {
-        if (needComma)
-            retStr += ", ";
-        retStr += "Sun";
-    }
-    retStr += "]";
-    return retStr;
 }
 
 // go back to settings menu
@@ -167,6 +112,7 @@ void EditMealsWindow::on_listWidget_meals_itemDoubleClicked(QListWidgetItem *ite
     // get the meal associated with the item
     mealPtr = itemToMeal.find(mealKey).value();
 
+    // create edit window
     EditMeal_BasicParams *window = new EditMeal_BasicParams(this, mm, mealPtr);
     window->setAttribute(Qt::WA_DeleteOnClose);
     window->exec();
@@ -197,11 +143,8 @@ void EditMealsWindow::on_listWidget_meals_currentItemChanged(QListWidgetItem *cu
         if (tagPtr->isDisabled())
             tempStr += "Tag is DISABLED";
         else // list the enabled days
-        {
-            QMap<DaysOfTheWeek, bool> tagEnabledDays = tagPtr->getEnabledDays();
-
-            tempStr += "Tag is ENABLED";
-            tempStr + "\nEnabled on: " + CreateDaysEnabledString(tagEnabledDays);
+        {            
+            tempStr + "\nEnabled on: " + mm->formatEnabledDays(tagPtr->getEnabledDays());
         }
         tempStr += "\nDescription: " + tagPtr->getDescription() + "\n";
 
@@ -219,8 +162,9 @@ void EditMealsWindow::on_pushButton_3_clicked()
     // get the meal associated with the item
     mealPtr = itemToMeal.find(mealKey).value();
 
-    // TODO: display tag window to continue
-
+    EditMeal_AssignedTags *window = new EditMeal_AssignedTags(this, mm, mealPtr);
+    window->setAttribute(Qt::WA_DeleteOnClose);
+    window->exec();
 }
 
 // create new meal
@@ -229,6 +173,14 @@ void EditMealsWindow::on_pushButton_4_clicked()
     // create meal by getting basic info
     createmeal_basicparams *window = new createmeal_basicparams(this, this->mm);
     window->setAttribute(Qt::WA_DeleteOnClose);
+
+    // connect to signal to receive new meals when created
+    connect(window,
+            SIGNAL(sendNewMeal(Meal*)),
+            this,
+            SLOT(receiveNewMeal(Meal*)),
+            Qt::UniqueConnection);
+
     window->exec();
 
     // if no tags exist, warn user
@@ -238,13 +190,27 @@ void EditMealsWindow::on_pushButton_4_clicked()
         window2->setAttribute(Qt::WA_DeleteOnClose);
         window2->exec();
     }
-    else
+    else if (newMeal != nullptr)
     {
         CreateMeal_PromptLinkTags *window2 = new CreateMeal_PromptLinkTags(this);
         window2->setAttribute(Qt::WA_DeleteOnClose);
+
+        // connect signal to receive user response
+        connect(window2,
+                SIGNAL(sendUserResponse(bool)),
+                this,
+                SLOT(receiveBoolAssignNewTags(bool)),
+                Qt::UniqueConnection);
+
         window2->exec();
 
-        // TODO: if user said yes, go to edit tag menu for the selected meal
+        if (userResponse)
+        {
+            // create edit tag window
+            EditMeal_AssignedTags *window3 = new EditMeal_AssignedTags(this, mm, newMeal);
+            window3->setAttribute(Qt::WA_DeleteOnClose);
+            window3->exec();
+        }
     }
 
     // refresh list of meals

@@ -15,8 +15,13 @@ class EditMealsWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit EditMealsWindow(QWidget *parent = nullptr, MealManager *mm = nullptr);
+    explicit EditMealsWindow(QWidget *parent = nullptr,
+                             MealManager *mm = nullptr);
     ~EditMealsWindow();
+
+public slots:
+    void receiveNewMeal(Meal* createdMeal) { newMeal = createdMeal; }
+    void receiveBoolAssignNewTags(bool userResponse) { this->userResponse = userResponse; }
 
 private slots:
     void on_pushButton_clicked();
@@ -38,6 +43,8 @@ private:
     MealManager *mm;
     QMap<QString, Meal*> itemToMeal;
     QVector<QString> itemsInOrder;
+    Meal* newMeal;
+    bool userResponse;
 
     // helper functions
 
@@ -60,17 +67,6 @@ private:
      * use when a new Meal is created or edited
     */
     void RefreshMealsList(void);
-
-    /* CreateDaysEnabledString
-     *
-     * INPUTS:
-     * const QMap<DaysOfTheWeek, bool> enabledDays : the enabled days for a Meal/Tag
-     *
-     * OUTPUTS:
-     * QString : contains "[Mon, Tue, Wed, ..., Sun]" according to the days enabled
-     */
-    QString CreateDaysEnabledString(const QMap<DaysOfTheWeek, bool> enabledDays);
-
 };
 
 #endif // EDITMEALSWINDOW_H

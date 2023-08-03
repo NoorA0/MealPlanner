@@ -1,49 +1,44 @@
-#include "editmeal_assignedtags.h"
-#include "ui_editmeal_assignedtags.h"
+#include "edittag_assignedmeals.h"
+#include "ui_edittag_assignedmeals.h"
 
-EditMeal_AssignedTags::EditMeal_AssignedTags(QWidget *parent,
+EditTag_AssignedMeals::EditTag_AssignedMeals(QWidget *parent,
                                              MealManager *mm,
-                                             Meal *mealPtr) :
+                                             Tag *tagPtr) :
     QDialog(parent),
-    ui(new Ui::EditMeal_AssignedTags)
+    ui(new Ui::EditTag_AssignedMeals)
 {
-    if (mm == nullptr || mealPtr == nullptr)
+    if (mm == nullptr || tagPtr == nullptr)
         close();
     else
     {
         this->mm = mm;
-        this->mealPtr = mealPtr;
+        this->tagPtr = tagPtr;
     }
+    ui->setupUi(this);
 
-    // clear caches
-    //assignCache.clear();
-    //unassignCache.clear();
+    // goal: itemize Meals already assigned to tagPtr
+    QVector<Meal*> assignedMeals = tagPtr->getLinkedMeals();
 
-    ui->setupUI(this);
-
-    // goal: itemize tags already assigned to mealPtr
-    QVector<Tag*> assignedTags = mealPtr->getTags();
-
-    for (auto& tag : assignedTags)
+    for (auto& meal : assignedMeals)
     {
-        // create string for tag
-        QString itemStr = "\nName: " + tag->getName()
-                          + "\nDepends on MultiTag? ";
-        itemStr += (tag->getDependency()) ? "Yes" : "No";
-        itemStr += "\nMaximum consecutive days: " + QString::number(tag->getConsecutiveLimit()) + "\n";
+        // create string for Meal
+        QString itemStr = "\nName: " + meal->getName()
+                          + "\nPrice: " + QString::number(meal->getPrice())
+                          + "\nDuration: " + QString::number(meal->getMealDuration()) + " day(s)";
 
-        if (tag->isDisabled())
-            itemStr += "Tag is DISABLED";
+        // check if enabled
+        if (meal->isDisabled())
+            itemStr += "\nMeal is DISABLED";
         else
         {
-            itemStr += "\nEnabled on: " + mm->formatEnabledDays(tag->getEnabledDays());
+            // get enabled days
+            itemStr += "\nEnabled on: " + mm->formatEnabledDays(meal->getEnabledDays());
         }
-        itemStr += "\nDescription: " + tag->getDescription() + "\n";
 
         // create entry in map
-        itemToTag[itemStr] = tag;
+        itemToMeal[itemStr] = meal;
 
-        // add tag in alphabetical order
+        // add meal in alphabetical order
         if (itemsInOrder_Assigned.empty())
             itemsInOrder_Assigned.push_back(itemStr);
         else
@@ -52,10 +47,10 @@ EditMeal_AssignedTags::EditMeal_AssignedTags(QWidget *parent,
             auto itemIter = itemsInOrder_Assigned.begin();
             while (!done && itemIter != itemsInOrder_Assigned.end())
             {
-                // get Tag* for item
-                Tag* compareTag = itemToTag.value(*itemIter);
+                // get Meal* for item
+                Meal* compareMeal = itemToMeal.value(*itemIter);
                 // position found
-                if (tag->getName().toUpper() < compareTag->getName().toUpper())
+                if (meal->getName().toUpper() < compareMeal->getName().toUpper())
                 {
                     done = true;
                     itemsInOrder_Assigned.emplace(itemIter, itemStr);
@@ -69,53 +64,51 @@ EditMeal_AssignedTags::EditMeal_AssignedTags(QWidget *parent,
         }
     }
 
-    // goal: itemize tags not assigned to mealPtr
-    // get all tags
-    QVector<Tag*> unassignedTags = mm->getNormalTags();
+    // goal: itemize Meals not assigned to tagPtr
+    // get all Meals
+    QVector<Meal*> unassignedMeals = mm->getMeals();
 
-    // prune tags already allocated to mealPtr
-    auto pruneTagIter = unassignedTags.begin();
-    while (pruneTagIter != unassignedTags.end())
+    // prune meals already allocated to tagPtr
+    auto pruneMealIter = unassignedMeals.begin();
+    while (pruneMealIter != unassignedMeals.end())
     {
         bool found = false;
-        auto assignedTagIter = assignedTags.begin();
-        // iterate through all tags in assignedTags to find match
-        while (!found && assignedTagIter != assignedTags.end())
+        auto assignedMealIter = assignedMeals.begin();
+        // iterate through all meals in assignedMeals to find match
+        while (!found && assignedMealIter != assignedMeals.end())
         {
-            if ((*pruneTagIter)->getName() == (*assignedTagIter)->getName())
+            if ((*pruneMealIter)->getName() == (*assignedMealIter)->getName())
             {
-                // tag is allocated, remove from unassignedTags
+                // meal is allocated, remove from unassignedMeals
                 found = true;
-                unassignedTags.erase(pruneTagIter);
+                unassignedMeals.erase(pruneMealIter);
             }
             else
-                ++assignedTagIter;
+                ++assignedMealIter;
         }
-        ++pruneTagIter;
+        ++pruneMealIter;
     }
 
-    // done pruning, now create items for remaining tags
-    for (auto& tag : unassignedTags)
+    // done pruning, now create items for remaining meals
+    for (auto& meal : unassignedMeals)
     {
-        // create string for tag
-        QString itemStr = "\nName: " + tag->getName()
-                          + "\nDepends on MultiTag? ";
-        itemStr += (tag->getDependency()) ? "Yes" : "No";
-        itemStr += "\nMaximum consecutive days: " + QString::number(tag->getConsecutiveLimit()) + "\n";
+        // create string for Meal
+        QString itemStr = "\nName: " + meal->getName()
+                          + "\nPrice: " + QString::number(meal->getPrice())
+                          + "\nDuration: " + QString::number(meal->getMealDuration()) + " day(s)";
 
-        if (tag->isDisabled())
-            itemStr += "Tag is DISABLED";
+        // check if disabled
+        if (meal->isDisabled())
+            itemStr += "\nMeal is DISABLED";
         else
         {
-            itemStr += "Tag is ENABLED";
-            itemStr += "\nEnabled on: " + mm->formatEnabledDays(tag->getEnabledDays());
+            itemStr += "\nEnabled on: " + mm->formatEnabledDays(meal->getEnabledDays());
         }
-        itemStr += "\nDescription: " + tag->getDescription() + "\n";
 
         // create entry in map
-        itemToTag[itemStr] = tag;
+        itemToMeal[itemStr] = meal;
 
-        // add tag in alphabetical order
+        // add meal in alphabetical order
         if (itemsInOrder_Unassigned.empty())
             itemsInOrder_Unassigned.push_back(itemStr);
         else
@@ -124,10 +117,10 @@ EditMeal_AssignedTags::EditMeal_AssignedTags(QWidget *parent,
             auto itemIter = itemsInOrder_Unassigned.begin();
             while (!done && itemIter != itemsInOrder_Unassigned.end())
             {
-                // get Tag* for item
-                Tag* compareTag = itemToTag.value(*itemIter);
+                // get Meal* for item
+                Meal* compareMeal = itemToMeal.value(*itemIter);
                 // position found
-                if (tag->getName().toUpper() < compareTag->getName().toUpper())
+                if (meal->getName().toUpper() < compareMeal->getName().toUpper())
                 {
                     done = true;
                     itemsInOrder_Unassigned.emplace(itemIter, itemStr);
@@ -141,61 +134,46 @@ EditMeal_AssignedTags::EditMeal_AssignedTags(QWidget *parent,
         }
     }
 
-    // display assigned tags
+    // display assigned meals
     for (auto& assignedItem : itemsInOrder_Assigned)
     {
-        ui->listWidget_assignedTags->addItem(assignedItem);
+        ui->listWidget_assignedMeals->addItem(assignedItem);
     }
 
-    // display available tags
+    // display available meals
     for (auto& unassignedItem : itemsInOrder_Unassigned)
     {
-        ui->listWidget_unassignedTags->addItem(unassignedItem);
+        ui->listWidget_unassignedMeals->addItem(unassignedItem);
     }
 }
 
-EditMeal_AssignedTags::~EditMeal_AssignedTags()
+EditTag_AssignedMeals::~EditTag_AssignedMeals()
 {
     delete ui;
 }
 
-void EditMeal_AssignedTags::RefreshTagsList(void)
+void EditTag_AssignedMeals::RefreshMealsList(void)
 {
     // clear the listWidgets
-    ui->listWidget_assignedTags->clear();
-    ui->listWidget_unassignedTags->clear();
+    ui->listWidget_assignedMeals->clear();
+    ui->listWidget_unassignedMeals->clear();
 
     // repopulate the listWidgets
     for (auto& item : itemsInOrder_Assigned)
     {
-        ui->listWidget_assignedTags->addItem(item);
+        ui->listWidget_assignedMeals->addItem(item);
     }
     for (auto& item : itemsInOrder_Unassigned)
     {
-        ui->listWidget_assignedTags->addItem(item);
+        ui->listWidget_assignedMeals->addItem(item);
     }
 }
 
-// done editing
-void EditMeal_AssignedTags::on_pushButton_clicked()
-{
-    // not using cache, opting to assign/remove per-tag
-    // not enough performance gain to bother sorting cache
-
-    // allocate tags in the cache
-    //mm->assignMealTags(mealPtr, assignCache);
-
-    // unassign tags in the cache
-    //mm->removeMealTags(mealPtr, unassignCache);
-
-    close();
-}
-
-// unassign tag
-void EditMeal_AssignedTags::on_pushButton_unassignTag_clicked()
+// unassign selected meal
+void EditTag_AssignedMeals::on_pushButton_unassignMeal_clicked()
 {
     // get selected item
-    QString selectedItem = ui->listWidget_assignedTags->currentItem()->text();
+    QString selectedItem = ui->listWidget_assignedMeals->currentItem()->text();
     bool positionFound = false;
 
     // remove item from itemsInOrder_Assigned
@@ -240,21 +218,21 @@ void EditMeal_AssignedTags::on_pushButton_unassignTag_clicked()
             }
         }
 
-        // unassign tag
-        Tag* itemTag = itemToTag.find(selectedItem).value();
-        QVector<Tag*> unassignTags;
+        // unassign meal
+        Meal* itemMeal = itemToMeal.find(selectedItem).value();
+        QVector<Meal*> unassignMeals;
 
-        unassignTags.push_back(itemTag);
-        mm->removeMealTags(mealPtr, unassignTags);
+        unassignMeals.push_back(itemMeal);
+        mm->removeNormalTagMeals(tagPtr, unassignMeals);
     }
-    RefreshTagsList();
+    RefreshMealsList();
 }
 
-// assign tag
-void EditMeal_AssignedTags::on_pushButton_assignTag_clicked()
+// assign selected meal
+void EditTag_AssignedMeals::on_pushButton_assignMeal_clicked()
 {
     // get selected item
-    QString selectedItem = ui->listWidget_unassignedTags->currentItem()->text();
+    QString selectedItem = ui->listWidget_unassignedMeals->currentItem()->text();
     bool positionFound = false;
 
     // remove item from itemsInOrder_Unassigned
@@ -298,14 +276,20 @@ void EditMeal_AssignedTags::on_pushButton_assignTag_clicked()
                 positionFound = true;
             }
 
-            // assign tag
-            Tag* itemTag = itemToTag.find(selectedItem).value();
-            QVector<Tag*> assignTags;
+            // assign meal
+            Meal* itemMeal = itemToMeal.find(selectedItem).value();
+            QVector<Meal*> assignMeals;
 
-            assignTags.push_back(itemTag);
-            mm->assignMealTags(mealPtr, assignTags);
+            assignMeals.push_back(itemMeal);
+            mm->assignNormalTagMeals(tagPtr, assignMeals);
         }
     }
-    RefreshTagsList();
+    RefreshMealsList();
+}
+
+// clicked done
+void EditTag_AssignedMeals::on_pushButton_clicked()
+{
+    close();
 }
 

@@ -2,7 +2,8 @@
 #include "ui_createmeal_basicparams.h"
 #include "createmeal_nameconflict.h"
 
-createmeal_basicparams::createmeal_basicparams(QWidget *parent, MealManager *mm) :
+createmeal_basicparams::createmeal_basicparams(QWidget *parent,
+                                               MealManager *mm) :
     QDialog(parent),
     ui(new Ui::createmeal_basicparams)
 {
@@ -11,7 +12,9 @@ createmeal_basicparams::createmeal_basicparams(QWidget *parent, MealManager *mm)
         close();
     }
     else
+    {
         this->mm = mm;
+    }
 
     ui->setupUi(this);
 
@@ -39,11 +42,10 @@ void createmeal_basicparams::on_pushButton_confirm_clicked()
     int duration = ui->spinBox_duration->value();
     int dbo      = ui->spinBox_daysbetweenoccurrences->value();
 
-    // attempt to create the meal
-    int result = this->mm->createMeal(name, price, duration, dbo);
+    Meal* newMeal = this->mm->createMeal(name, price, duration, dbo);
 
     // if failed due to name conflict
-    if (result == 1)
+    if (newMeal == nullptr)
     {
         CreateMeal_NameConflict *window = new CreateMeal_NameConflict(this);
         window->setAttribute(Qt::WA_DeleteOnClose);
@@ -52,6 +54,8 @@ void createmeal_basicparams::on_pushButton_confirm_clicked()
     }
     else
     {
+        // send the meal
+        emit sendNewMeal(newMeal);
         close();
     }
 }

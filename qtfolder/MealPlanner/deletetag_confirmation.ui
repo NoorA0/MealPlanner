@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DeleteTag_Confirmation</class>
+ <widget class="QDialog" name="DeleteTag_Confirmation">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>444</width>
+    <height>243</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Confirm Delete</string>
+  </property>
+  <widget class="QLabel" name="label_tagInfo">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>60</y>
+     <width>381</width>
+     <height>131</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Name: &lt;span style=&quot; font-weight:700;&quot;&gt;mealname&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Depends on MultiTag: &lt;span style=&quot; font-weight:700;&quot;&gt;No&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Consecutive occurrences: &lt;span style=&quot; font-weight:700;&quot;&gt;4 days&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Enabled on: &lt;span style=&quot; font-weight:700;&quot;&gt;[Mon, Tue, Wed, Thu, Fri, Sat, Sun]&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Description: &lt;span style=&quot; font-weight:700;&quot;&gt;12345678901234567890123456789012345(this is fifty)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_2">
+   <property name="geometry">
+    <rect>
+     <x>110</x>
+     <y>210</y>
+     <width>80</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Cancel</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_title">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>10</y>
+     <width>251</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Are you sure you want to delete this Tag?&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton">
+   <property name="geometry">
+    <rect>
+     <x>250</x>
+     <y>210</y>
+     <width>80</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Yes</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

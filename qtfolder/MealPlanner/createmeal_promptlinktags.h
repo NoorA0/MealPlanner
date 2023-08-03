@@ -15,6 +15,9 @@ public:
     explicit CreateMeal_PromptLinkTags(QWidget *parent = nullptr);
     ~CreateMeal_PromptLinkTags();
 
+signals:
+    void sendUserResponse(bool userResponse);
+
 private slots:
     void on_pushButton_clicked();
 

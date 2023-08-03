@@ -45,12 +45,12 @@ MealManager::~MealManager()
     multiTags.clear();
 }
 
-int MealManager::createMeal(const QString &mealName,
+Meal* MealManager::createMeal(const QString &mealName,
                             const double &mealPrice,
                             const int &mealDuration,
                             const int &mealDBO)
 {
-    int returnValue = 0;
+    bool isInvalid = false;
     Meal* mealptr;
     bool inputValid = false;
 
@@ -63,7 +63,6 @@ int MealManager::createMeal(const QString &mealName,
     mealptr->setDaysBetweenOccurrences(mealDBO);
 
     // if there are other meals stored, check if names conflict (case insensitive)
-    // also try to find place to insert into (alphabetical order)
     if (meals.size() > 0)
     {
         // get uppercase version of name
@@ -100,7 +99,7 @@ int MealManager::createMeal(const QString &mealName,
         }
         else if (!inputValid) // invalid name
         {
-            returnValue = 1;
+            isInvalid = true;
         }
     }
     else // name is ok, push to back of meals
@@ -109,7 +108,7 @@ int MealManager::createMeal(const QString &mealName,
     }
 
     // enable meal if input was valid, otherwise delete
-    if (inputValid)
+    if (!isInvalid)
         mealptr->setDisabled(false);
     else
     {
@@ -117,7 +116,7 @@ int MealManager::createMeal(const QString &mealName,
         mealptr = nullptr;
     }
 
-    return returnValue;
+    return mealptr;
 }
 
 Meal* MealManager::findMeal(const QString &mealName)
@@ -272,183 +271,193 @@ void MealManager::deleteMeal(Meal* mealPtr)
     }
 }
 
-void MealManager::createTag(Tag* tagPtr)
+Tag* MealManager::findNormalTag(const QString &tagName)
 {
-    QString tempStr = "";
-    int tempInt = 0;
-    QVector<QString> strVec;
-    bool doneCreatingName = false;
+    Tag *retTag = nullptr;
+    bool inputValid = false;
 
-    // tag's params
-    QMap<DaysOfTheWeek, bool> enabledDays =
-        { {MONDAY, false}, {TUESDAY, false}, {WEDNESDAY, false}, {THURSDAY, false}, {FRIDAY, false},
-         {SATURDAY, false}, {SUNDAY, false} };
-
-
-    // ensure pointer is instantiated
-    if (tagPtr == nullptr)
+    // if there are other tags stored, check if names conflict (case insensitive)
+    if (normalTags.size() > 0)
     {
-        tagPtr = new Tag();
+        // get uppercase version of name
+        QString upperStr = tagName.toUpper();
+
+        // compare with names of all tags until a match is found
+        inputValid = true;
+        auto tagsIter = normalTags.begin();
+        while (inputValid && tagsIter != normalTags.end())
+        {
+            // get uppercase version of tag's name
+            QString compareName = (*tagsIter)->getName().toUpper();
+
+            // check if names match
+            if (upperStr == compareName)
+            {
+                inputValid = false;
+                retTag = *tagsIter;
+            }
+            else // keep looking
+                ++tagsIter;
+        }
     }
-
-    // loop while user is not done choosing a name
-    while (!doneCreatingName)
-    {
-        // prompt and get name, of length between 1, NAME_LENGTH, inclusive
-        // store in tempStr
-
-        // if there are other tags stored, check if names conflict (case insensitive)
-        if (normalTags.size() > 0)
-        {
-            // get uppercase version of tempStr
-            QString upperStr = tempStr.toUpper();
-
-            // compare with names of all tags until a match is found
-            // also find a place to insert into (alphabetical order)
-            bool placeFound = false;
-            bool inputValid = true;
-            auto tagsIter = normalTags.begin();
-            while (inputValid && !placeFound && tagsIter != normalTags.end())
-            {
-                // get uppercase version of tag's name
-                QString compareName = (*tagsIter)->getName().toUpper();
-
-                // check if names match
-                if (upperStr == compareName)
-                    inputValid = false;
-                else if (upperStr < compareName) // check if this is a good place to insert
-                {
-                    // insert here
-                    placeFound = true;
-                    tagPtr->setName(tempStr);
-                    normalTags.emplace(tagsIter, tagPtr);
-                    doneCreatingName = true;
-                }
-                else // keep searching
-                    ++tagsIter;
-            }
-
-            // check if name is valid but place not found
-            if (inputValid && !placeFound)
-            {
-                // set name
-                tagPtr->setName(tempStr);
-
-                // push to back
-                normalTags.push_back(tagPtr);
-                doneCreatingName = true;
-            }
-            else if (!inputValid) // invalid name, inform user
-            {
-                // output invalid name error, due to existing name
-            }
-        }
-        else // no tags to compare so set name
-        {
-            tagPtr->setName(tempStr);
-
-            // push to back
-            normalTags.push_back(tagPtr);
-            doneCreatingName = true;
-        }
-    } // while (!doneCreatingName)
-
-    // prompt and get description, length between 0, DESC_LENGTH, inclusive
-    // store in tempStr
-    tagPtr->setDescription(tempStr);
-
-    // prompt and get multitag dependency setting
-    // store in tempStr
-
-    // set hasPriority depending on user choice
-    if (tempStr == "Y")
-        tagPtr->setDependency(true);
-    else
-        tagPtr->setDependency(false);
-
-    // prompt and get consecutiveLimit, integer between 1, CONSECUTIVE_DAYS_LIMIT, inclusive
-    // store in tempInt
-    tagPtr->setConsecutiveLimit(tempInt);
-
-    tempStr = "";
-    // let user set enabled days or quit
-    while (tempStr != "Q")
-    {
-        // displays tag with enabled days status with options to toggle each day
-
-        if (tempStr == "E")
-        {
-            // set all days to TRUE
-            enabledDays =
-                { {MONDAY, true}, {TUESDAY, true}, {WEDNESDAY, true}, {THURSDAY, true},
-                 {FRIDAY, true}, {SATURDAY, true}, {SUNDAY, true} };
-        }
-        else if (tempStr == "D")
-        {
-            // set all days to FALSE
-            enabledDays =
-                { {MONDAY, false}, {TUESDAY, false}, {WEDNESDAY, false}, {THURSDAY, false},
-                 {FRIDAY, false}, {SATURDAY, false}, {SUNDAY, false} };
-        }
-        else if (tempStr != "Q" && tempStr != "-")
-        {
-            // get user's choice
-            // converts tempStr to int
-
-            switch (tempInt)
-            {
-            case 1: // monday
-                if (enabledDays.find(MONDAY).value())
-                    enabledDays.find(MONDAY).value() = false;
-                else
-                    enabledDays.find(MONDAY).value() = true;
-                break;
-            case 2: // tuesday
-                if (enabledDays.find(TUESDAY).value())
-                    enabledDays.find(TUESDAY).value() = false;
-                else
-                    enabledDays.find(TUESDAY).value() = true;
-                break;
-            case 3: // wednesday
-                if (enabledDays.find(WEDNESDAY).value())
-                    enabledDays.find(WEDNESDAY).value() = false;
-                else
-                    enabledDays.find(WEDNESDAY).value() = true;
-                break;
-            case 4: // thursday
-                if (enabledDays.find(THURSDAY).value())
-                    enabledDays.find(THURSDAY).value() = false;
-                else
-                    enabledDays.find(THURSDAY).value() = true;
-                break;
-            case 5: // friday
-                if (enabledDays.find(FRIDAY).value())
-                    enabledDays.find(FRIDAY).value() = false;
-                else
-                    enabledDays.find(FRIDAY).value() = true;
-                break;
-            case 6: // saturday
-                if (enabledDays.find(SATURDAY).value())
-                    enabledDays.find(SATURDAY).value() = false;
-                else
-                    enabledDays.find(SATURDAY).value() = true;
-                break;
-            case 7: // sunday
-                if (enabledDays.find(SUNDAY).value())
-                    enabledDays.find(SUNDAY).value() = false;
-                else
-                    enabledDays.find(SUNDAY).value() = true;
-                break;
-            default:
-                // do nothing
-                tempStr = "";
-            }
-        }
-    } // while (tempStr != "Q")
-    tagPtr->setEnabledDays(enabledDays);
+    return retTag;
 }
 
-void MealManager::deleteTag(Tag* tagPtr)
+bool MealManager::resortNormalTag(Tag *tagPtr, const QString &newName)
+{
+    bool hasFailed = false;
+
+    // make sure tag exists
+    if (findNormalTag(tagPtr->getName()) == nullptr)
+    {
+        hasFailed = true;
+    }
+    // if new and old name are functionally the same, rename
+    else if (tagPtr->getName().toUpper() == newName.toUpper())
+    {
+        tagPtr->setName(newName);
+    }
+    // conflict with new name, abort re-sort
+    else if (normalTags.size() > 0 && findNormalTag(newName) != nullptr)
+    {
+        hasFailed = true;
+    }
+    // perform re-sort if can find old tag
+    else if (normalTags.size() > 0)
+    {
+        // prepare to remove tag from normalTags
+        auto tagsIter = normalTags.begin();
+        bool tagFound = false;
+
+        // find tag
+        while (!tagFound && tagsIter != normalTags.end())
+        {
+            if (*tagsIter == tagPtr)
+                tagFound = true;
+            else
+                ++tagsIter;
+        }
+
+        // remove tag
+        if (tagFound)
+        {
+            normalTags.erase(tagsIter);
+        }
+
+        // rename tag
+        tagPtr->setName(newName);
+
+        // get uppercase version of new name
+        QString upperStr = newName.toUpper();
+
+        // find a place to insert into (alphabetical order)
+        tagFound = false;
+        tagsIter = normalTags.begin();
+        while (!tagFound && tagsIter != normalTags.end())
+        {
+            // get uppercase version of tag's name
+            QString compareName = (*tagsIter)->getName().toUpper();
+
+            // position found
+            if (upperStr < compareName) // check if is this a good place to insert
+            {
+                // insert here
+                tagFound = true;
+                normalTags.emplace(tagsIter, tagPtr);
+            }
+            else // keep looking
+                ++tagsIter;
+        }
+
+        // check if place not found
+        if (!tagFound)
+        {
+            // place at back of normalTags
+            normalTags.push_back(tagPtr);
+        }
+    }
+    else // order doesn't matter
+    {
+        tagPtr->setName(newName);
+    }
+    return hasFailed;
+}
+
+Tag* MealManager::createNormalTag(const QString &name,
+               const QString &description,
+               const bool &dependsOnMultiTag,
+               const int &consecutiveLimit,
+               const QMap<DaysOfTheWeek, bool> &enabledDays)
+{
+    Tag* tagPtr;
+    bool isInvalid = false;
+    bool inputValid = false;
+
+    // create a new Tag and set values
+    tagPtr = new Tag;
+    tagPtr->setName(name);
+    tagPtr->setDescription(description);
+    tagPtr->setDependency(dependsOnMultiTag);
+    tagPtr->setConsecutiveLimit(consecutiveLimit);
+    tagPtr->setEnabledDays(enabledDays);
+
+
+    // if there are other tags stored, check if names conflict (case insensitive)
+    if (normalTags.size() > 0)
+    {
+        // get uppercase version of name
+        QString upperStr = tagPtr->getName().toUpper();
+
+        // compare with names of all tags until a match is found
+        // also find a place to insert into (alphabetical order)
+        bool placeFound = false;
+        inputValid = true;
+        auto tagsIter = normalTags.begin();
+        while (inputValid && !placeFound && tagsIter != normalTags.end())
+        {
+            // get uppercase version of tag's name
+            QString compareName = (*tagsIter)->getName().toUpper();
+
+            // check if names match
+            if (upperStr == compareName)
+                inputValid = false;
+            else if (upperStr < compareName) // check if this is a good place to insert
+            {
+                // insert here
+                placeFound = true;
+                normalTags.emplace(tagsIter, tagPtr);
+            }
+            else // keep searching
+                ++tagsIter;
+        }
+
+        // check if name is valid but place not found
+        if (inputValid && !placeFound)
+        {
+            // push to back
+            normalTags.push_back(tagPtr);
+        }
+        else if (!inputValid) // invalid name, inform user
+        {
+            isInvalid = true;
+        }
+    }
+    else // no tags to compare so push to back
+    {
+        // push to back
+        normalTags.push_back(tagPtr);
+    }
+
+    // delete tag if failed to create
+    if (isInvalid)
+    {
+        delete tagPtr;
+        tagPtr = nullptr;
+    }
+    return tagPtr;
+}
+
+void MealManager::deleteNormalTag(Tag* tagPtr)
 {
     // get linked meals
     QVector<Meal*> linkedMeals = tagPtr->getLinkedMeals();
@@ -765,6 +774,28 @@ void MealManager::removeMealTags(Meal* mealPtr, QVector<Tag*> removeTags)
         mealPtr->removeTag(assignedTag);
         // remove Meal from Tag
         assignedTag->removeMeal(mealPtr);
+    }
+}
+
+void MealManager::assignNormalTagMeals(Tag* tagPtr, QVector<Meal*> newMeals)
+{
+    for (auto& newMeal : newMeals)
+    {
+        // link meal to tag
+        tagPtr->addMeal(newMeal);
+        // link tag to meal
+        newMeal->addTag(tagPtr);
+    }
+}
+
+void MealManager::removeNormalTagMeals(Tag* tagPtr, QVector<Meal*> removeMeals)
+{
+    for (auto& assignedMeal : removeMeals)
+    {
+        // remove meal from tag
+        tagPtr->removeMeal(assignedMeal);
+        // remove tag from meal
+        assignedMeal->removeTag(tagPtr);
     }
 }
 
@@ -2118,13 +2149,13 @@ QString MealManager::formatEnabledDays(const QMap<DaysOfTheWeek, bool>& enabledD
     bool oneDayEnabled = false; // used to determine format between days
 
     // check days that are disabled by tags
-    if (enabledDays.at(MONDAY))
+    if (enabledDays.value(MONDAY))
     {
-        returnStr += "M";
+        returnStr += "Mon";
         oneDayEnabled = true;
     }
 
-    if (enabledDays.at(TUESDAY))
+    if (enabledDays.value(TUESDAY))
     {
         // add spacing
         if (oneDayEnabled)
@@ -2132,10 +2163,10 @@ QString MealManager::formatEnabledDays(const QMap<DaysOfTheWeek, bool>& enabledD
         else
             oneDayEnabled = true;
 
-        returnStr += "T";
+        returnStr += "Tue";
     }
 
-    if (enabledDays.at(WEDNESDAY))
+    if (enabledDays.value(WEDNESDAY))
     {
         // add spacing
         if (oneDayEnabled)
@@ -2143,10 +2174,10 @@ QString MealManager::formatEnabledDays(const QMap<DaysOfTheWeek, bool>& enabledD
         else
             oneDayEnabled = true;
 
-        returnStr += "W";
+        returnStr += "Wed";
     }
 
-    if (enabledDays.at(THURSDAY))
+    if (enabledDays.value(THURSDAY))
     {
         // add spacing
         if (oneDayEnabled)
@@ -2154,10 +2185,10 @@ QString MealManager::formatEnabledDays(const QMap<DaysOfTheWeek, bool>& enabledD
         else
             oneDayEnabled = true;
 
-        returnStr += "Th";
+        returnStr += "Thu";
     }
 
-    if (enabledDays.at(FRIDAY))
+    if (enabledDays.value(FRIDAY))
     {
         // add spacing
         if (oneDayEnabled)
@@ -2165,10 +2196,10 @@ QString MealManager::formatEnabledDays(const QMap<DaysOfTheWeek, bool>& enabledD
         else
             oneDayEnabled = true;
 
-        returnStr += "F";
+        returnStr += "Fri";
     }
 
-    if (enabledDays.at(SATURDAY))
+    if (enabledDays.value(SATURDAY))
     {
         // add spacing
         if (oneDayEnabled)
@@ -2176,10 +2207,10 @@ QString MealManager::formatEnabledDays(const QMap<DaysOfTheWeek, bool>& enabledD
         else
             oneDayEnabled = true;
 
-        returnStr += "Sa";
+        returnStr += "Sat";
     }
 
-    if (enabledDays.at(SUNDAY))
+    if (enabledDays.value(SUNDAY))
     {
         // add spacing
         if (oneDayEnabled)
@@ -2187,8 +2218,12 @@ QString MealManager::formatEnabledDays(const QMap<DaysOfTheWeek, bool>& enabledD
         else
             oneDayEnabled = true;
 
-        returnStr += "Su";
+        returnStr += "Sun";
     }
+
+    if (!oneDayEnabled)
+        returnStr += "DISABLED";
+
     // close bracket
     returnStr += "]";
 

@@ -19,10 +19,18 @@ SOURCES += \
     createplan_confirmation.cpp \
     createplan_filename.cpp \
     createplan_length.cpp \
+    createtag_basicparams.cpp \
+    createtag_nameconflict.cpp \
+    createtag_nomealswarning.cpp \
+    createtag_promptlinkmeals.cpp \
     deletemeal_confirmation.cpp \
+    deletetag_confirmation.cpp \
     editmeal_assignedtags.cpp \
     editmeal_basicparams.cpp \
     editmealswindow.cpp \
+    edittag_assignedmeals.cpp \
+    edittag_basicparams.cpp \
+    edittagswindow.cpp \
     error_loaddatafailed.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -44,10 +52,18 @@ HEADERS += \
     createplan_confirmation.h \
     createplan_filename.h \
     createplan_length.h \
+    createtag_basicparams.h \
+    createtag_nameconflict.h \
+    createtag_nomealswarning.h \
+    createtag_promptlinkmeals.h \
     deletemeal_confirmation.h \
+    deletetag_confirmation.h \
     editmeal_assignedtags.h \
     editmeal_basicparams.h \
     editmealswindow.h \
+    edittag_assignedmeals.h \
+    edittag_basicparams.h \
+    edittagswindow.h \
     error_loaddatafailed.h \
     mainwindow.h \
     manualwindow.h \
@@ -67,10 +83,18 @@ FORMS += \
     createplan_confirmation.ui \
     createplan_filename.ui \
     createplan_length.ui \
+    createtag_basicparams.ui \
+    createtag_nameconflict.ui \
+    createtag_nomealswarning.ui \
+    createtag_promptlinkmeals.ui \
     deletemeal_confirmation.ui \
+    deletetag_confirmation.ui \
     editmeal_assignedtags.ui \
     editmeal_basicparams.ui \
     editmealswindow.ui \
+    edittag_assignedmeals.ui \
+    edittag_basicparams.ui \
+    edittagswindow.ui \
     error_loaddatafailed.ui \
     mainwindow.ui \
     manualwindow.ui \

@@ -42,21 +42,11 @@ private:
 
     /* RefreshTagsList
      *
-     * calls RebuildItems and refreshes the listWidget for Tags
+     * Refreshes the listWidget for Tags
      *
      * use when a Tag is moved from assigned/unassigned
     */
     void RefreshTagsList(void);
-
-    /* CreateDaysEnabledString
-     *
-     * INPUTS:
-     * const QMap<DaysOfTheWeek, bool> enabledDays : the enabled days for a Meal/Tag
-     *
-     * OUTPUTS:
-     * QString : contains "[Mon, Tue, Wed, ..., Sun]" according to the days enabled
-     */
-    QString CreateDaysEnabledString(const QMap<DaysOfTheWeek, bool> enabledDays);
 };
 
 #endif // EDITMEAL_ASSIGNEDTAGS_H
