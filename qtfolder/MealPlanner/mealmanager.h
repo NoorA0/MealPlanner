@@ -18,9 +18,6 @@ public:
     // failedPlanErrors and failedPlanCost are 0 unless generation fails,
     //  then they are the number of errored days and total cost of the first plan generated
     bool generateSchedule(const QString& fileName, std::ofstream& oFile, unsigned int& failedPlanErrors, double& failedPlanCost);
-    void mealEditor();
-    void tagEditor();
-    void multitagEditor();
 
     /* createMeal
     * INPUTS:
@@ -252,55 +249,6 @@ private:
     */
     void deleteMultiTag(MultiTag* mtagPtr);
 
-    /* editMultiTag
-    * INPUTS:
-    *	MultiTag* mtagPtr: point to existing MultiTag
-    *
-    * OUTPUTS: none
-    *
-    * CHANGES: mtagPtr: params edited according to user choice
-    */
-    void editMultiTag(MultiTag* mtagPtr);
-
-    /* editMultiTagTags
-    * INPUTS:
-    *	MultiTag* mtagPtr: point to existing MultiTag
-    *
-    * RETURN: none
-    *
-    * CHANGES: mtagPtr: existing tags added to passed in MultiTag.
-    *	if no Tags exist, then a new one is created and added to MulitTag and normalTags
-    */
-    void editMultiTagTags(MultiTag* mtagPtr);
-
-    /* editMeal
-    * INPUTS:
-    *	Meal* mealPtr: point to existing Meal
-    *
-    * OUTPUTS: none
-    *
-    * CHANGES: mealPtr: params edited according to user choice
-    */
-    void editMeal(Meal* mealPtr);
-
-    /* editTag
-    * INPUTS:
-    *	Tag* tagPtr: point to existing Tag
-    *
-    * OUTPUTS: none
-    *
-    * CHANGES: tagPtr: params edited according to user choice
-    */
-    void editTag(Tag* tagPtr);
-
-    /* formatPrice
-    * INPUTS:
-    *	double price: stores a double value
-    *
-    * OUTPUTS: string: output-friendly form of price, with extra trailing zeros and decimal point removed
-    */
-    QString formatPrice(const double& price);
-
     // return string of enabledDays, if no days enabled, then will return "[]"
 
     /* optimizeData
@@ -309,32 +257,6 @@ private:
     void optimizeData(QMap<DaysOfTheWeek, QVector<MultiTag*>>& highPriorityMultiTags,
                       QMap<DaysOfTheWeek, QVector<MultiTag*>>& normalPriorityMultiTags,
                       QMap<DaysOfTheWeek, QVector<Tag*>>& normalPriorityTags);
-
-    // display all Meals/Tags, tagPtr points to Meal/Tag/MultiTag selected/created, or nullptr if user chose to quit
-    // lastPageVistied is set to the last page (if pagee exist) the user was viewing
-    // passing in a valid page in lastPageVisited will start the menu on that page
-    // return values:
-    //	if user quit menu: -1, if created a new tag: -2, if chose a tag: 0
-    Meal* displayMeals(int& lastPagevisited);
-
-    /* displayTags
-    * INPUTS:
-    *	int lastPage Visted: if pages need to be displayed, this will start at any valid page (instead of at the first page)
-    *					 if value is incorrect (less than 0 or greater than last page), then menu starts at page 1
-    *
-    *	Tag*& tagPtr: if user chooses or creates a tag, tagPtr will contain it's pointer, otherwise is set to nullptr
-    *
-    *	const vector<Tag*>& excludeTags: optional param, if passed with tags, they will not be displayed in the menu
-    *
-    * OUTPUTS: int - menu status: returns 0 if user chose a tag, -1 if user quit, and -2 if user created a tag
-    */
-    int displayTags(int& lastPageVisited, Tag*& tagPtr, const QVector<Tag*>& excludeTags = QVector<Tag*>());
-    MultiTag* displayMultiTags(int& lastPageVisited);
-
-    // queues information in UIM for one Meal/Tag
-    void displayMealInfo(const Meal* mealPtr);
-    void displayTagInfo(const Tag* tagPtr);
-    void displayMultiTagInfo(const MultiTag* mtagPtr);
 
     // SAVING TO FILE
     void writeMeal(const Meal* mealPtr, std::ofstream& oFile);
