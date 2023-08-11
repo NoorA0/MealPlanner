@@ -1,6 +1,7 @@
 #include "settingswindow.h"
 #include "ui_settingswindow.h"
 #include "editmealswindow.h"
+#include "edittagswindow.h"
 
 SettingsWindow::SettingsWindow(QWidget *parent, MealManager *mm) :
     QMainWindow(parent),
@@ -46,12 +47,20 @@ void SettingsWindow::on_editMealsButton_clicked()
 // edit tags clicked
 void SettingsWindow::on_editTagsButton_clicked()
 {
-
+    hide();
+    EditTagsWindow *etw = new EditTagsWindow(this, this->mm);
+    etw->setAttribute(Qt::WA_DeleteOnClose);
+    etw->show();
 }
 
 // edit multitags clicked
 void SettingsWindow::on_editMultiTagsButton_clicked()
 {
-
+    /*
+    hide();
+    EditMultitagsWindow *emw = new EditMultitagsWindow(this, this->mm);
+    emw->setAttribute(Qt::WA_DeleteOnClose);
+    emw->show();
+    */
 }
 

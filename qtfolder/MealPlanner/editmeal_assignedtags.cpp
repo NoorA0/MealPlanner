@@ -15,10 +15,6 @@ EditMeal_AssignedTags::EditMeal_AssignedTags(QWidget *parent,
         this->mealPtr = mealPtr;
     }
 
-    // clear caches
-    //assignCache.clear();
-    //unassignCache.clear();
-
     ui->setupUI(this);
 
     // goal: itemize tags already assigned to mealPtr

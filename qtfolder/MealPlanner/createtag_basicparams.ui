@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>New Tag</string>
   </property>
   <widget class="QCheckBox" name="checkBox_sun">
    <property name="geometry">

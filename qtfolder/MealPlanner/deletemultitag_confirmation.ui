@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DeleteMultitag_Confirmation</class>
+ <widget class="QDialog" name="DeleteMultitag_Confirmation">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>405</width>
+    <height>243</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <widget class="QLabel" name="label_title">
+   <property name="geometry">
+    <rect>
+     <x>70</x>
+     <y>10</y>
+     <width>261</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Are you sure you want to delete this MultiTag?&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_tagInfo">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>60</y>
+     <width>381</width>
+     <height>131</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Name: &lt;span style=&quot; font-weight:700;&quot;&gt;multitagname&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Has elevated priority: &lt;span style=&quot; font-weight:700;&quot;&gt;Yes&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Allow partial fulfillment: &lt;span style=&quot; font-weight:700;&quot;&gt;No&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Enabled on: &lt;span style=&quot; font-weight:700;&quot;&gt;[Mon, Tue, Wed, Thu, Fri, Sat, Sun]&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Description: &lt;span style=&quot; font-weight:700;&quot;&gt;12345678901234567890123456789012345(this is fifty)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton">
+   <property name="geometry">
+    <rect>
+     <x>230</x>
+     <y>210</y>
+     <width>80</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Yes</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_2">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>210</y>
+     <width>80</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Cancel</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

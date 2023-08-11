@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Confirm Delete</string>
+   <string>Confirm Deletion</string>
   </property>
   <widget class="QLabel" name="label_tagInfo">
    <property name="geometry">
