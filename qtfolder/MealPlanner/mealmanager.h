@@ -149,7 +149,7 @@ public:
     * RETURN: none
     *
     * CHANGES:
-    *   tagPtr: meals added to tag.
+    *   tagPtr  : meals added to tag.
     *   meals   : tag added to meals.
     */
     void assignNormalTagMeals(Tag* tagPtr, QVector<Meal*> newMeals);
@@ -166,6 +166,79 @@ public:
     *   meals   : tag removed from meals.
     */
     void removeNormalTagMeals(Tag* tagPtr, QVector<Meal*> removeMeals);
+
+    /* createMultiTag
+    * INPUTS:
+    *	QString name           : name of MultiTag
+    *   QString description    : describes the MultiTag's purpose
+    *   bool elevatedPriority  : set whether or not the MulitTag takes priority before Tags or with them
+    *   bool totalFulfillment  : set whether or not all of this MT's assigned Tags must be fuilfilled to plan Meals
+    *   QMap<DaysOfTheWeek, bool> enabledDays : the days the MultiTag is enabled on
+    *
+    * RETURN: a valid pointer to the new MultiTag if succeeded, nullptr if name conflict
+    *
+    * creates a MultiTag using inputs and adds the MultiTag to multiTags in alphabetical order of its name
+    */
+    MultiTag* createMultiTag(const QString &name,
+                             const QString &description,
+                             const bool &elevatedPriority,
+                             const bool &totalFulfillment,
+                             const QMap<DaysOfTheWeek, bool> &enabledDays);
+
+    /* deleteMultiTag
+    * INPUTS:
+    *	MultiTag* tagPtr: pointer to instantiated MultiTag object
+    *
+    * RETURN: none
+    *
+    * CHANGES: tagPtr: MultiTag is removed from any linked Tags, then deleted and set to nullptr
+    */
+    void deleteMultiTag(MultiTag* tagPtr);
+
+    /* findMultiTag
+    * INPUTS:
+    *	QString tagName  : name of MultiTag
+    *
+    * RETURN: pointer to MultiTag if exists, otherwise nullptr
+    *
+    * searches for a MultiTag with the given name
+    */
+    MultiTag* findMultiTag(const QString &tagName);
+
+    /* resortMultiTag
+    * INPUTS:
+    *	MultiTag* tagPtr: pointer to existing MultiTag, with old name
+    *   QString newName : the desired new name for the MultiTag
+    *
+    * RETURN: 0 if succeeded, 1 if MultiTag's old name not found, or name conflict
+    *
+    * changes a MultiTag's name and sorts by alphabetical order in mulitTags
+    */
+    bool resortMultiTag(MultiTag *tagPtr, const QString &newName);
+
+    /* assignMultiTagTags
+    * INPUTS:
+    *	MultiTag* tagPtr: pointer to existing MultiTag
+    *   QVector<QPair<Tag*, int>> assignTags: Tags to assign, with their number of requested Meals
+    *
+    * RETURN: none
+    *
+    * CHANGES:
+    *   tagPtr  : Tags assigned to this MultiTag
+    */
+    void assignMultiTagTags(MultiTag* tagPtr, QVector<QPair<Tag*, int>> assignTags);
+
+    /* removeMultiTagTags
+    * INPUTS:
+    *	MultiTag* tagPtr: pointer to existing MultiTag
+    *   QVector<Tag*> removeTags: all Tags to remove from the MultiTag
+    *
+    * RETURN: none
+    *
+    * CHANGES:
+    *   tagPtr  : Tags removed from this MultiTag.
+    */
+    void removeMultiTagTags(MultiTag* tagPtr, QVector<Tag*> removeMeals);
 
     /* formatEnabledDays
     * INPUTS:
@@ -196,6 +269,8 @@ public:
     double getMaximumPrice(void) {return MAXIMUM_PRICE;}
     unsigned int getMaximumNameLength(void) {return NAME_LENGTH;}
     unsigned int getMaximumDescriptionLength(void) {return DESC_LENGTH;}
+    unsigned int getMinRequestedMeals(void) {return MIN_REQUESTEDMEALS;}
+    unsigned int getMaxRequestedMeals(void) {return MAX_REQUESTEDMEALS;}
 
     // variables
     int getNumberOfNormalTags(void) { return normalTags.size(); }
@@ -212,13 +287,14 @@ private:
     const unsigned int CONSECUTIVE_DAYS_LIMIT = 1000;
     const unsigned int MEAL_DURATION_LIMIT = 30;
     const unsigned int DAYS_BETWEEN_OCCURRENCES_LIMIT = 30;
-    const unsigned int REQUESTED_MEALS_LIMIT = 100;
     const QString DATA_NAME = "MealPlanner_Data.txt";
     const QString LOGFILE = "MealPlanner_Logs.txt";
     const double MINIMUM_PRICE = 0.0;    // lowest price for a single meal
     const double MAXIMUM_PRICE = 999.99; // highest price for a single meal
     const unsigned int NAME_LENGTH = 40; // limit for tag and meal names
     const unsigned int DESC_LENGTH = 80; // limit for tag descriptions
+    const unsigned int MIN_REQUESTEDMEALS = 1;   // min number of requested meals from a Tag
+    const unsigned int MAX_REQUESTEDMEALS = 100; // max number of requested meals from a Tag
 
     QVector<Tag*> normalTags; // tags assigned to foods
     QVector<MultiTag*> multiTags; // special tags that are linked to normalTags
@@ -229,25 +305,7 @@ private:
 
 
 
-    /* createMultiTag
-    * INPUTS:
-    *	MultiTag* mTagPtr: pointer to instantiated MultiTag object
-    *
-    * RETURN: none
-    *
-    * CHANGES: mTagPtr: sets parameters according to user input, adds MultiTag to MultiTags in alphabetical order
-    */
-    void createMultiTag(MultiTag* mtagPtr);
 
-    /* deleteMultiTag
-    * INPUTS:
-    *	Tag* mtagPtr: pointer to instantiated MultiTag object
-    *
-    * RETURN: none
-    *
-    * CHANGES: mtagPtr: MultiTag is removed from any linked Tags and multiTags, then deleted and set to nullptr
-    */
-    void deleteMultiTag(MultiTag* mtagPtr);
 
     // return string of enabledDays, if no days enabled, then will return "[]"
 

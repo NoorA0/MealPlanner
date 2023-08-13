@@ -31,7 +31,6 @@ private:
     Meal *mealPtr;
     //QVector<Tag*> assignCache;   // cache of Tags to assign to the Meal
     //QVector<Tag*> unassignCache; // cache of Tags to unassign from the Meal
-    QVector<Tag*> mealTagsCopy;  // copy of Tags already assigned to the Meal
 
     // UI vars
     QMap<QString, Tag*> itemToTag; // all item strings mapped to their Tags

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>564</width>
-    <height>550</height>
+    <width>584</width>
+    <height>816</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QPushButton" name="pushButton_cancel">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>510</y>
+     <x>130</x>
+     <y>770</y>
      <width>80</width>
      <height>24</height>
     </rect>
@@ -26,24 +26,24 @@
     <string>Cancel</string>
    </property>
   </widget>
-  <widget class="QCheckBox" name="checkBox_mon">
+  <widget class="QLabel" name="label_elevatedPriority">
    <property name="geometry">
     <rect>
-     <x>470</x>
-     <y>390</y>
-     <width>78</width>
-     <height>22</height>
+     <x>20</x>
+     <y>260</y>
+     <width>541</width>
+     <height>71</height>
     </rect>
    </property>
    <property name="text">
-    <string>Monday</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Priority Level (advanced)&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Should this MultiTag be fulfilled before all other Tags?&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;(Recommended: no, unticked)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
   <widget class="QPushButton" name="pushButton_confirm">
    <property name="geometry">
     <rect>
-     <x>290</x>
-     <y>510</y>
+     <x>300</x>
+     <y>770</y>
      <width>80</width>
      <height>24</height>
     </rect>
@@ -52,11 +52,82 @@
     <string>Confirm</string>
    </property>
   </widget>
+  <widget class="QLabel" name="label_enabledDays">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>660</y>
+     <width>441</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Enabled Days (advanced)&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Choose which days of the week should this MultiTag be active on.&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;If you don't have specific restrictions, keep this MultiTag enabled on all days.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit_name">
+   <property name="geometry">
+    <rect>
+     <x>240</x>
+     <y>70</y>
+     <width>113</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="maxLength">
+    <number>50</number>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="placeholderText">
+    <string>enter a name</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_elevatedPriority">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>340</y>
+     <width>21</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_fri">
+   <property name="geometry">
+    <rect>
+     <x>480</x>
+     <y>730</y>
+     <width>78</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Friday</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_description">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>120</y>
+     <width>541</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Description (optional)&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;A brief description of what the MultiTag is for.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </widget>
   <widget class="QCheckBox" name="checkBox_sat">
    <property name="geometry">
     <rect>
-     <x>470</x>
-     <y>490</y>
+     <x>480</x>
+     <y>750</y>
      <width>78</width>
      <height>22</height>
     </rect>
@@ -68,7 +139,7 @@
   <widget class="QLineEdit" name="lineEdit_description">
    <property name="geometry">
     <rect>
-     <x>70</x>
+     <x>110</x>
      <y>180</y>
      <width>361</width>
      <height>41</height>
@@ -90,56 +161,11 @@
     <string>(example) Contains Meals suitable for picnics.</string>
    </property>
   </widget>
-  <widget class="QCheckBox" name="checkBox_sun">
-   <property name="geometry">
-    <rect>
-     <x>470</x>
-     <y>510</y>
-     <width>78</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Sunday</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="lineEdit_name">
-   <property name="geometry">
-    <rect>
-     <x>190</x>
-     <y>70</y>
-     <width>113</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="maxLength">
-    <number>50</number>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="placeholderText">
-    <string>enter a name</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="checkBox_dependsOnMultiTag">
-   <property name="geometry">
-    <rect>
-     <x>240</x>
-     <y>340</y>
-     <width>21</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
   <widget class="QCheckBox" name="checkBox_wed">
    <property name="geometry">
     <rect>
-     <x>470</x>
-     <y>430</y>
+     <x>480</x>
+     <y>690</y>
      <width>81</width>
      <height>22</height>
     </rect>
@@ -148,76 +174,11 @@
     <string>Wednesday</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_description">
-   <property name="geometry">
-    <rect>
-     <x>140</x>
-     <y>120</y>
-     <width>221</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Description (optional)&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;A brief description of what the MultiTag is for.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_multitagDependency">
-   <property name="geometry">
-    <rect>
-     <x>130</x>
-     <y>260</y>
-     <width>241</width>
-     <height>71</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Priority Level (advanced)&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Should this MultiTag take priority over Tags?&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;(Recommended: no, unticked)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="checkBox_thu">
-   <property name="geometry">
-    <rect>
-     <x>470</x>
-     <y>450</y>
-     <width>78</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Thursday</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_name">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>461</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Name&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;A name for your MultiTag, such as: Guest Meals, Birthday Party, Custom Sandwich, etc.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_enabledDays">
-   <property name="geometry">
-    <rect>
-     <x>50</x>
-     <y>400</y>
-     <width>401</width>
-     <height>81</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Enabled Days (advanced)&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Choose which days of the week should this MultiTag be active on.&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;If you don't have specific restrictions, keep this MultiTag enabled on all days.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-  </widget>
   <widget class="QCheckBox" name="checkBox_tue">
    <property name="geometry">
     <rect>
-     <x>470</x>
-     <y>410</y>
+     <x>480</x>
+     <y>670</y>
      <width>78</width>
      <height>22</height>
     </rect>
@@ -226,17 +187,85 @@
     <string>Tuesday</string>
    </property>
   </widget>
-  <widget class="QCheckBox" name="checkBox_fri">
+  <widget class="QCheckBox" name="checkBox_sun">
    <property name="geometry">
     <rect>
-     <x>470</x>
-     <y>470</y>
+     <x>480</x>
+     <y>770</y>
      <width>78</width>
      <height>22</height>
     </rect>
    </property>
    <property name="text">
-    <string>Friday</string>
+    <string>Sunday</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_mon">
+   <property name="geometry">
+    <rect>
+     <x>480</x>
+     <y>650</y>
+     <width>78</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Monday</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_requireTotalFulfillment">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>390</y>
+     <width>541</width>
+     <height>181</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Fulfillment Policy (advanced)&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Require total fulfillment? &lt;/p&gt;&lt;p align=&quot;center&quot;&gt;If ticked, ALL tags assigned to this MultiTag must plan the number of Meals you requested from them. &lt;/p&gt;&lt;p align=&quot;center&quot;&gt;If this cannot be done for any reason, the planner will skip this MultiTag and its assigned Tags until a day where all Tags can be fulfilled.&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;If unticked, planning will continue as long as one assigned Tag is able to plan a single Meal for the day.&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;(Recommended: no, unticked)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_thu">
+   <property name="geometry">
+    <rect>
+     <x>480</x>
+     <y>710</y>
+     <width>78</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Thursday</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_requireTotalFulfillment">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>590</y>
+     <width>21</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_name">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>10</y>
+     <width>541</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Name&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;A name for your MultiTag, such as: Guest Meals, Birthday Party, Custom Sandwich, etc.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
  </widget>

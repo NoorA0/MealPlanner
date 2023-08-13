@@ -31,7 +31,7 @@ DeleteTag_Confirmation::DeleteTag_Confirmation(QWidget *parent,
 
     labelText += ENABLEDDAYS_PREAMBLE;
     if (tagPtr->isDisabled())
-        labelText += "Tag is DISABLED";
+        labelText += "is DISABLED";
     else
         labelText += mm->formatEnabledDays(tagPtr->getEnabledDays());
 

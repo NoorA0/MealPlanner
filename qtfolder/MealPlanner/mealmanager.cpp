@@ -226,7 +226,9 @@ bool MealManager::resortMeal(Meal *mealPtr, const QString &newName)
     }
     else // order doesn't matter
     {
-        mealPtr->setName(newName);
+        // this shouldn't happen
+        //mealPtr->setName(newName);
+        hasFailed = true;
     }
     return hasFailed;
 }
@@ -378,7 +380,9 @@ bool MealManager::resortNormalTag(Tag *tagPtr, const QString &newName)
     }
     else // order doesn't matter
     {
-        tagPtr->setName(newName);
+        //tagPtr->setName(newName);
+        // this shouldn't happen
+        hasFailed = true;
     }
     return hasFailed;
 }
@@ -501,238 +505,84 @@ void MealManager::deleteNormalTag(Tag* tagPtr)
     }
 }
 
-void MealManager::createMultiTag(MultiTag* mtagPtr)
+MultiTag* MealManager::createMultiTag(const QString &name,
+                                 const QString &description,
+                                 const bool &elevatedPriority,
+                                 const bool &totalFulfillment,
+                                 const QMap<DaysOfTheWeek, bool> &enabledDays)
 {
-    QString tempStr = "";
-    int tempInt;
-    QVector<QString> strVec;
-    bool doneCreatingName = false;
+    MultiTag* tagPtr;
+    bool isInvalid = false;
+    bool inputValid = false;
 
-    // ensure pointer is instantiated to an object
-    if (mtagPtr == nullptr)
-        mtagPtr = new MultiTag();
-
-    // multitag's params
-    QMap<DaysOfTheWeek, bool> enabledDays =
-        { {MONDAY, false}, {TUESDAY, false}, {WEDNESDAY, false}, {THURSDAY, false}, {FRIDAY, false},
-         {SATURDAY, false}, {SUNDAY, false} };
+    // create a new MultiTag and set values
+    tagPtr = new MultiTag;
+    tagPtr->setName(name);
+    tagPtr->setDescription(description);
+    tagPtr->setHighestPriority(elevatedPriority);
+    tagPtr->setRequireFulfillment(totalFulfillment);
+    tagPtr->setEnabledDays(enabledDays);
 
 
-    // loop while user is not done choosing a name
-    while (!doneCreatingName)
+    // if there are other Multitags stored, check if names conflict (case insensitive)
+    if (multiTags.size() > 0)
     {
-        // prompt and get name
-        // store in tempStr
+        // get uppercase version of name
+        QString upperStr = tagPtr->getName().toUpper();
 
-        // if there are other tags stored, check if names conflict (case insensitive)
-        if (multiTags.size() > 0)
+        // compare with names of all multitags until a match is found
+        // also find a place to insert into (alphabetical order)
+        bool placeFound = false;
+        inputValid = true;
+        auto tagsIter = multiTags.begin();
+        while (inputValid && !placeFound && tagsIter != multiTags.end())
         {
-            // get uppercase version of tempStr
-            QString upperStr = tempStr.toUpper();
+            // get uppercase version of multitag's name
+            QString compareName = (*tagsIter)->getName().toUpper();
 
-            // compare with names of all tags until a match is found
-            bool placeFound = false;
-            bool inputValid = true;
-            auto tagsIter = multiTags.begin();
-            while (inputValid && !placeFound && tagsIter != multiTags.end())
+            // check if names match
+            if (upperStr == compareName)
+                inputValid = false;
+            else if (upperStr < compareName) // check if this is a good place to insert
             {
-                // get uppercase version of tag's name
-                QString compareName = (*tagsIter)->getName().toUpper();
-
-                // check if names match
-                if (upperStr == compareName)
-                    inputValid = false;
-                else if (upperStr < compareName) // check if this is a good place to insert
-                {
-                    // insert here
-                    placeFound = true;
-                    mtagPtr->setName(tempStr);
-                    multiTags.emplace(tagsIter, mtagPtr);
-                    doneCreatingName = true;
-                }
-                else // keep looking
-                    ++tagsIter;
+                // insert here
+                placeFound = true;
+                multiTags.emplace(tagsIter, tagPtr);
             }
-
-            // check if name is valid but place not found
-            if (inputValid && !placeFound)
-            {
-                // set name and place at back of multitags
-                mtagPtr->setName(tempStr);
-                multiTags.push_back(mtagPtr);
-                doneCreatingName = true;
-            }
-            else if (!inputValid) // invalid name, inform user
-            {
-                // display error that name is invalid because it already exists
-            }
+            else // keep searching
+                ++tagsIter;
         }
-        else // no tags to compare so push to back of meals
+
+        // check if name is valid but place not found
+        if (inputValid && !placeFound)
         {
-            mtagPtr->setName(tempStr);
-            multiTags.push_back(mtagPtr);
-            doneCreatingName = true;
+            // push to back
+            multiTags.push_back(tagPtr);
         }
-    } // while (!doneCreatingName)
-
-    // prompt and get description of tag
-    // TODO set to value of mtagPtr->setDescription()
-
-    // prompt and get dependency
-    // TODO store in tempStr
-
-    // set priority depending on user choice
-    if (tempStr == "1")
-        mtagPtr->setHighestPriority(true);
-    else
-        mtagPtr->setHighestPriority(false);
-
-    tempStr = "";
-    // let user set enabled days or quit
-    while (tempStr != "Q")
+        else if (!inputValid) // invalid name, inform user
+        {
+            isInvalid = true;
+        }
+    }
+    else // no tags to compare so push to back
     {
-        // TODO prompt list each day of the week to decide if enabled or disabled
-        // this code prints the status of each day
+        // push to back
+        multiTags.push_back(tagPtr);
+    }
 
-        tempStr = "MON: ";
-        if (enabledDays.find(MONDAY).value())
-            tempStr += "enabled";
-        else
-            tempStr += "disabled";
-
-        tempStr = "TUE: ";
-        if (enabledDays.find(TUESDAY).value())
-            tempStr += "enabled";
-        else
-            tempStr += "disabled";
-
-        tempStr = "WED: ";
-        if (enabledDays.find(WEDNESDAY).value())
-            tempStr += "enabled";
-        else
-            tempStr += "disabled";
-
-        tempStr = "THU: ";
-        if (enabledDays.find(THURSDAY).value())
-            tempStr += "enabled";
-        else
-            tempStr += "disabled";
-
-        tempStr = "FRI: ";
-        if (enabledDays.find(FRIDAY).value())
-            tempStr += "enabled";
-        else
-            tempStr += "disabled";
-
-        tempStr = "SAT: ";
-        if (enabledDays.find(SATURDAY).value())
-            tempStr += "enabled";
-        else
-            tempStr += "disabled";
-
-        tempStr = "SUN: ";
-        if (enabledDays.find(SUNDAY).value())
-            tempStr += "enabled";
-        else
-            tempStr += "disabled";
-
-        // print options
-        strVec.clear();
-        strVec = { "1Toggle MONDAY", "2Toggle TUESDAY", "3Toggle WEDNESDAY", "4Toggle THURSDAY",
-                  "5Toggle FRIDAY", "6Toggle SATURDAY", "7Toggle SUNDAY", "- ",
-                  "EEnable ALL", "DDisable ALL","- ", "QExit & Confirm Selection" };
-
-        // prompt and get input, store in tempStr
-
-        if (tempStr == "E")
-        {
-            // set all days to TRUE
-            enabledDays =
-                { {MONDAY, true}, {TUESDAY, true}, {WEDNESDAY, true}, {THURSDAY, true},
-                 {FRIDAY, true}, {SATURDAY, true}, {SUNDAY, true} };
-        }
-        else if (tempStr == "D")
-        {
-            // set all days to FALSE
-            enabledDays =
-                { {MONDAY, false}, {TUESDAY, false}, {WEDNESDAY, false}, {THURSDAY, false},
-                 {FRIDAY, false}, {SATURDAY, false}, {SUNDAY, false} };
-        }
-        else if (tempStr != "Q" && tempStr != "-")
-        {
-            // get user's choice as integer, store in tempStr
-            // TODO: dont need this at all with proper UI
-            switch (tempInt)
-            {
-            case 1: // monday
-                if (enabledDays.find(MONDAY).value())
-                    enabledDays.find(MONDAY).value() = false;
-                else
-                    enabledDays.find(MONDAY).value() = true;
-                break;
-            case 2: // tuesday
-                if (enabledDays.find(TUESDAY).value())
-                    enabledDays.find(TUESDAY).value() = false;
-                else
-                    enabledDays.find(TUESDAY).value() = true;
-                break;
-            case 3: // wednesday
-                if (enabledDays.find(WEDNESDAY).value())
-                    enabledDays.find(WEDNESDAY).value() = false;
-                else
-                    enabledDays.find(WEDNESDAY).value() = true;
-                break;
-            case 4: // thursday
-                if (enabledDays.find(THURSDAY).value())
-                    enabledDays.find(THURSDAY).value() = false;
-                else
-                    enabledDays.find(THURSDAY).value() = true;
-                break;
-            case 5: // friday
-                if (enabledDays.find(FRIDAY).value())
-                    enabledDays.find(FRIDAY).value() = false;
-                else
-                    enabledDays.find(FRIDAY).value() = true;
-                break;
-            case 6: // saturday
-                if (enabledDays.find(SATURDAY).value())
-                    enabledDays.find(SATURDAY).value() = false;
-                else
-                    enabledDays.find(SATURDAY).value() = true;
-                break;
-            case 7: // sunday
-                if (enabledDays.find(SUNDAY).value())
-                    enabledDays.find(SUNDAY).value() = false;
-                else
-                    enabledDays.find(SUNDAY).value() = true;
-                break;
-            default:
-                // do nothing
-                tempStr = "";
-            }
-        }
-    } // while (tempStr != "Q")
-
-    // set enabledDays
-    mtagPtr->setEnabledDays(enabledDays);
-
-    // link to other tags
-    editMultiTagTags(mtagPtr);
-
-    // set requireFulfillment
-    // TODO
-
-    // set priority depending on user choice
-    if (tempStr == "1")
-        mtagPtr->setRequireFulfillment(true);
-    else
-        mtagPtr->setRequireFulfillment(false);
+    // delete tag if failed to create
+    if (isInvalid)
+    {
+        delete tagPtr;
+        tagPtr = nullptr;
+    }
+    return tagPtr;
 }
 
-void MealManager::deleteMultiTag(MultiTag* mtagPtr)
+void MealManager::deleteMultiTag(MultiTag* tagPtr)
 {
     // clear linkedTags
-    mtagPtr->clearLinkedTags();
+    tagPtr->clearLinkedTags();
 
     // find MultiTag in multiTags
     auto tagIter = multiTags.begin();
@@ -740,7 +590,7 @@ void MealManager::deleteMultiTag(MultiTag* mtagPtr)
 
     while (!found && tagIter != multiTags.end())
     {
-        if (*tagIter == mtagPtr)
+        if (*tagIter == tagPtr)
             found = true;
         else
             ++tagIter;
@@ -750,8 +600,141 @@ void MealManager::deleteMultiTag(MultiTag* mtagPtr)
     if (found)
     {
         multiTags.erase(tagIter);
-        delete mtagPtr;
-        mtagPtr = nullptr;
+        delete tagPtr;
+        tagPtr = nullptr;
+    }
+}
+
+MultiTag* MealManager::findMultiTag(const QString &tagName)
+{
+    MultiTag *retTag = nullptr;
+    bool inputValid = false;
+
+    // if there are other multitags stored, check if names conflict (case insensitive)
+    if (multiTags.size() > 0)
+    {
+        // get uppercase version of name
+        QString upperStr = tagName.toUpper();
+
+        // compare with names of all multitags until a match is found
+        inputValid = true;
+        auto tagsIter = multiTags.begin();
+        while (inputValid && tagsIter != multiTags.end())
+        {
+            // get uppercase version of multitag's name
+            QString compareName = (*tagsIter)->getName().toUpper();
+
+            // check if names match
+            if (upperStr == compareName)
+            {
+                inputValid = false;
+                retTag = *tagsIter;
+            }
+            else // keep looking
+                ++tagsIter;
+        }
+    }
+    return retTag;
+}
+
+bool MealManager::resortMultiTag(MultiTag *tagPtr, const QString &newName)
+{
+    bool hasFailed = false;
+
+    // make sure multitag exists
+    if (findMultiTag(tagPtr->getName()) == nullptr)
+    {
+        hasFailed = true;
+    }
+    // if new and old name are functionally the same, rename
+    else if (tagPtr->getName().toUpper() == newName.toUpper())
+    {
+        tagPtr->setName(newName);
+    }
+    // conflict with new name, abort re-sort
+    else if (multiTags.size() > 0 && findMultiTag(newName) != nullptr)
+    {
+        hasFailed = true;
+    }
+    // perform re-sort if can find old multitag
+    else if (multiTags.size() > 0)
+    {
+        // prepare to remove multitag from multiTags
+        auto tagsIter = multiTags.begin();
+        bool tagFound = false;
+
+        // find multitag
+        while (!tagFound && tagsIter != multiTags.end())
+        {
+            if (*tagsIter == tagPtr)
+                tagFound = true;
+            else
+                ++tagsIter;
+        }
+
+        // remove multitag
+        if (tagFound)
+        {
+            multiTags.erase(tagsIter);
+        }
+
+        // rename multitag
+        tagPtr->setName(newName);
+
+        // get uppercase version of new name
+        QString upperStr = newName.toUpper();
+
+        // find a place to insert into (alphabetical order)
+        tagFound = false;
+        tagsIter = multiTags.begin();
+        while (!tagFound && tagsIter != multiTags.end())
+        {
+            // get uppercase version of tag's name
+            QString compareName = (*tagsIter)->getName().toUpper();
+
+            // position found
+            if (upperStr < compareName) // check if is this a good place to insert
+            {
+                // insert here
+                tagFound = true;
+                multiTags.emplace(tagsIter, tagPtr);
+            }
+            else // keep looking
+                ++tagsIter;
+        }
+
+        // check if place not found
+        if (!tagFound)
+        {
+            // place at back of multiTags
+            multiTags.push_back(tagPtr);
+        }
+    }
+    else // order doesn't matter
+    {
+        //tagPtr->setName(newName);
+
+        // there shouldn't be a case where multiTags.size() <= 0, if this MultiTag is valid
+        hasFailed = true;
+    }
+    return hasFailed;
+}
+
+void MealManager::assignMultiTagTags(MultiTag* tagPtr, QVector<QPair<Tag*, int>> assignTags)
+{
+    for (auto& newTag : assignTags)
+    {
+        // link Tag to MultiTag
+        tagPtr->addLinkedTag(newTag.first, newTag.second);
+    }
+}
+
+void MealManager::removeMultiTagTags(MultiTag* tagPtr, QVector<Tag*> removeTags)
+{
+    for (auto& assignedTag : removeTags)
+    {
+        // remove Tag from MultiTag
+        tagPtr->removeLinkedTag(assignedTag);
     }
 }
 

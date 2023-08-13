@@ -31,7 +31,6 @@ private:
     Ui::EditTag_AssignedMeals *ui;
     MealManager *mm;
     Tag *tagPtr;
-    QVector<Meal*> assignedMealsCopy;
 
     // UI vars
     QMap<QString, Meal*> itemToMeal; // all item strings mapped to their Meals

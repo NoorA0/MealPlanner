@@ -15,7 +15,7 @@ class EditMultitag_BasicParams : public QDialog
 public:
     explicit EditMultitag_BasicParams(QWidget *parent = nullptr,
                                       MealManager *mm = nullptr,
-                                      MulitTag *tag = nullptr);
+                                      MultiTag *tag = nullptr);
     ~EditMultitag_BasicParams();
 
 private slots:

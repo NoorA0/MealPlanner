@@ -34,6 +34,7 @@ SOURCES += \
     editmeal_basicparams.cpp \
     editmealswindow.cpp \
     editmultitag_assignedtags.cpp \
+    editmultitag_assigntagmeals.cpp \
     editmultitag_basicparams.cpp \
     editmultitagswindow.cpp \
     edittag_assignedmeals.cpp \
@@ -75,6 +76,7 @@ HEADERS += \
     editmeal_basicparams.h \
     editmealswindow.h \
     editmultitag_assignedtags.h \
+    editmultitag_assigntagmeals.h \
     editmultitag_basicparams.h \
     editmultitagswindow.h \
     edittag_assignedmeals.h \
@@ -114,6 +116,7 @@ FORMS += \
     editmeal_basicparams.ui \
     editmealswindow.ui \
     editmultitag_assignedtags.ui \
+    editmultitag_assigntagmeals.ui \
     editmultitag_basicparams.ui \
     editmultitagswindow.ui \
     edittag_assignedmeals.ui \

@@ -24,19 +24,40 @@ MultiTag::~MultiTag()
 
 void MultiTag::addLinkedTag(Tag* new_tag, const unsigned int& amount)
 {
-    linkedTags.insert(new_tag, amount);
+    linkedTags.push_back(QPair<Tag*, unsigned int>(new_tag, amount));
 }
+
+void MultiTag::setLinkedTagRequestedMeals(Tag* assignedTag, const unsigned int& amount)
+{
+    // find assignedTag
+    auto linkedTagIter = linkedTags.begin();
+    bool found = false;
+
+    while (!found && linkedTagIter != linkedTags.end())
+    {
+        if (assignedTag->getName().toUpper() == linkedTagIter->first->getName().toUpper())
+        {
+            found = true;
+
+            // set new value
+            linkedTagIter->second = amount;
+        }
+        else
+            ++linkedTagIter;
+    }
+}
+
 
 bool MultiTag::removeLinkedTag(const Tag* tagPtr)
 {
     bool notFound = true;
 
-    // find tagPtr
+    // find the Tag in linkedTags
     auto tagIter = linkedTags.begin();
     while (notFound && tagIter != linkedTags.end())
     {
         // if found, erase from vector
-        if (tagPtr == tagIter.key())
+        if (tagPtr->getName() == tagIter->first->getName())
         {
             notFound = false;
             linkedTags.erase(tagIter);

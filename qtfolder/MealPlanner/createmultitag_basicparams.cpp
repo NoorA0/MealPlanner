@@ -13,7 +13,9 @@ CreateMultitag_BasicParams::CreateMultitag_BasicParams(QWidget *parent,
         this->mm = mm;
     ui->setupUi(this);
 
-    // TODO: set value limits
+    // set value limits
+    ui->lineEdit_name->setMaxLength(this->mm->getMaximumNameLength());
+    ui->lineEdit_description->setMaxLength(this->mm->getMaximumDescriptionLength());
 }
 
 CreateMultitag_BasicParams::~CreateMultitag_BasicParams()
@@ -30,6 +32,38 @@ void CreateMultitag_BasicParams::on_pushButton_cancel_clicked()
 // confirm clicked
 void CreateMultitag_BasicParams::on_pushButton_confirm_clicked()
 {
-    // TODO: complete this
+    // get settings
+    QString name = ui->lineEdit_name->text();
+    QString desc = ui->lineEdit_description->text();
+    bool elevatedPriority = ui->checkBox_elevatedPriority->isChecked();
+    bool totalFulfillment = ui->checkBox_requireTotalFulfillment->isChecked();
+    QMap<DaysOfTheWeek, bool> enabledDays;
+
+    // get enabledDays
+    enabledDays[MONDAY] = ui->checkBox_mon->isChecked();
+    enabledDays[TUESDAY] = ui->checkBox_tue->isChecked();
+    enabledDays[WEDNESDAY] = ui->checkBox_wed->isChecked();
+    enabledDays[THURSDAY] = ui->checkBox_thu->isChecked();
+    enabledDays[FRIDAY] = ui->checkBox_fri->isChecked();
+    enabledDays[SATURDAY] = ui->checkBox_sat->isChecked();
+    enabledDays[SUNDAY] = ui->checkBox_sun->isChecked();
+
+    MultiTag* newMT = mm->createMultiTag(name, desc, elevatedPriority, totalFulfillment, enabledDays);
+
+    // if failed due to name conflict
+    if (newMT == nullptr)
+    {
+        // warn user and clear name
+        CreateMultitag_NameConflict *window = new CreateMultitag_NameConflict(this);
+        window->setAttribute(Qt::WA_DeleteOnClose);
+        window->exec();
+        ui->lineEdit_name->clear();
+    }
+    else
+    {
+        // send the multitag
+        emit sendNewMultitag(newMT);
+        close();
+    }
 }
 

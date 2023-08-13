@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>565</width>
-    <height>571</height>
+    <height>819</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>470</x>
-     <y>480</y>
+     <y>740</y>
      <width>78</width>
      <height>22</height>
     </rect>
@@ -30,7 +30,7 @@
    <property name="geometry">
     <rect>
      <x>120</x>
-     <y>520</y>
+     <y>780</y>
      <width>80</width>
      <height>24</height>
     </rect>
@@ -43,7 +43,7 @@
    <property name="geometry">
     <rect>
      <x>470</x>
-     <y>440</y>
+     <y>700</y>
      <width>81</width>
      <height>22</height>
     </rect>
@@ -55,9 +55,9 @@
   <widget class="QLabel" name="label_enabledDays">
    <property name="geometry">
     <rect>
-     <x>50</x>
-     <y>410</y>
-     <width>401</width>
+     <x>10</x>
+     <y>670</y>
+     <width>441</width>
      <height>81</height>
     </rect>
    </property>
@@ -69,7 +69,7 @@
    <property name="geometry">
     <rect>
      <x>470</x>
-     <y>420</y>
+     <y>680</y>
      <width>78</width>
      <height>22</height>
     </rect>
@@ -82,7 +82,7 @@
    <property name="geometry">
     <rect>
      <x>290</x>
-     <y>520</y>
+     <y>780</y>
      <width>80</width>
      <height>24</height>
     </rect>
@@ -91,10 +91,10 @@
     <string>Confirm</string>
    </property>
   </widget>
-  <widget class="QCheckBox" name="checkBox_dependsOnMultiTag">
+  <widget class="QCheckBox" name="checkBox_elevatedPriority">
    <property name="geometry">
     <rect>
-     <x>240</x>
+     <x>270</x>
      <y>350</y>
      <width>21</width>
      <height>22</height>
@@ -108,7 +108,7 @@
    <property name="geometry">
     <rect>
      <x>470</x>
-     <y>500</y>
+     <y>760</y>
      <width>78</width>
      <height>22</height>
     </rect>
@@ -122,7 +122,7 @@
     <rect>
      <x>10</x>
      <y>20</y>
-     <width>461</width>
+     <width>541</width>
      <height>51</height>
     </rect>
    </property>
@@ -134,7 +134,7 @@
    <property name="geometry">
     <rect>
      <x>470</x>
-     <y>460</y>
+     <y>720</y>
      <width>78</width>
      <height>22</height>
     </rect>
@@ -146,7 +146,7 @@
   <widget class="QLineEdit" name="lineEdit_name">
    <property name="geometry">
     <rect>
-     <x>190</x>
+     <x>230</x>
      <y>80</y>
      <width>113</width>
      <height>24</height>
@@ -166,7 +166,7 @@
    <property name="geometry">
     <rect>
      <x>470</x>
-     <y>400</y>
+     <y>660</y>
      <width>78</width>
      <height>22</height>
     </rect>
@@ -178,9 +178,9 @@
   <widget class="QLabel" name="label_description">
    <property name="geometry">
     <rect>
-     <x>140</x>
+     <x>10</x>
      <y>130</y>
-     <width>221</width>
+     <width>541</width>
      <height>41</height>
     </rect>
    </property>
@@ -188,23 +188,23 @@
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Description (optional)&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;A brief description of what the MultiTag is for.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_multitagDependency">
+  <widget class="QLabel" name="label_elevatedPriority">
    <property name="geometry">
     <rect>
-     <x>130</x>
+     <x>10</x>
      <y>270</y>
-     <width>241</width>
+     <width>541</width>
      <height>71</height>
     </rect>
    </property>
    <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Priority Level (advanced)&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Should this MultiTag take priority over Tags?&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;(Recommended: no, unticked)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Priority Level (advanced)&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Should this MultiTag be fulfilled before all other Tags?&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;(Recommended: no, unticked)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="lineEdit_description">
    <property name="geometry">
     <rect>
-     <x>70</x>
+     <x>100</x>
      <y>190</y>
      <width>361</width>
      <height>41</height>
@@ -230,13 +230,42 @@
    <property name="geometry">
     <rect>
      <x>470</x>
-     <y>520</y>
+     <y>780</y>
      <width>78</width>
      <height>22</height>
     </rect>
    </property>
    <property name="text">
     <string>Sunday</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_requireTotalFulfillment">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>400</y>
+     <width>541</width>
+     <height>181</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Fulfillment Policy (advanced)&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Require total fulfillment? &lt;/p&gt;&lt;p align=&quot;center&quot;&gt;If ticked, ALL tags assigned to this MultiTag must plan the number of Meals you requested from them. &lt;/p&gt;&lt;p align=&quot;center&quot;&gt;If this cannot be done for any reason, the planner will skip this MultiTag and its assigned Tags until a day where all Tags can be fulfilled.&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;If unticked, planning will continue as long as one assigned Tag is able to plan a single Meal for the day.&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;(Recommended: no, unticked)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_requireTotalFulfillment">
+   <property name="geometry">
+    <rect>
+     <x>270</x>
+     <y>600</y>
+     <width>21</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
    </property>
   </widget>
  </widget>
