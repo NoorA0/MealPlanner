@@ -149,7 +149,7 @@ QString EditMultitag_AssignedTags::BuildItemString(const Tag *tagPtr,
                         const bool &displayRequestedMeals)
 {
     QString itemStr = "\nName: " + tagPtr->getName()
-                      + "\nDepends on MultiTag? ";
+                      + "\nDepends on MultiTag: ";
     itemStr += (tagPtr->getDependency()) ? "Yes" : "No";
     itemStr += "\nMaximum consecutive days: " + QString::number(tagPtr->getConsecutiveLimit()) + "\n";
 

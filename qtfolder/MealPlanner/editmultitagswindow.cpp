@@ -27,7 +27,7 @@ EditMultitagsWindow::EditMultitagsWindow(QWidget *parent,
     // list all Multitags in the listWidget in alphabetical order
     for (auto& item: itemsInOrder)
     {
-        ui->listWidget_tags->addItem(item);
+        ui->listWidget_multitags->addItem(item);
     }
 }
 
@@ -100,36 +100,139 @@ void EditMultitagsWindow::on_pushButton_exit_clicked()
 // delete multitag
 void EditMultitagsWindow::on_pushButton_deleteMultitag_clicked()
 {
+    MultiTag* tagPtr;
+    QString widgetItem = ui->listWidget_multitags->currentItem()->text();
 
+    // get the associated multitag
+    tagPtr = itemToMultitag.find(widgetItem).value();
+
+    // display confirmation window, handles final deletion
+    DeleteMultitag_Confirmation *window = new DeleteMultitag_Confirmation(this, mm, tagPtr);
+    window->setAttribute(Qt::WA_DeleteOnClose);
+    window->exec();
+
+    // refresh list of multitags to display
+    RefreshTagsList();
 }
 
 // new multitag
 void EditMultitagsWindow::on_pushButton_newMultitag_clicked()
 {
+    // create multitag by getting basic info
+    CreateMultitag_BasicParams *window = new CreateMultitag_BasicParams(this, mm);
+    window->setAttribute(Qt::WA_DeleteOnClose);
 
+    // connect to signal to receive new multitag when created
+    connect(window,
+            SIGNAL(sendNewMultitag(MultiTag*)),
+            this,
+            SLOT(receiveNewMultitag(MultiTag*createdMT)),
+            Qt::UniqueConnection);
+    window->exec();
+
+    // if no tags exist, warn user
+    if (mm->getNumberOfNormalTags() <= 0)
+    {
+        CreateMultitag_NoTagsWarning *window2 = new CreateMultitag_NoTagsWarning(this);
+        window2->setAttribute(Qt::WA_DeleteOnClose);
+        window2->exec();
+    }
+    else if (newMT != nullptr)
+    {
+        CreateMultitag_PromptLinkTags *window2 = new CreateMultitag_PromptLinkTags(this);
+        window2->setAttribute(Qt::WA_DeleteOnClose);
+
+        // connect signal to receive response
+        connect(window2,
+                SIGNAL(sendUserResponse(bool)),
+                SLOT(receiveBoolAssignNewTags(bool)),
+                Qt::UniqueConnection);
+
+        window2->exec();
+
+        if (userResponse)
+        {
+            // create edit tags window
+            EditMultitag_AssignedTags *window3 = new EditMultitag_AssignedTags(this, mm, newMT);
+            window3->setAttribute(Qt::WA_DeleteOnClose);
+            window3->exec();
+        }
+    }
+
+    // refresh list of multitags
+    RefreshTagsList();
 }
 
 // edit multitag
 void EditMultitagsWindow::on_pushButton_editMultitag_clicked()
 {
-
+    // pass selected item to below function
+    on_listWidget_multitags_itemDoubleClicked(ui->listWidget_multitags->currentItem());
 }
 
 // double clicked multitag
 void EditMultitagsWindow::on_listWidget_multitags_itemDoubleClicked(QListWidgetItem *item)
 {
+    MultiTag* tagPtr;
+    QString widgetItem = item->text();
 
+    // get the multitag associated with the item
+    tagPtr = itemToMultitag.find(widgetItem).value();
+
+    // create edit window
+    EditMultitag_BasicParams *window = new EditMultitag_BasicParams(this, mm, tagPtr);
+    window->setAttribute(Qt::WA_DeleteOnClose);
+    window->exec();
 }
 
 // edit linked tags
 void EditMultitagsWindow::on_pushButton_editLinkedTags_clicked()
 {
+    MultiTag* tagPtr;
+    QString tagKey = ui->listWidget_multitags->currentItem()->text();
 
+    // get the multitag associated with the item
+    tagPtr = itemToMultitag.find(tagKey).value();
+
+    EditMultitag_AssignedTags *window = new EditMultitag_AssignedTags(this, mm, tagPtr);
+    window->setAttribute(Qt::WA_DeleteOnClose);
+    window->exec();
 }
 
-// new item selected
+// item changed, display its assigned tags
 void EditMultitagsWindow::on_listWidget_multitags_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous)
 {
+    MultiTag* multitagPtr;
+    QVector<QPair<Tag*, unsigned int>> assignedTags;
+    QString tagKey = current->text();
 
+    // clear all displayed tags
+    ui->listWidget_assignedTags->clear();
+
+    // get the multitag associated with the item
+    multitagPtr = itemToMultitag.find(tagKey).value();
+    assignedTags = multitagPtr->getLinkedTags();
+
+    // create listWidget items for every assigned tag
+    for (auto& tagPairPtr : assignedTags)
+    {
+        QString tempStr = "\nName: " + tagPairPtr.first->getName()
+                          + "\nDepends on MultiTag: ";
+        tempStr += (tagPairPtr.first->getDependency()) ? "Yes" : "No";
+        tempStr += "\nMaximum consecutive days: " + QString::number(tagPairPtr.first->getConsecutiveLimit()) + "\n";
+        if (tagPairPtr.first->isDisabled())
+            tempStr += "Tag is DISABLED";
+        else
+        {
+            tempStr += "\nEnabled on: " + mm->formatEnabledDays(tagPairPtr.first->getEnabledDays());
+        }
+
+        tempStr += "\nNumber of Meals requested from this Tag: " + QString::number(tagPairPtr.second);
+
+        tempStr += "\nDescription: " + tagPairPtr.first->getDescription() + "\n";
+
+        // add the item to the listWidget
+        ui->listWidget_assignedTags->addItem(tempStr);
+    }
 }
 
