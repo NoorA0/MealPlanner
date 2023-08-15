@@ -9,6 +9,9 @@
 #include "createplan_length.h"
 #include "createplan_budget.h"
 #include "createplan_confirmation.h"
+#include "createplan_nomealsortagswarning.h"
+#include "createplan_inprogress.h"
+#include "createplan_success.h"
 
 MainWindow::MainWindow(QWidget *parent, MealManager *mm)
     : QMainWindow(parent)
@@ -60,6 +63,12 @@ void MainWindow::getPlanBudget(const bool &isValid, const double &newBudget)
         planBudget = newBudget;
     else
         planBudget = -1.0;
+}
+
+// gets return code after plan was created
+void MainWindow::getCreationStatus(const int &returnCode)
+{
+    this->returnCode = returnCode;
 }
 
 // gets final plan configuration confirmation
@@ -131,10 +140,19 @@ void MainWindow::on_quitProgramButton_clicked()
 // clicked generate program
 void MainWindow::on_generatePlanButton_clicked()
 {
+    // if no meals AND tags, cannot create a plan
+    if (mm->getMeals().size() < 1 || mm->getNormalTags().size() < 1)
+    {
+        // tell user and close
+        CreatePlan_NoMealsOrTagsWarning *window = new CreatePlan_NoMealsOrTagsWarning(this);
+        window->setAttribute(Qt::WA_DeleteOnClose);
+        window->exec();
+        return;
+    }
+
     // prompt user for file name
     // default name is stored in createplan_filename.cpp
-
-    createPlan_Filename* cpf = new createPlan_Filename(this);
+    createPlan_Filename* cpf = new createPlan_Filename(this, mm);
     cpf->setAttribute(Qt::WA_DeleteOnClose);
 
     // connect signal to receive file name information
@@ -152,7 +170,7 @@ void MainWindow::on_generatePlanButton_clicked()
     }
 
     // prompt for schedule length
-    createPlan_Length* cpl = new createPlan_Length(this);
+    createPlan_Length* cpl = new createPlan_Length(this, mm);
     cpl->setAttribute(Qt::WA_DeleteOnClose);
 
     // connect signal to receive plan length
@@ -170,7 +188,7 @@ void MainWindow::on_generatePlanButton_clicked()
     }
 
     // prompt for budget limit
-    createPlan_Budget* cpb = new createPlan_Budget(this);
+    createPlan_Budget* cpb = new createPlan_Budget(this, mm);
     cpb->setAttribute(Qt::WA_DeleteOnClose);
 
     // connect signal to receive plan budget
@@ -182,7 +200,7 @@ void MainWindow::on_generatePlanButton_clicked()
     cpb->exec();
 
     // continue if user did not cancel
-    if (planBudget <= -1.0)
+    if (planBudget < 0)
     {
         return;
     }
@@ -208,12 +226,29 @@ void MainWindow::on_generatePlanButton_clicked()
         return;
     }
 
-    qDebug() << "----stats: ----\nfilename: "
-             << fileName << "\nlength (weeks): " << planLength
-             << "\nbudget: " << planBudget;
+    // opens window to tell user to wait, will close when done creating plan
+    CreatePlan_InProgress *cpip = new CreatePlan_InProgress(this, mm, fileName, planBudget, planLength);
+    cpip->setAttribute(Qt::WA_DeleteOnClose);
 
-    // error page if failed at any point
+    // get the return code to tell if creation failed or not
+    connect(cpip,
+            SIGNAL(createPlanReturn(int)),
+            this,
+            SLOT(getCreationStatus(int)),
+            Qt::UniqueConnection);
+    cpip->exec();
 
-    // success
+    // if succeeded in creating a plan
+    if (returnCode == 0)
+    {
+        // tell user
+        CreatePlan_Success *cps = new CreatePlan_Success(this);
+        cps->setAttribute(Qt::WA_DeleteOnClose);
+        cps->exec();
+    }
+    else
+    {
+        // TODO: create error window
+    }
 }
 

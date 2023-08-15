@@ -29,6 +29,8 @@ private slots:
 
     void getConfirmation(const bool &isValid);
 
+    void getCreationStatus(const int &returnCode);
+
     void on_settingsButton_clicked();
 
     void on_manualButton_clicked();
@@ -43,7 +45,8 @@ private:
     Ui::MainWindow *ui;
     MealManager *mm;
     QString fileName;
-    int planLength;
+    int planLength; // in weeks
+    int returnCode; // value received from creating a meal plan
     double planBudget;
     bool settingsConfirmed;
 };

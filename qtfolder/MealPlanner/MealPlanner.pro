@@ -22,7 +22,10 @@ SOURCES += \
     createplan_budget.cpp \
     createplan_confirmation.cpp \
     createplan_filename.cpp \
+    createplan_inprogress.cpp \
     createplan_length.cpp \
+    createplan_nomealsortagswarning.cpp \
+    createplan_success.cpp \
     createtag_basicparams.cpp \
     createtag_nameconflict.cpp \
     createtag_nomealswarning.cpp \
@@ -64,7 +67,10 @@ HEADERS += \
     createplan_budget.h \
     createplan_confirmation.h \
     createplan_filename.h \
+    createplan_inprogress.h \
     createplan_length.h \
+    createplan_nomealsortagswarning.h \
+    createplan_success.h \
     createtag_basicparams.h \
     createtag_nameconflict.h \
     createtag_nomealswarning.h \
@@ -104,7 +110,10 @@ FORMS += \
     createplan_budget.ui \
     createplan_confirmation.ui \
     createplan_filename.ui \
+    createplan_inprogress.ui \
     createplan_length.ui \
+    createplan_nomealsortagswarning.ui \
+    createplan_success.ui \
     createtag_basicparams.ui \
     createtag_nameconflict.ui \
     createtag_nomealswarning.ui \

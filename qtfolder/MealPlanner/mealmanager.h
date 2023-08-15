@@ -275,9 +275,12 @@ public:
     double getMinimumPrice(void) {return MINIMUM_PRICE;}
     double getMaximumPrice(void) {return MAXIMUM_PRICE;}
     unsigned int getMaximumNameLength(void) {return NAME_LENGTH;}
+    unsigned int getMaximumFileNameLength(void) {return MAX_FILENAME_LENGTH;}
     unsigned int getMaximumDescriptionLength(void) {return DESC_LENGTH;}
     unsigned int getMinRequestedMeals(void) {return MIN_REQUESTEDMEALS;}
     unsigned int getMaxRequestedMeals(void) {return MAX_REQUESTEDMEALS;}
+    unsigned int getMinimumPlanPeriodWeeks(void) {return MIN_CALCULATION_LENGTH;}
+    unsigned int getMaximumPlanPeriodWeeks(void) {return MAX_CALCULATION_LENGTH;}
 
     // variables
     int getNumberOfNormalTags(void) { return normalTags.size(); }
@@ -299,6 +302,7 @@ private:
     const double MINIMUM_PRICE = 0.0;    // lowest price for a single meal
     const double MAXIMUM_PRICE = 999.99; // highest price for a single meal
     const unsigned int NAME_LENGTH = 40; // limit for tag and meal names
+    const unsigned int MAX_FILENAME_LENGTH = 50; // char limit for filenames
     const unsigned int DESC_LENGTH = 80; // limit for tag descriptions
     const unsigned int MIN_REQUESTEDMEALS = 1;   // min number of requested meals from a Tag
     const unsigned int MAX_REQUESTEDMEALS = 100; // max number of requested meals from a Tag
