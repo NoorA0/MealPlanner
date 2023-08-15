@@ -17,7 +17,14 @@ public:
 
     // failedPlanErrors and failedPlanCost are 0 unless generation fails,
     //  then they are the number of errored days and total cost of the first plan generated
-    bool generateSchedule(const QString& fileName, std::ofstream& oFile, unsigned int& failedPlanErrors, double& failedPlanCost);
+    // budget between MIN_BUDGET and MAX_BUDGET (inclusive)
+    // planWeeks, in integer number of weeks, between MIN/MAX_CALCULATION_LENGTH (inclusive)
+    bool generateSchedule(const QString& fileName,
+                          const double &budget,
+                          const unsigned int &planWeeks,
+                          std::ofstream& oFile,
+                          unsigned int& failedPlanErrors,
+                          double& failedPlanCost);
 
     /* createMeal
     * INPUTS:
@@ -262,7 +269,7 @@ public:
     unsigned int getConsecutiveDaysLimit(void) {return CONSECUTIVE_DAYS_LIMIT;}
     unsigned int getMealDurationLimit(void) {return MEAL_DURATION_LIMIT;}
     unsigned int getDaysBetweenOccurrencesLimit(void) {return DAYS_BETWEEN_OCCURRENCES_LIMIT;}
-    unsigned int getRequestedMealsLimit(void) {return REQUESTED_MEALS_LIMIT;}
+    unsigned int getRequestedMealsLimit(void) {return MAX_REQUESTEDMEALS;}
     QString getDataFileName(void) {return DATA_NAME;}
     QString getLogFileName(void) {return LOGFILE;}
     double getMinimumPrice(void) {return MINIMUM_PRICE;}
@@ -295,17 +302,27 @@ private:
     const unsigned int DESC_LENGTH = 80; // limit for tag descriptions
     const unsigned int MIN_REQUESTEDMEALS = 1;   // min number of requested meals from a Tag
     const unsigned int MAX_REQUESTEDMEALS = 100; // max number of requested meals from a Tag
+    const unsigned int MIN_CALCULATION_LENGTH = 1; // 1 week
+    const unsigned int MAX_CALCULATION_LENGTH = 52; // just under a year (in weeks)
+    const unsigned int MIN_BUDGET = 0;
+    const unsigned int MAX_BUDGET = 100000;
+
+    // used in generateSchedule()
+    const unsigned int GENERATED_PLANS = 500; // number of meal plans to make
+    const double ERROR_THRESHOLD_PER_WEEK = 0.5; // amount of errored days allowed per week
 
     QVector<Tag*> normalTags; // tags assigned to foods
     QVector<MultiTag*> multiTags; // special tags that are linked to normalTags
     QVector<Meal*> meals; // stores all meals
 
 
-
-
-
-
-
+    /* formatPrice
+    * INPUTS:
+    *	double price: stores a double value
+    *
+    * OUTPUTS: string: output-friendly form of price, with extra trailing zeros and decimal point removed
+    */
+    std::string formatPrice(const double& price);
 
     // return string of enabledDays, if no days enabled, then will return "[]"
 

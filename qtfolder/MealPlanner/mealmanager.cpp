@@ -36,9 +36,9 @@ MealManager::~MealManager()
     // delete all multiTags
     for (auto tagsIter : multiTags)
     {
-        // clear map of Tags
-        QMap<Tag*, unsigned int> emptyMap;
-        tagsIter->setLinkedTags(emptyMap);
+        // clear linked tags
+        QVector<QPair<Tag*, unsigned int>> emptyLinks;
+        tagsIter->setLinkedTags(emptyLinks);
 
         delete tagsIter;
     }
@@ -869,6 +869,20 @@ QString MealManager::formatEnabledDays(const QMap<DaysOfTheWeek, bool>& enabledD
     return returnStr;
 }
 
+std::string MealManager::formatPrice(const double& price)
+{
+    std::string formatStr = std::to_string(price);
+
+    // erase trailing zeros, leaves '.' at end of string if no decimal digits exist
+    formatStr.erase(formatStr.find_last_not_of("0") + 1, std::string::npos);
+
+    // erase '.' if it's the last character
+    if (formatStr[formatStr.length() - 1] == '.')
+        formatStr.pop_back();
+
+    return formatStr;
+}
+
 void MealManager::optimizeData(QMap<DaysOfTheWeek, QVector<MultiTag*>>& highPriorityMultiTags,
                                QMap<DaysOfTheWeek, QVector<MultiTag*>>& normalPriorityMultiTags,
                                QMap<DaysOfTheWeek, QVector<Tag*>>& normalPriorityTags)
@@ -887,9 +901,9 @@ void MealManager::optimizeData(QMap<DaysOfTheWeek, QVector<MultiTag*>>& highPrio
         QVector<MultiTag*> multiTagEntry;
 
         // create element in params
-        highPriorityMultiTags.emplace(day, multiTagEntry);
-        normalPriorityMultiTags.emplace(day, multiTagEntry);
-        normalPriorityTags.emplace(day, tagEntry);
+        highPriorityMultiTags[day] = multiTagEntry;
+        normalPriorityMultiTags[day] = multiTagEntry;
+        normalPriorityTags[day] = tagEntry;
 
         day = nextDay(day); // go to next day
     } while (day != MONDAY);
@@ -901,16 +915,16 @@ void MealManager::optimizeData(QMap<DaysOfTheWeek, QVector<MultiTag*>>& highPrio
         for (auto tagIter : normalTags)
         {
             // check if enabled for current day and does not depend on a multitag
-            if (tagIter->getEnabledDays().at(day) && !tagIter->getDependency())
+            if (tagIter->getEnabledDays().find(day).value() && !tagIter->getDependency())
             {
                 // copy vector of normalTags in normalPriorityTags
-                QVector<Tag*> tagEntry = normalPriorityTags.at(day);
+                QVector<Tag*> tagEntry = normalPriorityTags.find(day).value();
 
                 // add tagIter to tagEntry
                 tagEntry.push_back(tagIter);
 
                 // store back into normalPriorityTags
-                normalPriorityTags.at(day) = tagEntry;
+                normalPriorityTags[day] = tagEntry;
             }
         }
         day = nextDay(day); // go to next day
@@ -923,17 +937,17 @@ void MealManager::optimizeData(QMap<DaysOfTheWeek, QVector<MultiTag*>>& highPrio
         for (auto multiTagIter : multiTags)
         {
             // check if enabled for current day
-            if (multiTagIter->getEnabledDays().at(day))
+            if (multiTagIter->getEnabledDays().find(day).value())
             {
                 // check if multiTagsIter is disabled by its linked tags
-                QMap<Tag*, unsigned int> linkedTags = multiTagIter->getLinkedTags();
+                QVector<QPair<Tag*, unsigned int>> linkedTags = multiTagIter->getLinkedTags();
 
                 bool isDisabled = true;
                 auto linkedTagIter = linkedTags.begin();
                 while (isDisabled && linkedTagIter != linkedTags.end())
                 {
                     // if linked tag is enabled, then quit loop
-                    if (linkedTagIter->first->getEnabledDays().at(day))
+                    if (linkedTagIter->first->getEnabledDays().find(day).value())
                         isDisabled = false;
                     else
                         ++linkedTagIter;
@@ -946,24 +960,24 @@ void MealManager::optimizeData(QMap<DaysOfTheWeek, QVector<MultiTag*>>& highPrio
                     if (multiTagIter->getPriority())
                     {
                         // copy vector of high priority multitags
-                        QVector<MultiTag*> tagEntry = highPriorityMultiTags.at(day);
+                        QVector<MultiTag*> tagEntry = highPriorityMultiTags.find(day).value();
 
                         // add multiTag to vector
                         tagEntry.push_back(multiTagIter);
 
                         // store back into highPriorityMultiTags
-                        highPriorityMultiTags.at(day) = tagEntry;
+                        highPriorityMultiTags[day] = tagEntry;
                     }
                     else
                     {
                         // copy vector of normal priority multitags
-                        QVector<MultiTag*> tagEntry = normalPriorityMultiTags.at(day);
+                        QVector<MultiTag*> tagEntry = normalPriorityMultiTags.find(day).value();
 
                         // add multiTag to vector
                         tagEntry.push_back(multiTagIter);
 
                         // store back into normalPriorityMultiTags
-                        normalPriorityMultiTags.at(day) = tagEntry;
+                        normalPriorityMultiTags[day] = tagEntry;
                     }
                 }
             }
@@ -976,7 +990,7 @@ void MealManager::writeMeal(const Meal* mealPtr, std::ofstream& oFile)
 {
     // name
     oFile << "\t<Name>\n";
-    oFile << "\t" << mealPtr->getName() << "\n";
+    oFile << "\t" << mealPtr->getName().toStdString() << "\n";
     oFile << "\t</Name>";
 
     oFile << "\n";
@@ -1016,7 +1030,7 @@ void MealManager::writeMeal(const Meal* mealPtr, std::ofstream& oFile)
     for (auto tagIter : mealPtr->getTags())
     {
         oFile << "\t\t<TagName>\n";
-        oFile << "\t\t" << tagIter->getName() << "\n";
+        oFile << "\t\t" << tagIter->getName().toStdString() << "\n";
         oFile << "\t\t</TagName>\n";
     }
 
@@ -1028,14 +1042,14 @@ void MealManager::writeTag(const Tag* tagPtr, std::ofstream& oFile)
 {
     // name
     oFile << "\t<Name>\n";
-    oFile << "\t" << tagPtr->getName() << "\n";
+    oFile << "\t" << tagPtr->getName().toStdString() << "\n";
     oFile << "\t</Name>";
 
     oFile << "\n";
 
     // description
     oFile << "\t<Description>\n";
-    oFile << "\t" << tagPtr->getDescription() << "\n";
+    oFile << "\t" << tagPtr->getDescription().toStdString()<< "\n";
     oFile << "\t</Description>";
 
     oFile << "\n";
@@ -1060,7 +1074,7 @@ void MealManager::writeTag(const Tag* tagPtr, std::ofstream& oFile)
     // loop to write enabledDays
     for (auto daysIter : tagPtr->getEnabledDays())
     {
-        oFile << "\t" << daysIter.second << "\n";
+        oFile << "\t" << daysIter << "\n";
     }
     oFile << "\t</EnabledDays>";
 }
@@ -1069,14 +1083,14 @@ void MealManager::writeMultiTag(const MultiTag* mtagPtr, std::ofstream& oFile)
 {
     // name
     oFile << "\t<Name>\n";
-    oFile << "\t" << mtagPtr->getName() << "\n";
+    oFile << "\t" << mtagPtr->getName().toStdString() << "\n";
     oFile << "\t</Name>";
 
     oFile << "\n";
 
     // description
     oFile << "\t<Description>\n";
-    oFile << "\t" << mtagPtr->getDescription() << "\n";
+    oFile << "\t" << mtagPtr->getDescription().toStdString() << "\n";
     oFile << "\t</Description>";
 
     oFile << "\n";
@@ -1101,7 +1115,7 @@ void MealManager::writeMultiTag(const MultiTag* mtagPtr, std::ofstream& oFile)
     // loop to write enabledDays
     for (auto daysIter : mtagPtr->getEnabledDays())
     {
-        oFile << "\t" << daysIter.second << "\n";
+        oFile << "\t" << daysIter << "\n";
     }
     oFile << "\t</EnabledDays>";
 
@@ -1115,7 +1129,7 @@ void MealManager::writeMultiTag(const MultiTag* mtagPtr, std::ofstream& oFile)
     {
         oFile << "\t\t<TagData>\n";
         // name of tag
-        oFile << "\t\t" << linksIter.first->getName() << "\n";
+        oFile << "\t\t" << linksIter.first->getName().toStdString() << "\n";
 
         // amount requested
         oFile << "\t\t" << std::to_string(linksIter.second) << "\n";
@@ -1131,7 +1145,7 @@ int MealManager::readMeals(std::ifstream& iFile)
     bool done = false; // when read all meals
     bool corrupted = false; // true if read values are invalid
     Meal* mealPtr = nullptr; // for creating meals
-    QString tempStr; // read lines from file
+    std::string tempStr; // read lines from file
 
     // while not done importing
     while (!done)
@@ -1156,7 +1170,7 @@ int MealManager::readMeals(std::ifstream& iFile)
             }
 
             // set name
-            mealPtr->setName(tempStr);
+            mealPtr->setName(QString::fromStdString(tempStr));
 
             // read end header, verify
             std::getline(iFile, tempStr);
@@ -1274,7 +1288,7 @@ int MealManager::readMeals(std::ifstream& iFile)
                 // validate before setting value
                 if (std::isdigit(tempStr.at(0)))
                 {
-                    int digits = std::to_string(MEAL_DURATION_LIMIT).length(); // maximum number of digits
+                    unsigned int digits = std::to_string(MEAL_DURATION_LIMIT).length(); // maximum number of digits
                     int charLimit = 0;
                     bool isValid = true;
 
@@ -1353,7 +1367,7 @@ int MealManager::readMeals(std::ifstream& iFile)
                 // validate before setting value
                 if (std::isdigit(tempStr.at(0)))
                 {
-                    int digits = std::to_string(DAYS_BETWEEN_OCCURRENCES_LIMIT).length(); // maximum number of digits
+                    unsigned int digits = std::to_string(DAYS_BETWEEN_OCCURRENCES_LIMIT).length(); // maximum number of digits
                     int charLimit = 0;
                     bool isValid = true;
 
@@ -1451,7 +1465,7 @@ int MealManager::readMeals(std::ifstream& iFile)
                         while (!matchFound && tagIter != normalTags.end())
                         {
                             // if match found, assign tag to meal, and meal to tag
-                            if (tempStr == (*tagIter)->getName())
+                            if (tempStr == (*tagIter)->getName().toStdString())
                             {
                                 matchFound = true;
                                 mealPtr->addTag(*tagIter);
@@ -1525,7 +1539,7 @@ int MealManager::readTags(std::ifstream& iFile)
     bool corrupted = false;
 
     Tag* tagPtr = nullptr; // for creating Tags
-    QString tempStr; // read lines from file
+    std::string tempStr; // read lines from file
     QMap<DaysOfTheWeek, bool> enabledDays = // to create EnabledDays in Tags
         { {MONDAY, false}, {TUESDAY, false}, {WEDNESDAY, false}, {THURSDAY, false},
          {FRIDAY, false}, {SATURDAY, false}, {SUNDAY, false} };
@@ -1553,7 +1567,7 @@ int MealManager::readTags(std::ifstream& iFile)
             }
 
             // set value
-            tagPtr->setName(tempStr);
+            tagPtr->setName(QString::fromStdString(tempStr));
 
             // read end header, verify
             std::getline(iFile, tempStr);
@@ -1592,7 +1606,7 @@ int MealManager::readTags(std::ifstream& iFile)
                 }
 
                 // set value
-                tagPtr->setDescription(tempStr);
+                tagPtr->setDescription(QString::fromStdString(tempStr));
 
                 // read end header, verify
                 std::getline(iFile, tempStr);
@@ -1662,7 +1676,7 @@ int MealManager::readTags(std::ifstream& iFile)
                 // validate before setting value
                 if (std::isdigit(tempStr.at(0)))
                 {
-                    int digits = std::to_string(CONSECUTIVE_DAYS_LIMIT).length(); // maximum number of digits
+                    unsigned int digits = std::to_string(CONSECUTIVE_DAYS_LIMIT).length(); // maximum number of digits
                     int charLimit = 0;
                     bool isValid = true;
 
@@ -1752,25 +1766,25 @@ int MealManager::readTags(std::ifstream& iFile)
                     switch (day)
                     {
                     case 0: // monday
-                        enabledDays.at(MONDAY) = std::stoi(tempStr);
+                        enabledDays[MONDAY] = std::stoi(tempStr);
                         break;
                     case 1: // tuesday
-                        enabledDays.at(TUESDAY) = std::stoi(tempStr);
+                        enabledDays[TUESDAY] = std::stoi(tempStr);
                         break;
                     case 2: // wednesday
-                        enabledDays.at(WEDNESDAY) = std::stoi(tempStr);
+                        enabledDays[WEDNESDAY] = std::stoi(tempStr);
                         break;
                     case 3: // thursday
-                        enabledDays.at(THURSDAY) = std::stoi(tempStr);
+                        enabledDays[THURSDAY] = std::stoi(tempStr);
                         break;
                     case 4: // friday
-                        enabledDays.at(FRIDAY) = std::stoi(tempStr);
+                        enabledDays[FRIDAY] = std::stoi(tempStr);
                         break;
                     case 5: // saturday
-                        enabledDays.at(SATURDAY) = std::stoi(tempStr);
+                        enabledDays[SATURDAY] = std::stoi(tempStr);
                         break;
                     case 6: // sunday
-                        enabledDays.at(SUNDAY) = std::stoi(tempStr);
+                        enabledDays[SUNDAY] = std::stoi(tempStr);
                         break;
                     default:
                         error = true;
@@ -1836,7 +1850,7 @@ int MealManager::readMultiTags(std::ifstream& iFile)
     bool corrupted = false;
 
     MultiTag* mtagPtr = nullptr; // for creating MultiTags
-    QString tempStr; // read lines from file
+    std::string tempStr; // read lines from file
 
     QMap<DaysOfTheWeek, bool> enabledDays = // to create EnabledDays in Tags
         { {MONDAY, false}, {TUESDAY, false}, {WEDNESDAY, false}, {THURSDAY, false},
@@ -1865,7 +1879,7 @@ int MealManager::readMultiTags(std::ifstream& iFile)
             }
 
             // set value
-            mtagPtr->setName(tempStr);
+            mtagPtr->setName(QString::fromStdString(tempStr));
 
             // read end header, verify
             std::getline(iFile, tempStr);
@@ -1904,7 +1918,7 @@ int MealManager::readMultiTags(std::ifstream& iFile)
                 }
 
                 // set value
-                mtagPtr->setDescription(tempStr);
+                mtagPtr->setDescription(QString::fromStdString(tempStr));
 
                 // read end header, verify
                 std::getline(iFile, tempStr);
@@ -2022,25 +2036,25 @@ int MealManager::readMultiTags(std::ifstream& iFile)
                     switch (day)
                     {
                     case 0: // monday
-                        enabledDays.at(MONDAY) = std::stoi(tempStr);
+                        enabledDays[MONDAY] = std::stoi(tempStr);
                         break;
                     case 1: // tuesday
-                        enabledDays.at(TUESDAY) = std::stoi(tempStr);
+                        enabledDays[TUESDAY] = std::stoi(tempStr);
                         break;
                     case 2: // wednesday
-                        enabledDays.at(WEDNESDAY) = std::stoi(tempStr);
+                        enabledDays[WEDNESDAY] = std::stoi(tempStr);
                         break;
                     case 3: // thursday
-                        enabledDays.at(THURSDAY) = std::stoi(tempStr);
+                        enabledDays[THURSDAY] = std::stoi(tempStr);
                         break;
                     case 4: // friday
-                        enabledDays.at(FRIDAY) = std::stoi(tempStr);
+                        enabledDays[FRIDAY] = std::stoi(tempStr);
                         break;
                     case 5: // saturday
-                        enabledDays.at(SATURDAY) = std::stoi(tempStr);
+                        enabledDays[SATURDAY] = std::stoi(tempStr);
                         break;
                     case 6: // sunday
-                        enabledDays.at(SUNDAY) = std::stoi(tempStr);
+                        enabledDays[SUNDAY] = std::stoi(tempStr);
                         break;
                     default:
                         error = true;
@@ -2100,7 +2114,7 @@ int MealManager::readMultiTags(std::ifstream& iFile)
                         while (!matchFound && tagIter != normalTags.end())
                         {
                             // if match found, set tagPtr to this tag
-                            if (tempStr == (*tagIter)->getName())
+                            if (tempStr == (*tagIter)->getName().toStdString())
                             {
                                 tagPtr = *tagIter;
                                 matchFound = true;
@@ -2118,7 +2132,7 @@ int MealManager::readMultiTags(std::ifstream& iFile)
                         // validate before setting value
                         if (std::isdigit(tempStr.at(0)))
                         {
-                            int digits = std::to_string(REQUESTED_MEALS_LIMIT).length(); // maximum number of digits
+                            unsigned int digits = std::to_string(MAX_REQUESTEDMEALS).length(); // maximum number of digits
                             int charLimit = 0;
                             bool isValid = true;
 
@@ -2146,7 +2160,7 @@ int MealManager::readMultiTags(std::ifstream& iFile)
                                 unsigned int number = std::stoi(tempStr);
 
                                 // check if number is > limit
-                                if (number > REQUESTED_MEALS_LIMIT)
+                                if (number > MAX_REQUESTEDMEALS)
                                 {
                                     tempStr = "1"; // defaults to 1
                                     corrupted = true;
@@ -2339,7 +2353,7 @@ void MealManager::addFutureMeals(QVector<Meal*>& futureMeals, const unsigned int
                     existingFutureDay.push_back(mealIter);
 
                     // update the meals in the future day
-                    scheduledMeals.at(currentDayNumber + daysInAdvance) = existingFutureDay;
+                    scheduledMeals[currentDayNumber + daysInAdvance] = existingFutureDay;
                 }
                 else // create meals on future day in scheduledMeals
                 {
@@ -2402,7 +2416,7 @@ bool MealManager::scheduleMultiTags(const QVector<MultiTag*>& availableMultiTags
         // if a valid index was found, search tags for a meal
         if (validMultiTag)
         {
-            QMap<Tag*, unsigned int> availableTags = chosenMultiTag->getLinkedTags(); // get linked tags of multitag
+            QVector<QPair<Tag*, unsigned int>> availableTags = chosenMultiTag->getLinkedTags(); // get linked tags of multitag
             QVector<Meal*> mealsOfDay; // meals scheduled for the current day
             QVector<Meal*> futureMeals; // meals that last more than one day are grouped together
             unsigned int requiredMeals = 0; // meals needed to consider MultiTag valid
@@ -2431,7 +2445,7 @@ bool MealManager::scheduleMultiTags(const QVector<MultiTag*>& availableMultiTags
                 QVector<int> searchedMeals; // tracks which meals were already searched
 
                 // check if tag is enabled and has meals
-                if (tagIter.first->getEnabledDays().at(currentDay) && assignedMeals.size() > 0)
+                if (tagIter.first->getEnabledDays().find(currentDay).value() && assignedMeals.size() > 0)
                 {
                     bool validTag = false;
 
@@ -2540,7 +2554,7 @@ bool MealManager::scheduleMultiTags(const QVector<MultiTag*>& availableMultiTags
                 mealFound = true;
                 // add mealsOfDay to scheduledMeals
                 if (scheduledMeals.size() >= currentDayNumber + 1)
-                    scheduledMeals.at(currentDayNumber) = mealsOfDay;
+                    scheduledMeals[currentDayNumber] = mealsOfDay;
                 else
                     scheduledMeals.push_back(mealsOfDay);
             }
@@ -2607,7 +2621,7 @@ bool MealManager::scheduleNormalTags(const QVector<Tag*>& availableTags, const u
         if (validIndex)
         {
             // check if tag is enabled and has meals
-            if (chosenTag->getEnabledDays().at(currentDay) && assignedMeals.size() > 0)
+            if (chosenTag->getEnabledDays().find(currentDay).value() && assignedMeals.size() > 0)
             {
                 bool validTag = false;
 
@@ -2698,7 +2712,7 @@ bool MealManager::scheduleNormalTags(const QVector<Tag*>& availableTags, const u
 
                             // add mealsOfDay to scheduledMeals
                             if (scheduledMeals.size() >= currentDayNumber + 1) // an entry for the day already exists
-                                scheduledMeals.at(currentDayNumber) = mealsOfDay;
+                                scheduledMeals[currentDayNumber] = mealsOfDay;
                             else
                                 scheduledMeals.push_back(mealsOfDay);
 
@@ -2727,14 +2741,14 @@ void MealManager::printSchedule(const QVector<QVector<Meal*>>& mealPlan, const u
     unsigned int weekCount = 0; // tracks each week
 
     // create divider of length LINE_WIDTH
-    for (int index = 0; index < LINE_WIDTH; ++index)
+    for (unsigned int index = 0; index < LINE_WIDTH; ++index)
         lineDivider += "-";
 
 
     // header
-    oFile << centeredText("Meal Plan", LINE_WIDTH) << "\n";
+    oFile << centeredText("Meal Plan", LINE_WIDTH).toStdString() << "\n";
 
-    oFile << lineDivider << "\n";
+    oFile << lineDivider.toStdString() << "\n";
 
     // creation time
     // get system time
@@ -2773,7 +2787,7 @@ void MealManager::printSchedule(const QVector<QVector<Meal*>>& mealPlan, const u
             if (weekCount < 10)
                 tempStr += "0";
 
-            tempStr += std::to_string(weekCount);
+            tempStr += QString::number(weekCount);
 
             tempStr += " : cost ";
 
@@ -2790,18 +2804,18 @@ void MealManager::printSchedule(const QVector<QVector<Meal*>>& mealPlan, const u
                 ++weekIter;
                 dayInWeek = nextDay(dayInWeek);
             } while (dayInWeek != MONDAY && weekIter != mealPlan.end());
-            tempStr += formatPrice(costOfWeek);
+            tempStr += QString::fromStdString(formatPrice(costOfWeek));
 
             // begin printing week header
-            oFile << lineDivider << "\n"; // divides previous week
-            oFile << lineDivider << "\n";
+            oFile << lineDivider.toStdString() << "\n"; // divides previous week
+            oFile << lineDivider.toStdString() << "\n";
 
-            oFile << centeredText(tempStr, LINE_WIDTH) << "\n\n";
+            oFile << centeredText(tempStr, LINE_WIDTH).toStdString() << "\n\n";
         }
 
         // day name
         QString tempStr = ">> " + dayToString(currentDay) + " <<";
-        oFile << centeredText(tempStr, LINE_WIDTH) << "\n";
+        oFile << centeredText(tempStr, LINE_WIDTH).toStdString() << "\n";
         tempStr = "";
 
         // meals in the current day
@@ -2810,12 +2824,12 @@ void MealManager::printSchedule(const QVector<QVector<Meal*>>& mealPlan, const u
         for (auto meal : daysMeals)
         {
             // meal name
-            oFile << centeredText(meal->getName(), LINE_WIDTH) << "\n";
+            oFile << centeredText(meal->getName(), LINE_WIDTH).toStdString() << "\n";
 
             // check if this is a multi-day meal
             if (meal->getMealDuration() > 1)
             {
-                int occurranceNumber = 0; // number of times the meal has occurred over its duration
+                unsigned int occurranceNumber = 0; // number of times the meal has occurred over its duration
                 auto lookBack = mealIter; // copy iter at current day
                 bool doneChecking = false; // true when a gap of scheduled days is found or checked to the first day
 
@@ -2867,25 +2881,25 @@ void MealManager::printSchedule(const QVector<QVector<Meal*>>& mealPlan, const u
                 if (occurranceNumber == 1)
                 {
                     // meal price
-                    tempStr = "price: " + formatPrice(meal->getPrice());
-                    oFile << centeredText(tempStr, LINE_WIDTH) << "\n";
+                    tempStr = QString::fromStdString("price: " + formatPrice(meal->getPrice()));
+                    oFile << centeredText(tempStr, LINE_WIDTH).toStdString() << "\n";
 
                     // occurrance number
-                    tempStr = "[Day " + std::to_string(occurranceNumber) + " of " + std::to_string(meal->getMealDuration()) + "]";
+                    tempStr = QString::fromStdString("[Day " + std::to_string(occurranceNumber) + " of " + std::to_string(meal->getMealDuration()) + "]");
                 }
                 else
                 {
                     // occurrance number
-                    tempStr = "[Day " + std::to_string(occurranceNumber) + " of " + std::to_string(meal->getMealDuration()) + "]";
+                    tempStr = QString::fromStdString("[Day " + std::to_string(occurranceNumber) + " of " + std::to_string(meal->getMealDuration()) + "]");
                 }
 
             }
             else // display price normally
             {
                 // meal price
-                tempStr = "price: " + formatPrice(meal->getPrice());
+                tempStr = QString::fromStdString("price: " + formatPrice(meal->getPrice()));
             }
-            oFile << centeredText(tempStr, LINE_WIDTH) << "\n\n";
+            oFile << centeredText(tempStr, LINE_WIDTH).toStdString() << "\n\n";
             tempStr = "";
         }
 
@@ -2893,20 +2907,20 @@ void MealManager::printSchedule(const QVector<QVector<Meal*>>& mealPlan, const u
         ++mealIter;
     }
 
-    oFile << lineDivider << "\n";
+    oFile << lineDivider.toStdString() << "\n";
 }
 
 QString MealManager::centeredText(const QString& str, const unsigned int& lineWidth)
 {
     QString returnStr = "";
 
-    int emptySpaces; // number of empty spaces needed to center text
+    unsigned int emptySpaces; // number of empty spaces needed to center text
 
     // calculate starting point
     emptySpaces = (lineWidth / 2) - (str.length() / 2);
 
     // place empty spaces before text
-    for (int index = 0; index < emptySpaces; index++)
+    for (unsigned int index = 0; index < emptySpaces; index++)
         returnStr += " ";
 
     // print input string
@@ -2915,26 +2929,27 @@ QString MealManager::centeredText(const QString& str, const unsigned int& lineWi
     emptySpaces += str.length(); // use emptySpaces as an index
 
     // place empty spaces after text
-    for (emptySpaces; emptySpaces < lineWidth; emptySpaces++)
+    while(emptySpaces < lineWidth)
+    {
         returnStr += " ";
+        ++emptySpaces;
+    }
 
     return returnStr;
 }
 
-bool MealManager::generateSchedule(const QString& fileName, std::ofstream& oFile, unsigned int& failedPlanErrors, double& failedPlanCost)
+bool MealManager::generateSchedule(const QString& fileName,
+                                   const double &budget,
+                                   const unsigned int &planWeeks,
+                                   std::ofstream& oFile,
+                                   unsigned int& failedPlanErrors,
+                                   double& failedPlanCost)
 {
-    const unsigned int MIN_CALCULATION_LENGTH = 1; // 1 week
-    const unsigned int MAX_CALCULATION_LENGTH = 52; // just under a year (in weeks)
-    const unsigned int MIN_BUDGET = 0;
-    const unsigned int MAX_BUDGET = 100000;
-    const unsigned int GENERATED_PLANS = 500; // number of meal plans to make
-    const double ERROR_THRESHOLD_PER_WEEK = 0.5; // amount of errored days allowed per week
 
     bool errorPresent = false; // return value
     bool insufficientData = true; // stops generation if no meals or tags exist
-    double budget = 0; // budget for the calculated period
-    unsigned int calculationPeriod = 0; // period of calculation
     unsigned int failedDays[GENERATED_PLANS] = { 0 }; // number of days that calculation was unable to find a meal
+    unsigned int calculationPeriod;
 
     failedPlanErrors = 0;
     failedPlanCost = 0;
@@ -2951,84 +2966,27 @@ bool MealManager::generateSchedule(const QString& fileName, std::ofstream& oFile
     QMap<DaysOfTheWeek, QVector<Tag*>> normalPriorityTags; // Tags, sorted by available day
 
     // check if meals and tags exist, otherwise cannot make a plan
-    if (meals.size() > 0 && normalTags.size() > 0)
+    if ((meals.size() > 0 && normalTags.size() > 0)
+        && (budget >= MIN_BUDGET && budget <= MAX_BUDGET)
+        && (planWeeks >= MIN_CALCULATION_LENGTH && planWeeks <= MAX_CALCULATION_LENGTH))
     {
         insufficientData = false;
     }
-    else // tell uesr
+    else // used to discard the plan later
     {
         errorPresent = true;
-
-        uim->centeredText("Error");
-        uim->skipLines(2);
-        uim->centeredText("You have not created any Meals or Tags.");
-        uim->centeredText("Please create some and try again.");
-        uim->display();
     }
 
-    // loop until user is ok with settings
-    while (!insufficientData && tempStr != "Q")
-    {
-        // prompt for calculationPeriod
-        uim->centeredText("Schedule Length");
-        uim->skipLines(2);
-        uim->centeredText("How many weeks do you want to schedule for?");
-        uim->prompt_FreeInt(MIN_CALCULATION_LENGTH, MAX_CALCULATION_LENGTH);
-        calculationPeriod = std::stoi(uim->display());
-
-        // prompt for budget
-        uim->centeredText("Budget Limit");
-        uim->skipLines(2);
-        tempStr = "What is your budget over a " + std::to_string(calculationPeriod) + " week period?";
-        uim->centeredText(tempStr);
-        uim->prompt_FreeDouble(MIN_BUDGET, MAX_BUDGET);
-        budget = std::stod(uim->display());
-
-        // summary of users choices
-        uim->centeredText("Confirm Settings");
-        uim->skipLines(2);
-        uim->centeredText("Is this OK?");
-        uim->skipLines(1);
-
-        tempStr = "BUDGET LIMIT: " + formatPrice(budget);
-        uim->centeredText(tempStr);
-
-        tempStr = "SCHEDULE LENGTH: " + std::to_string(calculationPeriod) + " weeks";
-        uim->centeredText(tempStr);
-
-        strVec = { "YYes", "NNo" };
-        uim->prompt_List_Case_Insensitive(strVec);
-
-        tempStr = uim->display();
-        tempStr = std::toupper(tempStr.at(0));
-
-        // exit loop if user accepts settings
-        if (tempStr == "Y")
-            tempStr = "Q";
-    }
-
-    if (!insufficientData) // tell user to be patient
-    {
-        QStringstream skipPrompt = QStringstream("\n"); // skips prompt in the following ui window
-
-        uim->centeredText("Please wait");
-        uim->skipLines(3);
-        uim->centeredText("Your Meal Plan is being created.");
-        uim->skipLines(1);
-        uim->centeredText("Wait time may vary between a few seconds and a few minutes, depending on the speed of your computer.");
-        uim->display(std::cout, skipPrompt);
-        std::cout << "\n\n";
-    }
 
     // convert weeks into days
-    calculationPeriod *= 7;
+    calculationPeriod = 7 * planWeeks;
 
     // OPTIMIZATION
-    if (!insufficientData)
+    if (!insufficientData && !errorPresent)
         optimizeData(highPriorityMultiTags, normalPriorityMultiTags, normalPriorityTags);
 
     // CALCULATION
-    if (!insufficientData)
+    if (!insufficientData && !errorPresent)
     {
         // calculates GENERATED_PLANS number of complete meal plans
         for (unsigned int attemptNum = 0; attemptNum < GENERATED_PLANS; ++attemptNum)
@@ -3042,44 +3000,44 @@ bool MealManager::generateSchedule(const QString& fileName, std::ofstream& oFile
                 bool createdMeals = false; // if meal creation failed on a certain priority, attempts to use next lower priority
 
                 // check if a high priority MT is available
-                if (highPriorityMultiTags.find(currentDay)->second.size() > 0)
+                if (highPriorityMultiTags.find(currentDay).value().size() > 0)
                 {
-                    createdMeals = scheduleMultiTags(highPriorityMultiTags.find(currentDay)->second, dayNumber,
+                    createdMeals = scheduleMultiTags(highPriorityMultiTags.find(currentDay).value(), dayNumber,
                                                      calculationPeriod, currentDay, scheduledMeals[attemptNum]);
 
                 }
 
                 // if above priority failed, check next lower priority
                 if (!createdMeals &&
-                    normalPriorityMultiTags.find(currentDay)->second.size() > 0 &&
-                    normalPriorityTags.find(currentDay)->second.size()) // if both MTs and tags are available
+                    normalPriorityMultiTags.find(currentDay).value().size() > 0 &&
+                    normalPriorityTags.find(currentDay).value().size()) // if both MTs and tags are available
                 {
                     // flip coin to decide which to choose from
                     int coinFlip = rand() % 1000 + 1; // 1-1000
 
                     if (coinFlip > 500) // choose MTs
                     {
-                        createdMeals = scheduleMultiTags(normalPriorityMultiTags.find(currentDay)->second, dayNumber,
+                        createdMeals = scheduleMultiTags(normalPriorityMultiTags.find(currentDay).value(), dayNumber,
                                                          calculationPeriod, currentDay, scheduledMeals[attemptNum]);
                     }
                     else // choose tags
                     {
-                        createdMeals = scheduleNormalTags(normalPriorityTags.find(currentDay)->second, dayNumber,
+                        createdMeals = scheduleNormalTags(normalPriorityTags.find(currentDay).value(), dayNumber,
                                                           calculationPeriod, currentDay, scheduledMeals[attemptNum]);
                     }
                 }
 
                 // if above priority failed, check next lower priority
-                if (!createdMeals && normalPriorityMultiTags.find(currentDay)->second.size() > 0) // if only MTs are available
+                if (!createdMeals && normalPriorityMultiTags.find(currentDay).value().size() > 0) // if only MTs are available
                 {
-                    createdMeals = scheduleMultiTags(normalPriorityMultiTags.find(currentDay)->second, dayNumber,
+                    createdMeals = scheduleMultiTags(normalPriorityMultiTags.find(currentDay).value(), dayNumber,
                                                      calculationPeriod, currentDay, scheduledMeals[attemptNum]);
                 }
 
                 // if above priority failed, check next lower priority
-                if (!createdMeals && normalPriorityTags.find(currentDay)->second.size() > 0) // if only tags are available
+                if (!createdMeals && normalPriorityTags.find(currentDay).value().size() > 0) // if only tags are available
                 {
-                    createdMeals = scheduleNormalTags(normalPriorityTags.find(currentDay)->second, dayNumber,
+                    createdMeals = scheduleNormalTags(normalPriorityTags.find(currentDay).value(), dayNumber,
                                                       calculationPeriod, currentDay, scheduledMeals[attemptNum]);
                 }
 
@@ -3121,10 +3079,10 @@ bool MealManager::generateSchedule(const QString& fileName, std::ofstream& oFile
     if (!insufficientData)
     {
         bool planFound = false;
-        QMap<unsigned int, std::pair<QVector<QVector<Meal*>>, double>> errorsToPlans; // maps errors to scheduled plans with total cost for plan
+        QMap<unsigned int, QPair<QVector<QVector<Meal*>>, double>> errorsToPlans; // maps errors to scheduled plans with total cost for plan
         unsigned int lowestErrors = 0;
 
-        int planIndex = 0;
+        unsigned int planIndex = 0;
         // while a perfect plan was not found, and can check for more plans
         do
         {
@@ -3157,7 +3115,7 @@ bool MealManager::generateSchedule(const QString& fileName, std::ofstream& oFile
                 {
                     planFound = true;
                     lowestErrors = 0;
-                    errorsToPlans.emplace(lowestErrors, std::pair<QVector<QVector<Meal*>>, double>(scheduledMeals[planIndex], totalCost));
+                    errorsToPlans[lowestErrors] = QPair<QVector<QVector<Meal*>>, double>(scheduledMeals[planIndex], totalCost);
                 }
             }
             else // set lowestErrors
@@ -3197,7 +3155,7 @@ bool MealManager::generateSchedule(const QString& fileName, std::ofstream& oFile
                         if (totalCost <= budget)
                         {
                             lowestErrors = failedDays[planIndex];
-                            errorsToPlans.emplace(lowestErrors, std::pair<QVector<QVector<Meal*>>, double>(scheduledMeals[planIndex], totalCost));
+                            errorsToPlans[lowestErrors] = QPair<QVector<QVector<Meal*>>, double>(scheduledMeals[planIndex], totalCost);
                         }
                     }
                 }
@@ -3228,13 +3186,13 @@ bool MealManager::generateSchedule(const QString& fileName, std::ofstream& oFile
                     if (totalCost <= budget)
                     {
                         // attempt to insert new element
-                        auto iter = errorsToPlans.insert(std::pair<unsigned int, std::pair<QVector<QVector<Meal*>>, double>>(lowestErrors, { scheduledMeals[planIndex], totalCost }));
+                        auto iter = errorsToPlans.insert(lowestErrors, QPair<QVector<QVector<Meal*>>, double>(scheduledMeals[planIndex], totalCost));
 
                         // check if key already exists
-                        if (iter.second == false)
+                        if (iter->second == false)
                         {
                             // replace value at key
-                            errorsToPlans[lowestErrors] = std::pair<QVector<QVector<Meal*>>, double>(scheduledMeals[planIndex], totalCost);
+                            errorsToPlans[lowestErrors] = QPair<QVector<QVector<Meal*>>, double>(scheduledMeals[planIndex], totalCost);
                         }
                     }
                 }
@@ -3245,8 +3203,8 @@ bool MealManager::generateSchedule(const QString& fileName, std::ofstream& oFile
         // set finalPlan to plan with lowestErrors that met budget
         if (errorsToPlans.size() > 0)
         {
-            finalPlan = errorsToPlans.at(lowestErrors).first;
-            finalCost = errorsToPlans.at(lowestErrors).second;
+            finalPlan = errorsToPlans.find(lowestErrors)->first;
+            finalCost = errorsToPlans.find(lowestErrors)->second;
             finalErrors = lowestErrors;
         }
         else // no suitable plans found
@@ -3285,14 +3243,14 @@ bool MealManager::generateSchedule(const QString& fileName, std::ofstream& oFile
     {
         errorPresent = false;
 
-        oFile.open(fileName);
+        oFile.open(fileName.toStdString());
         printSchedule(finalPlan, finalErrors, finalCost, budget, oFile);
         oFile.close();
     }
 
     // CLEANUP
     // checks every plan generated
-    for (int attemptNumber = 0; attemptNumber < GENERATED_PLANS; ++attemptNumber)
+    for (unsigned int attemptNumber = 0; attemptNumber < GENERATED_PLANS; ++attemptNumber)
     {
         // checks every day
         for (unsigned int dayNumber = 0; dayNumber < calculationPeriod; ++dayNumber)

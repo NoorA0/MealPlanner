@@ -16,9 +16,9 @@ MultiTag::MultiTag()
 
 MultiTag::~MultiTag()
 {
-    for (QMap<Tag*, unsigned int>::iterator tagIter = linkedTags.begin(); tagIter != linkedTags.end(); ++tagIter)
+    for (auto tagIter = linkedTags.begin(); tagIter != linkedTags.end(); ++tagIter)
     {
-        delete tagIter.key();
+        delete tagIter->first;
     }
 }
 
