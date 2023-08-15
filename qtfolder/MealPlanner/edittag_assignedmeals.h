@@ -19,8 +19,6 @@ public:
     ~EditTag_AssignedMeals();
 
 private slots:
-    void on_pushButton_unassignTag_clicked();
-
     void on_pushButton_unassignMeal_clicked();
 
     void on_pushButton_assignMeal_clicked();

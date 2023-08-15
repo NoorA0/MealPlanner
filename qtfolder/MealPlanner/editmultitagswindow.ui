@@ -14,7 +14,7 @@
    <string>Viewing MultiTags</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QListWidget" name="listWidget_assignedMeals">
+   <widget class="QListWidget" name="listWidget_assignedTags">
     <property name="geometry">
      <rect>
       <x>581</x>

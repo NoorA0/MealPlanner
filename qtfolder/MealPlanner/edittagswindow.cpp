@@ -134,7 +134,7 @@ void EditTagsWindow::on_pushButton_newTag_clicked()
     window->exec();
 
     // if no meals exist, warn user
-    if (mm->getNumberOfNormalTags() <= 0)
+    if (mm->getNumberOfMeals() <= 0)
     {
         CreateTag_NoMealsWarning *window2 = new CreateTag_NoMealsWarning(this);
         window2->setAttribute(Qt::WA_DeleteOnClose);
@@ -155,7 +155,7 @@ void EditTagsWindow::on_pushButton_newTag_clicked()
 
         if (userResponse)
         {
-            // create edit tag window
+            // create edit meals window
             EditTag_AssignedMeals *window3 = new EditTag_AssignedMeals(this, mm, newTag);
             window3->setAttribute(Qt::WA_DeleteOnClose);
             window3->exec();

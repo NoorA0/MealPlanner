@@ -100,7 +100,7 @@ void EditTag_BasicParams::on_pushButton_confirm_clicked()
                 window->exec();
 
                 // reset name field
-                ui->lineEdit_name->setText(tagPtr->getName();)
+                ui->lineEdit_name->setText(tagPtr->getName());
             }
             else // re-sort success
             {

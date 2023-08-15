@@ -292,4 +292,3 @@ void EditTag_AssignedMeals::on_pushButton_clicked()
 {
     close();
 }
-

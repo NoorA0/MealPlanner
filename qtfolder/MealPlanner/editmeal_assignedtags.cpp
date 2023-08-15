@@ -15,7 +15,7 @@ EditMeal_AssignedTags::EditMeal_AssignedTags(QWidget *parent,
         this->mealPtr = mealPtr;
     }
 
-    ui->setupUI(this);
+    ui->setupUi(this);
 
     // goal: itemize tags already assigned to mealPtr
     QVector<Tag*> assignedTags = mealPtr->getTags();
