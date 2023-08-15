@@ -2,6 +2,7 @@
 #define CREATEPLAN_BUDGET_H
 
 #include <QDialog>
+#include "mealmanager.h"
 
 namespace Ui {
 class createPlan_Budget;
@@ -12,7 +13,8 @@ class createPlan_Budget : public QDialog
     Q_OBJECT
 
 public:
-    explicit createPlan_Budget(QWidget *parent = nullptr);
+    explicit createPlan_Budget(QWidget *parent = nullptr,
+                               MealManager *mm = nullptr);
     ~createPlan_Budget();
 
 signals:
@@ -25,6 +27,7 @@ private slots:
 
 private:
     Ui::createPlan_Budget *ui;
+    MealManager *mm;
 };
 
 #endif // CREATEPLAN_BUDGET_H

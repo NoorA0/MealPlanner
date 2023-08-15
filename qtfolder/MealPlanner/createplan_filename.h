@@ -2,6 +2,7 @@
 #define CREATEPLAN_FILENAME_H
 
 #include <QDialog>
+#include "mealmanager.h"
 
 namespace Ui {
 class createPlan_Filename;
@@ -12,7 +13,8 @@ class createPlan_Filename : public QDialog
     Q_OBJECT
 
 public:
-    explicit createPlan_Filename(QWidget *parent = nullptr);
+    explicit createPlan_Filename(QWidget *parent = nullptr,
+                                 MealManager *mm = nullptr);
     ~createPlan_Filename();
 
 signals:
@@ -25,6 +27,7 @@ private slots:
 
 private:
     Ui::createPlan_Filename *ui;
+    MealManager *mm;
 };
 
 #endif // CREATEPLAN_FILENAME_H

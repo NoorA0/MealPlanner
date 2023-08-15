@@ -4,11 +4,21 @@
 
 const QString DEFAULT_FILENAME = "New_Plan";
 
-createPlan_Filename::createPlan_Filename(QWidget *parent) :
+createPlan_Filename::createPlan_Filename(QWidget *parent,
+                                         MealManager *mm) :
     QDialog(parent),
     ui(new Ui::createPlan_Filename)
 {
+    if (mm == nullptr)
+        close();
+    else
+    {
+        this->mm = mm;
+    }
     ui->setupUi(this);
+
+    // set lineEdit limits
+    ui->lineEdit->setMaxLength(mm->getMaximumFileNameLength());
 }
 
 createPlan_Filename::~createPlan_Filename()

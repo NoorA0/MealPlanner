@@ -1,11 +1,22 @@
 #include "createplan_length.h"
 #include "ui_createplan_length.h"
 
-createPlan_Length::createPlan_Length(QWidget *parent) :
+createPlan_Length::createPlan_Length(QWidget *parent,
+                                     MealManager *mm) :
     QDialog(parent),
     ui(new Ui::createPlan_Length)
 {
+    if (mm == nullptr)
+        close();
+    else
+    {
+        this->mm = mm;
+    }
     ui->setupUi(this);
+
+    // set length limits
+    ui->spinBox->setMinimum(mm->getMinimumPlanPeriodWeeks());
+    ui->spinBox->setMaximum(mm->getMaximumPlanPeriodWeeks());
 }
 
 createPlan_Length::~createPlan_Length()

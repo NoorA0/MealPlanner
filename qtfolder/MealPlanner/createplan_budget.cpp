@@ -1,11 +1,22 @@
 #include "createplan_budget.h"
 #include "ui_createplan_budget.h"
 
-createPlan_Budget::createPlan_Budget(QWidget *parent) :
+createPlan_Budget::createPlan_Budget(QWidget *parent,
+                                     MealManager *mm) :
     QDialog(parent),
     ui(new Ui::createPlan_Budget)
 {
+    if (mm == nullptr)
+        close();
+    else
+    {
+        this->mm = mm;
+    }
     ui->setupUi(this);
+
+    // set limits to budget
+    ui->doubleSpinBox->setMinimum(mm->getMinimumPrice());
+    ui->doubleSpinBox->setMaximum(mm->getMaximumPrice());
 }
 
 createPlan_Budget::~createPlan_Budget()

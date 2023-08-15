@@ -2,6 +2,7 @@
 #define CREATEPLAN_LENGTH_H
 
 #include <QDialog>
+#include "mealmanager.h"
 
 namespace Ui {
 class createPlan_Length;
@@ -12,7 +13,8 @@ class createPlan_Length : public QDialog
     Q_OBJECT
 
 public:
-    explicit createPlan_Length(QWidget *parent = nullptr);
+    explicit createPlan_Length(QWidget *parent = nullptr,
+                               MealManager *mm = nullptr);
     ~createPlan_Length();
 
 signals:
@@ -25,6 +27,7 @@ private slots:
 
 private:
     Ui::createPlan_Length *ui;
+    MealManager *mm;
 };
 
 #endif // CREATEPLAN_LENGTH_H
