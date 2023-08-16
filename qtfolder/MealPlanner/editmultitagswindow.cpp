@@ -84,13 +84,13 @@ void EditMultitagsWindow::RefreshTagsList(void)
     // clear the listWidget
     ui->listWidget_multitags->blockSignals(true);
     ui->listWidget_multitags->clear();
-    ui->listWidget_multitags->blockSignals(false);
 
     // repopulate the listWidget
     for (auto& item : itemsInOrder)
     {
         ui->listWidget_multitags->addItem(item);
     }
+    ui->listWidget_multitags->blockSignals(false);
 }
 
 // exit
@@ -213,7 +213,7 @@ void EditMultitagsWindow::on_listWidget_multitags_itemDoubleClicked(QListWidgetI
 // edit linked tags
 void EditMultitagsWindow::on_pushButton_editLinkedTags_clicked()
 {
-    MultiTag* tagPtr;
+    MultiTag* tagPtr = nullptr;
     QListWidgetItem *currentItem = ui->listWidget_multitags->currentItem();
 
     // check if item exists
@@ -231,16 +231,20 @@ void EditMultitagsWindow::on_pushButton_editLinkedTags_clicked()
     EditMultitag_AssignedTags *window = new EditMultitag_AssignedTags(this, mm, tagPtr);
     window->setAttribute(Qt::WA_DeleteOnClose);
     window->exec();
+
+    // refresh display of linked tags
+    on_listWidget_multitags_currentItemChanged(ui->listWidget_multitags->currentItem(), nullptr);
 }
 
 // item changed, display its assigned tags
 void EditMultitagsWindow::on_listWidget_multitags_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous)
 {
-    MultiTag* multitagPtr;
+    MultiTag* multitagPtr = nullptr;
     QVector<QPair<Tag*, unsigned int>> assignedTags;
     QString tagKey = current->text();
 
     // clear all displayed tags
+    ui->listWidget_assignedTags->blockSignals(true);
     ui->listWidget_assignedTags->clear();
 
     // get the multitag associated with the item
@@ -267,6 +271,7 @@ void EditMultitagsWindow::on_listWidget_multitags_currentItemChanged(QListWidget
 
         // add the item to the listWidget
         ui->listWidget_assignedTags->addItem(tempStr);
+        ui->listWidget_assignedTags->blockSignals(false);
     }
 }
 

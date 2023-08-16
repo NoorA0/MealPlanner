@@ -76,10 +76,11 @@ void EditTag_BasicParams::on_pushButton_confirm_clicked()
         tagPtr->setDependency(multitagDependency);
         tagPtr->setConsecutiveLimit(consecutiveDays);
         tagPtr->setEnabledDays(enabledDays);
+        close();
     }
     else // check if conflicts
     {
-        if (mm->findNormalTag(name) != nullptr)
+        if (name.isEmpty() || name.trimmed() == "" || mm->findNormalTag(name) != nullptr)
         {
             // name conflicts
             CreateTag_NameConflict *window = new CreateTag_NameConflict(this);
@@ -108,7 +109,6 @@ void EditTag_BasicParams::on_pushButton_confirm_clicked()
                 tagPtr->setDependency(multitagDependency);
                 tagPtr->setConsecutiveLimit(consecutiveDays);
                 tagPtr->setEnabledDays(enabledDays);
-
                 close();
             }
         }

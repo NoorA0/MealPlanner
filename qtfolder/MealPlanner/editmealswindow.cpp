@@ -83,13 +83,13 @@ void EditMealsWindow::RefreshMealsList(void)
     // clear the listWidget
     ui->listWidget_meals->blockSignals(true);
     ui->listWidget_meals->clear();
-    ui->listWidget_meals->blockSignals(false);
 
     // repopulate the listWidget
     for (auto& item : itemsInOrder)
     {
         ui->listWidget_meals->addItem(item);
     }
+    ui->listWidget_meals->blockSignals(false);
 }
 
 // go back to settings menu
@@ -139,6 +139,7 @@ void EditMealsWindow::on_listWidget_meals_currentItemChanged(QListWidgetItem *cu
     QString mealKey = current->text();
 
     // clear all displayed tags
+    ui->listWidget_tags->blockSignals(true);
     ui->listWidget_tags->clear();
 
     // get the meal associated with the item
@@ -163,13 +164,14 @@ void EditMealsWindow::on_listWidget_meals_currentItemChanged(QListWidgetItem *cu
 
         // add the item to the listWidget
         ui->listWidget_tags->addItem(tempStr);
+        ui->listWidget_tags->blockSignals(false);
     }
 }
 
 // edit tags assigned for selected meal
 void EditMealsWindow::on_pushButton_3_clicked()
 {
-    Meal* mealPtr;
+    Meal* mealPtr = nullptr;
     QListWidgetItem *currentItem = ui->listWidget_meals->currentItem();
 
     // check if item exists
@@ -187,6 +189,9 @@ void EditMealsWindow::on_pushButton_3_clicked()
     EditMeal_AssignedTags *window = new EditMeal_AssignedTags(this, mm, mealPtr);
     window->setAttribute(Qt::WA_DeleteOnClose);
     window->exec();
+
+    // refresh display of linked tags
+    on_listWidget_meals_currentItemChanged(ui->listWidget_meals->currentItem(), nullptr);
 }
 
 // create new meal

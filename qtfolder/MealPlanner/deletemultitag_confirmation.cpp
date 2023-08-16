@@ -50,14 +50,14 @@ DeleteMultitag_Confirmation::~DeleteMultitag_Confirmation()
 // user canceled
 void DeleteMultitag_Confirmation::on_pushButton_2_clicked()
 {
-    mm->deleteMultiTag(tagPtr);
-    tagPtr = nullptr;
     close();
 }
 
 // user confirmed deletion
 void DeleteMultitag_Confirmation::on_pushButton_clicked()
 {
+    mm->deleteMultiTag(tagPtr);
+    tagPtr = nullptr;
     close();
 }
 

@@ -19,6 +19,7 @@ public:
                             MealManager *mm = nullptr);
     ~EditTagsWindow();
 
+public slots:
     void receiveNewTag(Tag* createdTag) { newTag = createdTag; }
     void receiveBoolAssignNewMeal(bool userResponse) { this->userResponse = userResponse; }
 

@@ -235,32 +235,29 @@ void EditMultitag_AssignedTags::on_pushButton_unassignTag_clicked()
     // add item to itemsInOrder_Unassigned
     if (positionFound)
     {
-        if (itemsInOrder_Unassigned.empty())
-            itemsInOrder_Unassigned.push_back(currentItemText);
-        else
+        auto unassignedItemIter = itemsInOrder_Unassigned.begin();
+        positionFound = false;
+        while (!positionFound && unassignedItemIter != itemsInOrder_Unassigned.end())
         {
-            auto unassignedItemIter = itemsInOrder_Unassigned.begin();
-            positionFound = false;
-            while (!positionFound && unassignedItemIter != itemsInOrder_Unassigned.end())
+            if (currentItemText < *unassignedItemIter)
             {
-                if (currentItemText < *unassignedItemIter)
-                {
-                    // position found, insert here
-                    positionFound = true;
-                    itemsInOrder_Unassigned.emplace(unassignedItemIter, currentItemText);
-                }
-                else
-                    ++unassignedItemIter;
-            }
-
-            if (!positionFound)
-            {
-                itemsInOrder_Unassigned.push_back(currentItemText);
+                // position found, insert here
                 positionFound = true;
+                itemsInOrder_Unassigned.emplace(unassignedItemIter, currentItemText);
             }
+            else
+                ++unassignedItemIter;
         }
 
-        // unassign tag from multitag
+        if (!positionFound)
+        {
+            itemsInOrder_Unassigned.push_back(currentItemText);
+            positionFound = true;
+        }
+    }
+    // if item was removed from assigned list, then unlink in MealManager
+    if (positionFound)
+    {
         QVector<Tag*> unassignTags;
 
         unassignTags.push_back(targetTagPtr);
@@ -356,13 +353,15 @@ void EditMultitag_AssignedTags::on_pushButton_assignTag_clicked()
                     itemsInOrder_Assigned.push_back(currentItemText);
                     positionFound = true;
                 }
-
-                // assign tag
-                QVector<QPair<Tag*, int>> assignTags;
-
-                assignTags.push_back(QPair<Tag*, int>(targetTagPtr, requestedMeals));
-                mm->assignMultiTagTags(tagPtr, assignTags);
             }
+        }
+        // if item was found and moved to assigned list, then link the tag
+        if (positionFound)
+        {
+            QVector<QPair<Tag*, int>> assignTags;
+
+            assignTags.push_back(QPair<Tag*, int>(targetTagPtr, requestedMeals));
+            mm->assignMultiTagTags(tagPtr, assignTags);
         }
         RefreshTagsList();
     }

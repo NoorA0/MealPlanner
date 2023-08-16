@@ -78,10 +78,11 @@ void EditMultitag_BasicParams::on_pushButton_confirm_clicked()
         tag->setHighestPriority(elevatedPriority);
         tag->setRequireFulfillment(totalFulfillment);
         tag->setEnabledDays(enabledDays);
+        close();
     }
     else // check if name conflict
     {
-        if (mm->findMultiTag(name) != nullptr)
+        if (name.isEmpty() || name.trimmed() == "" || mm->findMultiTag(name) != nullptr)
         {
             // name conflicts, tell user
             CreateMultitag_NameConflict *window = new CreateMultitag_NameConflict(this);
@@ -110,7 +111,6 @@ void EditMultitag_BasicParams::on_pushButton_confirm_clicked()
                 tag->setHighestPriority(elevatedPriority);
                 tag->setRequireFulfillment(totalFulfillment);
                 tag->setEnabledDays(enabledDays);
-
                 close();
             }
         }

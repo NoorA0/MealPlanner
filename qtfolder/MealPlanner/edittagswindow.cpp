@@ -84,13 +84,13 @@ void EditTagsWindow::RefreshTagsList(void)
     // clear the listWidget
     ui->listWidget_tags->blockSignals(true);
     ui->listWidget_tags->clear();
-    ui->listWidget_tags->blockSignals(false);
 
     // repopulate the listWidget
     for (auto& item : itemsInOrder)
     {
         ui->listWidget_tags->addItem(item);
     }
+    ui->listWidget_tags->blockSignals(false);
 }
 
 void EditTagsWindow::on_pushButton_exit_clicked()
@@ -164,7 +164,7 @@ void EditTagsWindow::on_pushButton_newTag_clicked()
         // connect signal to receive response
         connect(window2,
                 SIGNAL(sendUserResponse(bool)),
-                SLOT(receiveBoolAssignNewMeals(bool)),
+                SLOT(receiveBoolAssignNewMeal(bool)),
                 Qt::UniqueConnection);
 
         window2->exec();
@@ -212,7 +212,7 @@ void EditTagsWindow::on_pushButton_deleteTag_clicked()
 // edit assigned meals
 void EditTagsWindow::on_pushButton_editAssignedMeals_clicked()
 {
-    Tag* tagPtr;
+    Tag* tagPtr = nullptr;
     QListWidgetItem *currentItem = ui->listWidget_tags->currentItem();
 
     // check if item exists
@@ -230,16 +230,20 @@ void EditTagsWindow::on_pushButton_editAssignedMeals_clicked()
     EditTag_AssignedMeals *window = new EditTag_AssignedMeals(this, mm, tagPtr);
     window->setAttribute(Qt::WA_DeleteOnClose);
     window->exec();
+
+    // refresh display of linked meals
+    on_listWidget_tags_currentItemChanged(ui->listWidget_tags->currentItem(), nullptr);
 }
 
 // item changed, display its assigned meals
 void EditTagsWindow::on_listWidget_tags_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous)
 {
-    Tag* tagPtr;
+    Tag* tagPtr = nullptr;
     QVector<Meal*> assignedMeals;
     QString tagKey = current->text();
 
     // clear all displayed meals
+    ui->listWidget_assignedMeals->blockSignals(true);
     ui->listWidget_assignedMeals->clear();
 
     // get the tag associated with the item
@@ -266,7 +270,8 @@ void EditTagsWindow::on_listWidget_tags_currentItemChanged(QListWidgetItem *curr
         }
 
         // add the item to the listWidget
-        ui->listWidget_tags->addItem(tempStr);
+        ui->listWidget_assignedMeals->addItem(tempStr);
+        ui->listWidget_assignedMeals->blockSignals(false);
     }
 }
 

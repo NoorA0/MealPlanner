@@ -57,10 +57,11 @@ void EditMeal_BasicParams::on_pushButton_confirm_clicked()
         mealPtr->setMealDuration(duration);
         mealPtr->setDaysBetweenOccurrences(dbo);
         mealPtr->setDisabled(!isEnabled);
+        close();
     }
     else // check if conflicts
     {
-        if (mm->findMeal(name) != nullptr)
+        if (name.isEmpty() || name.trimmed() == "" || mm->findMeal(name) != nullptr)
         {
             // name conflicts
             CreateMeal_NameConflict *window = new CreateMeal_NameConflict(this);
@@ -89,7 +90,6 @@ void EditMeal_BasicParams::on_pushButton_confirm_clicked()
                 mealPtr->setMealDuration(duration);
                 mealPtr->setDaysBetweenOccurrences(dbo);
                 mealPtr->setDisabled(!isEnabled);
-
                 close();
             }
         }
