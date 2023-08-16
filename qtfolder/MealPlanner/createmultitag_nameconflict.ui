@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>292</width>
-    <height>139</height>
+    <width>462</width>
+    <height>110</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QPushButton" name="pushButton">
    <property name="geometry">
     <rect>
-     <x>105</x>
-     <y>100</y>
+     <x>190</x>
+     <y>80</y>
      <width>80</width>
      <height>24</height>
     </rect>
@@ -31,12 +31,12 @@
     <rect>
      <x>20</x>
      <y>10</y>
-     <width>251</width>
+     <width>421</width>
      <height>61</height>
     </rect>
    </property>
    <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;A MultiTag with the same name already exists.&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Please use a different name.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;A MultiTag with the same name already exists, or you have not entered a name.&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Please use a different name.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
  </widget>

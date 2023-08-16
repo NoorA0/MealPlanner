@@ -12,6 +12,7 @@
 #include "createplan_nomealsortagswarning.h"
 #include "createplan_inprogress.h"
 #include "createplan_success.h"
+#include "createplan_creationdisplayerror.h"
 
 MainWindow::MainWindow(QWidget *parent, MealManager *mm)
     : QMainWindow(parent)
@@ -66,9 +67,13 @@ void MainWindow::getPlanBudget(const bool &isValid, const double &newBudget)
 }
 
 // gets return code after plan was created
-void MainWindow::getCreationStatus(const int &returnCode)
+void MainWindow::getCreationStatus(const int &returnCode,
+                                   const unsigned int &erroredDays,
+                                   const double &failedBudget)
 {
     this->returnCode = returnCode;
+    this->erroredDays = erroredDays;
+    this->failedBudget = failedBudget;
 }
 
 // gets final plan configuration confirmation
@@ -232,9 +237,9 @@ void MainWindow::on_generatePlanButton_clicked()
 
     // get the return code to tell if creation failed or not
     connect(cpip,
-            SIGNAL(createPlanReturn(int)),
+            SIGNAL(createPlanReturn(int,uint,double)),
             this,
-            SLOT(getCreationStatus(int)),
+            SLOT(getCreationStatus(int,uint,double)),
             Qt::UniqueConnection);
     cpip->exec();
 
@@ -248,7 +253,10 @@ void MainWindow::on_generatePlanButton_clicked()
     }
     else
     {
-        // TODO: create error window
+        // display error window
+        CreatePlan_CreationDisplayError *window = new CreatePlan_CreationDisplayError(this, erroredDays, failedBudget);
+        window->setAttribute(Qt::WA_DeleteOnClose);
+        window->exec();
     }
 }
 

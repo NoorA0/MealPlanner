@@ -19,6 +19,7 @@ public:
                                  MealManager *mm = nullptr);
     ~EditMultitagsWindow();
 
+public slots:
     void receiveNewMultiTag(MultiTag *createdMT) { newMT = createdMT; }
     void receiveBoolAssignNewTags(bool userResponse) { this->userResponse = userResponse; }
 

@@ -19,6 +19,15 @@ CreateTag_BasicParams::CreateTag_BasicParams(QWidget *parent,
     ui->lineEdit_description->setMaxLength(this->mm->getMaximumDescriptionLength());
     ui->spinBox_consecutiveDaysLimit->setMinimum(1);
     ui->spinBox_consecutiveDaysLimit->setMaximum(this->mm->getConsecutiveDaysLimit());
+
+    // enabled days
+    ui->checkBox_mon->setChecked(true);
+    ui->checkBox_tue->setChecked(true);
+    ui->checkBox_wed->setChecked(true);
+    ui->checkBox_thu->setChecked(true);
+    ui->checkBox_fri->setChecked(true);
+    ui->checkBox_sat->setChecked(true);
+    ui->checkBox_sun->setChecked(true);
 }
 
 CreateTag_BasicParams::~CreateTag_BasicParams()
@@ -30,6 +39,7 @@ CreateTag_BasicParams::~CreateTag_BasicParams()
 void CreateTag_BasicParams::on_pushButton_confirm_clicked()
 {
     // get settings
+    Tag* newTag = nullptr;
     QString name = ui->lineEdit_name->text();
     QString desc = ui->lineEdit_description->text();
     bool multitagDependency = ui->checkBox_dependsOnMultiTag->isChecked();
@@ -45,7 +55,9 @@ void CreateTag_BasicParams::on_pushButton_confirm_clicked()
     enabledDays[SATURDAY] = ui->checkBox_sat->isChecked();
     enabledDays[SUNDAY] = ui->checkBox_sun->isChecked();
 
-    Tag* newTag = mm->createNormalTag(name, desc, multitagDependency, consecutiveDays, enabledDays);
+    // dont bother creating if name is empty
+    if (!name.isEmpty() && name.trimmed() != "")
+        newTag = mm->createNormalTag(name, desc, multitagDependency, consecutiveDays, enabledDays);
 
     // if failed due to name conflict
     if (newTag == nullptr)

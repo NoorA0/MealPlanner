@@ -21,7 +21,9 @@ public:
     ~CreatePlan_InProgress();
 
 signals:
-    void createPlanReturn(const int &returnCode);
+    void createPlanReturn(const int &returnCode,
+                          const unsigned int &daysErrored,
+                          const double &failedBudget);
 
 private:
     Ui::CreatePlan_InProgress *ui;

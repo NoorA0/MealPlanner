@@ -147,7 +147,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Enable Meal&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Meals can be disabled instead of deleting them.&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Tick the box to keep it enabled, untick to disable it.&lt;br/&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;(Disabled Meals will still be shown in the menu, but will not be used when creating a Meal Plan)&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Enable Meal&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Meals can be disabled instead of deleting them.&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Untick the box if you don't want to use this Meal yet.&lt;br/&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;(Disabled Meals will still be shown in the menu, but will not be used when creating a Meal Plan)&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
   <widget class="QCheckBox" name="checkBox_isEnabled">

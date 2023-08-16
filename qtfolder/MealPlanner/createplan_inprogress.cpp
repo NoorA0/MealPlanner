@@ -1,5 +1,6 @@
 #include "createplan_inprogress.h"
 #include "ui_createplan_inprogress.h"
+#include <fstream>
 
 CreatePlan_InProgress::CreatePlan_InProgress(QWidget *parent,
                                              MealManager *mm,
@@ -15,10 +16,15 @@ CreatePlan_InProgress::CreatePlan_InProgress(QWidget *parent,
     ui->setupUi(this);
 
     // generate plan
+    int errorsPresent;
     unsigned int errors;
     double failedBudget;
-    mm->generateSchedule(fileName, budget, durationWeeks, //ofile, )
-    // send return value
+    std::ofstream oFile;
+
+    errorsPresent = mm->generateSchedule(fileName, budget, durationWeeks, oFile, errors, failedBudget);
+
+    emit createPlanReturn(errorsPresent, errors, failedBudget);
+    close();
 }
 
 CreatePlan_InProgress::~CreatePlan_InProgress()

@@ -82,7 +82,9 @@ void EditMultitagsWindow::RefreshTagsList(void)
     RebuildItems();
 
     // clear the listWidget
+    ui->listWidget_multitags->blockSignals(true);
     ui->listWidget_multitags->clear();
+    ui->listWidget_multitags->blockSignals(false);
 
     // repopulate the listWidget
     for (auto& item : itemsInOrder)
@@ -101,10 +103,19 @@ void EditMultitagsWindow::on_pushButton_exit_clicked()
 void EditMultitagsWindow::on_pushButton_deleteMultitag_clicked()
 {
     MultiTag* tagPtr;
-    QString widgetItem = ui->listWidget_multitags->currentItem()->text();
+    QListWidgetItem *currentItem = ui->listWidget_multitags->currentItem();
+
+    // check if item exists
+    if (currentItem == nullptr)
+        return;
+
+    auto iter = itemToMultitag.find(currentItem->text());
+
+    if (iter == itemToMultitag.end())
+        return;
 
     // get the associated multitag
-    tagPtr = itemToMultitag.find(widgetItem).value();
+    tagPtr = iter.value();
 
     // display confirmation window, handles final deletion
     DeleteMultitag_Confirmation *window = new DeleteMultitag_Confirmation(this, mm, tagPtr);
@@ -122,16 +133,18 @@ void EditMultitagsWindow::on_pushButton_newMultitag_clicked()
     CreateMultitag_BasicParams *window = new CreateMultitag_BasicParams(this, mm);
     window->setAttribute(Qt::WA_DeleteOnClose);
 
+    newMT = nullptr;
+
     // connect to signal to receive new multitag when created
     connect(window,
             SIGNAL(sendNewMultitag(MultiTag*)),
             this,
-            SLOT(receiveNewMultitag(MultiTag*createdMT)),
+            SLOT(receiveNewMultiTag(MultiTag*)),
             Qt::UniqueConnection);
     window->exec();
 
     // if no tags exist, warn user
-    if (mm->getNumberOfNormalTags() <= 0)
+    if (newMT != nullptr && mm->getNumberOfNormalTags() < 1)
     {
         CreateMultitag_NoTagsWarning *window2 = new CreateMultitag_NoTagsWarning(this);
         window2->setAttribute(Qt::WA_DeleteOnClose);
@@ -139,6 +152,7 @@ void EditMultitagsWindow::on_pushButton_newMultitag_clicked()
     }
     else if (newMT != nullptr)
     {
+        // prompt to link tags with new multitag
         CreateMultitag_PromptLinkTags *window2 = new CreateMultitag_PromptLinkTags(this);
         window2->setAttribute(Qt::WA_DeleteOnClose);
 
@@ -174,25 +188,45 @@ void EditMultitagsWindow::on_pushButton_editMultitag_clicked()
 void EditMultitagsWindow::on_listWidget_multitags_itemDoubleClicked(QListWidgetItem *item)
 {
     MultiTag* tagPtr;
-    QString widgetItem = item->text();
+
+    // check if item exists
+    if (item == nullptr)
+        return;
+
+    auto iter = itemToMultitag.find(item->text());
+
+    if (iter == itemToMultitag.end())
+        return;
 
     // get the multitag associated with the item
-    tagPtr = itemToMultitag.find(widgetItem).value();
+    tagPtr = iter.value();
 
     // create edit window
     EditMultitag_BasicParams *window = new EditMultitag_BasicParams(this, mm, tagPtr);
     window->setAttribute(Qt::WA_DeleteOnClose);
     window->exec();
+
+    // refresh multitags
+    RefreshTagsList();
 }
 
 // edit linked tags
 void EditMultitagsWindow::on_pushButton_editLinkedTags_clicked()
 {
     MultiTag* tagPtr;
-    QString tagKey = ui->listWidget_multitags->currentItem()->text();
+    QListWidgetItem *currentItem = ui->listWidget_multitags->currentItem();
+
+    // check if item exists
+    if (currentItem == nullptr)
+        return;
+
+    auto iter = itemToMultitag.find(currentItem->text());
+
+    if (iter == itemToMultitag.end())
+        return;
 
     // get the multitag associated with the item
-    tagPtr = itemToMultitag.find(tagKey).value();
+    tagPtr = iter.value();
 
     EditMultitag_AssignedTags *window = new EditMultitag_AssignedTags(this, mm, tagPtr);
     window->setAttribute(Qt::WA_DeleteOnClose);

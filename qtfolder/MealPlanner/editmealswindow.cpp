@@ -81,7 +81,9 @@ void EditMealsWindow::RefreshMealsList(void)
     RebuildItems();
 
     // clear the listWidget
+    ui->listWidget_meals->blockSignals(true);
     ui->listWidget_meals->clear();
+    ui->listWidget_meals->blockSignals(false);
 
     // repopulate the listWidget
     for (auto& item : itemsInOrder)
@@ -107,15 +109,26 @@ void EditMealsWindow::on_pushButton_2_clicked()
 void EditMealsWindow::on_listWidget_meals_itemDoubleClicked(QListWidgetItem *item)
 {
     Meal* mealPtr;
-    QString mealKey = item->text();
+
+    // check if item exists
+    if (item == nullptr)
+        return;
+
+    auto iter = itemToMeal.find(item->text());
+
+    if (iter == itemToMeal.end())
+        return;
 
     // get the meal associated with the item
-    mealPtr = itemToMeal.find(mealKey).value();
+    mealPtr = iter.value();
 
     // create edit window
     EditMeal_BasicParams *window = new EditMeal_BasicParams(this, mm, mealPtr);
     window->setAttribute(Qt::WA_DeleteOnClose);
     window->exec();
+
+    // refresh list of meals
+    RefreshMealsList();
 }
 
 // item changed, display it's assigned tags
@@ -157,10 +170,19 @@ void EditMealsWindow::on_listWidget_meals_currentItemChanged(QListWidgetItem *cu
 void EditMealsWindow::on_pushButton_3_clicked()
 {
     Meal* mealPtr;
-    QString mealKey = ui->listWidget_meals->currentItem()->text();
+    QListWidgetItem *currentItem = ui->listWidget_meals->currentItem();
+
+    // check if item exists
+    if (currentItem == nullptr)
+        return;
+
+    auto iter = itemToMeal.find(currentItem->text());
+
+    if (iter == itemToMeal.end())
+        return;
 
     // get the meal associated with the item
-    mealPtr = itemToMeal.find(mealKey).value();
+    mealPtr = iter.value();
 
     EditMeal_AssignedTags *window = new EditMeal_AssignedTags(this, mm, mealPtr);
     window->setAttribute(Qt::WA_DeleteOnClose);
@@ -174,6 +196,8 @@ void EditMealsWindow::on_pushButton_4_clicked()
     createmeal_basicparams *window = new createmeal_basicparams(this, this->mm);
     window->setAttribute(Qt::WA_DeleteOnClose);
 
+    newMeal = nullptr;
+
     // connect to signal to receive new meals when created
     connect(window,
             SIGNAL(sendNewMeal(Meal*)),
@@ -184,7 +208,7 @@ void EditMealsWindow::on_pushButton_4_clicked()
     window->exec();
 
     // if no tags exist, warn user
-    if (mm->getNumberOfNormalTags() <= 0)
+    if (newMeal != nullptr && mm->getNumberOfNormalTags() < 1)
     {
         CreateMeal_NoTagsWarning *window2 = new CreateMeal_NoTagsWarning(this);
         window2->setAttribute(Qt::WA_DeleteOnClose);
@@ -192,6 +216,7 @@ void EditMealsWindow::on_pushButton_4_clicked()
     }
     else if (newMeal != nullptr)
     {
+        // prompt to link tags with new meal
         CreateMeal_PromptLinkTags *window2 = new CreateMeal_PromptLinkTags(this);
         window2->setAttribute(Qt::WA_DeleteOnClose);
 
@@ -221,10 +246,19 @@ void EditMealsWindow::on_pushButton_4_clicked()
 void EditMealsWindow::on_pushButton_5_clicked()
 {
     Meal* mealPtr;
-    QString mealKey = ui->listWidget_meals->currentItem()->text();
+    QListWidgetItem *currentItem = ui->listWidget_meals->currentItem();
+
+    // check if item exists
+    if (currentItem == nullptr)
+        return;
+
+    auto iter = itemToMeal.find(currentItem->text());
+
+    if (iter == itemToMeal.end())
+        return;
 
     // get the meal associated with the item
-    mealPtr = itemToMeal.find(mealKey).value();
+    mealPtr = iter.value();
 
     // display confirmation window, handles final deletion
     DeleteMeal_Confirmation *window = new DeleteMeal_Confirmation(this, mm, mealPtr);

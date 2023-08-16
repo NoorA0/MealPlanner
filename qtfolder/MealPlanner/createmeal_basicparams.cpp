@@ -26,6 +26,9 @@ createmeal_basicparams::createmeal_basicparams(QWidget *parent,
     ui->spinBox_duration->setMaximum(this->mm->getMealDurationLimit());
     ui->spinBox_daysbetweenoccurrences->setMinimum(0);
     ui->spinBox_daysbetweenoccurrences->setMaximum(this->mm->getDaysBetweenOccurrencesLimit());
+
+    // default meal to enabled
+    ui->checkBox_isEnabled->setChecked(true);
 }
 
 createmeal_basicparams::~createmeal_basicparams()
@@ -37,12 +40,15 @@ createmeal_basicparams::~createmeal_basicparams()
 void createmeal_basicparams::on_pushButton_confirm_clicked()
 {
     // get inputs
+    Meal* newMeal = nullptr;
     QString name = ui->lineEdit_name->text();
     double price = ui->doubleSpinBox_price->value();
     int duration = ui->spinBox_duration->value();
     int dbo      = ui->spinBox_daysbetweenoccurrences->value();
 
-    Meal* newMeal = this->mm->createMeal(name, price, duration, dbo);
+    // dont bother creating if name is empty
+    if (!name.isEmpty() && name.trimmed() != "")
+        newMeal = this->mm->createMeal(name, price, duration, dbo);
 
     // if failed due to name conflict
     if (newMeal == nullptr)

@@ -129,6 +129,10 @@ EditMultitag_AssignedTags::EditMultitag_AssignedTags(QWidget *parent,
 
 void EditMultitag_AssignedTags::RefreshTagsList(void)
 {
+    // block signals while manipulating listWidgets
+    ui->listWidget_assignedTags->blockSignals(true);
+    ui->listWidget_unassignedTags->blockSignals(true);
+
     // clear the listWidgets
     ui->listWidget_assignedTags->clear();
     ui->listWidget_unassignedTags->clear();
@@ -142,6 +146,10 @@ void EditMultitag_AssignedTags::RefreshTagsList(void)
     {
         ui->listWidget_assignedTags->addItem(item);
     }
+
+    // unblock signals
+    ui->listWidget_assignedTags->blockSignals(false);
+    ui->listWidget_unassignedTags->blockSignals(false);
 }
 
 QString EditMultitag_AssignedTags::BuildItemString(const Tag *tagPtr,
@@ -185,15 +193,29 @@ void EditMultitag_AssignedTags::on_pushButton_clicked()
 void EditMultitag_AssignedTags::on_pushButton_unassignTag_clicked()
 {
     // get selected item
-    QString selectedItem = ui->listWidget_assignedTags->currentItem()->text();
-    Tag *targetTagPtr = itemToTag.find(selectedItem).value().first;
+    QListWidgetItem *currentItem = ui->listWidget_assignedTags->currentItem();
+    QString currentItemText = "";
+    Tag *targetTagPtr = nullptr;
     bool positionFound = false;
+
+    // check if item exists
+    if (currentItem == nullptr)
+        return;
+
+    currentItemText = currentItem->text();
+
+    auto iter = itemToTag.find(currentItemText);
+
+    if (iter == itemToTag.end())
+        return;
+
+    targetTagPtr = iter.value().first;
 
     // remove item from itemsInOrder_Assigned
     auto assignedItemIter = itemsInOrder_Assigned.begin();
     while (!positionFound && assignedItemIter != itemsInOrder_Assigned.end())
     {
-        if (*assignedItemIter == selectedItem)
+        if (*assignedItemIter == currentItemText)
         {
             // remove item
             positionFound = true;
@@ -206,26 +228,26 @@ void EditMultitag_AssignedTags::on_pushButton_unassignTag_clicked()
     // when unassigning, do not display the num. of requested meals
     //  this means the string for the item needs to be rebuilt,
     //  and itemToTag updated for this new string
-    itemToTag.remove(selectedItem);
-    selectedItem = BuildItemString(targetTagPtr, 0, false);
-    itemToTag[selectedItem] = QPair<Tag*, int>(targetTagPtr, -1);
+    itemToTag.remove(currentItemText);
+    currentItemText = BuildItemString(targetTagPtr, 0, false);
+    itemToTag[currentItemText] = QPair<Tag*, int>(targetTagPtr, -1);
 
     // add item to itemsInOrder_Unassigned
     if (positionFound)
     {
         if (itemsInOrder_Unassigned.empty())
-            itemsInOrder_Unassigned.push_back(selectedItem);
+            itemsInOrder_Unassigned.push_back(currentItemText);
         else
         {
             auto unassignedItemIter = itemsInOrder_Unassigned.begin();
             positionFound = false;
             while (!positionFound && unassignedItemIter != itemsInOrder_Unassigned.end())
             {
-                if (selectedItem < *unassignedItemIter)
+                if (currentItemText < *unassignedItemIter)
                 {
                     // position found, insert here
                     positionFound = true;
-                    itemsInOrder_Unassigned.emplace(unassignedItemIter, selectedItem);
+                    itemsInOrder_Unassigned.emplace(unassignedItemIter, currentItemText);
                 }
                 else
                     ++unassignedItemIter;
@@ -233,7 +255,7 @@ void EditMultitag_AssignedTags::on_pushButton_unassignTag_clicked()
 
             if (!positionFound)
             {
-                itemsInOrder_Unassigned.push_back(selectedItem);
+                itemsInOrder_Unassigned.push_back(currentItemText);
                 positionFound = true;
             }
         }
@@ -251,9 +273,23 @@ void EditMultitag_AssignedTags::on_pushButton_unassignTag_clicked()
 void EditMultitag_AssignedTags::on_pushButton_assignTag_clicked()
 {
     // get selected item
-    QString selectedItem = ui->listWidget_unassignedTags->currentItem()->text();
-    Tag *targetTagPtr = itemToTag.find(selectedItem).value().first;
+    QListWidgetItem *currentItem = ui->listWidget_unassignedTags->currentItem();
+    QString currentItemText = "";
+    Tag *targetTagPtr = nullptr;
     bool positionFound = false;
+
+    // check if item exists
+    if (currentItem == nullptr)
+        return;
+
+    currentItemText = currentItem->text();
+
+    auto iter = itemToTag.find(currentItemText);
+
+    if (iter == itemToTag.end())
+        return;
+
+    targetTagPtr = iter.value().first;
 
     // prompt user for number of Meals requested from this Tag
     requestedMeals = -1; // to check for validity
@@ -277,7 +313,7 @@ void EditMultitag_AssignedTags::on_pushButton_assignTag_clicked()
         auto unassignedItemIter = itemsInOrder_Unassigned.begin();
         while (!positionFound && unassignedItemIter != itemsInOrder_Unassigned.end())
         {
-            if (*unassignedItemIter == selectedItem)
+            if (*unassignedItemIter == currentItemText)
             {
                 // remove item
                 positionFound = true;
@@ -290,26 +326,26 @@ void EditMultitag_AssignedTags::on_pushButton_assignTag_clicked()
         // when assigning, need to display the num. of requested meals
         //  this means the string for the item needs to be rebult,
         //  and itemToTag updated for this new string
-        itemToTag.remove(selectedItem);
-        selectedItem = BuildItemString(targetTagPtr, requestedMeals, true);
-        itemToTag[selectedItem] = QPair<Tag*, int>(targetTagPtr, requestedMeals);
+        itemToTag.remove(currentItemText);
+        currentItemText = BuildItemString(targetTagPtr, requestedMeals, true);
+        itemToTag[currentItemText] = QPair<Tag*, int>(targetTagPtr, requestedMeals);
 
         // add item to itemsInOrder_Assigned
         if (positionFound)
         {
             if (itemsInOrder_Assigned.empty())
-                itemsInOrder_Assigned.push_back(selectedItem);
+                itemsInOrder_Assigned.push_back(currentItemText);
             else
             {
                 auto assignedItemIter = itemsInOrder_Assigned.begin();
                 positionFound = false;
                 while (!positionFound && assignedItemIter != itemsInOrder_Assigned.end())
                 {
-                    if (selectedItem < *assignedItemIter)
+                    if (currentItemText < *assignedItemIter)
                     {
                         // position found, insert here
                         positionFound = true;
-                        itemsInOrder_Assigned.emplace(assignedItemIter, selectedItem);
+                        itemsInOrder_Assigned.emplace(assignedItemIter, currentItemText);
                     }
                     else
                         ++assignedItemIter;
@@ -317,7 +353,7 @@ void EditMultitag_AssignedTags::on_pushButton_assignTag_clicked()
 
                 if (!positionFound)
                 {
-                    itemsInOrder_Assigned.push_back(selectedItem);
+                    itemsInOrder_Assigned.push_back(currentItemText);
                     positionFound = true;
                 }
 
@@ -336,9 +372,22 @@ void EditMultitag_AssignedTags::on_pushButton_assignTag_clicked()
 void EditMultitag_AssignedTags::on_pushButton_2_clicked()
 {
     // get selected item
-    QString selectedItem = ui->listWidget_unassignedTags->currentItem()->text();
-    QPair<Tag*, int> targetTag = itemToTag.find(selectedItem).value();
+    QListWidgetItem *currentItem = ui->listWidget_assignedTags->currentItem();
+    QString currentItemString = "";
+    QPair<Tag*, int> targetTag = QPair<Tag*, int>(nullptr, 0);
     bool positionFound = false;
+
+    // check if item exists
+    if (currentItem == nullptr)
+        return;
+
+    currentItemString = currentItem->text();
+    auto iter = itemToTag.find(currentItemString);
+
+    if (iter == itemToTag.end())
+        return;
+
+    targetTag = iter.value();
 
     // prompt user for number of Meals requested from this Tag
     // get current number of requestedMeals
@@ -363,7 +412,7 @@ void EditMultitag_AssignedTags::on_pushButton_2_clicked()
         auto assignedItemIter = itemsInOrder_Assigned.begin();
         while (!positionFound && assignedItemIter != itemsInOrder_Assigned.end())
         {
-            if (*assignedItemIter == selectedItem)
+            if (*assignedItemIter == currentItemString)
             {
                 // remove item
                 positionFound = true;
@@ -374,26 +423,26 @@ void EditMultitag_AssignedTags::on_pushButton_2_clicked()
         }
 
         //  rebuild the item string and update itemToTag
-        itemToTag.remove(selectedItem);
-        selectedItem = BuildItemString(targetTag.first, requestedMeals, true);
-        itemToTag[selectedItem] = QPair<Tag*, int>(targetTag.first, requestedMeals);
+        itemToTag.remove(currentItemString);
+        currentItemString = BuildItemString(targetTag.first, requestedMeals, true);
+        itemToTag[currentItemString] = QPair<Tag*, int>(targetTag.first, requestedMeals);
 
         // add item back to itemsInOrder_Assigned
         if (positionFound)
         {
             if (itemsInOrder_Assigned.empty())
-                itemsInOrder_Assigned.push_back(selectedItem);
+                itemsInOrder_Assigned.push_back(currentItemString);
             else
             {
                 auto assignedItemIter = itemsInOrder_Assigned.begin();
                 positionFound = false;
                 while (!positionFound && assignedItemIter != itemsInOrder_Assigned.end())
                 {
-                    if (selectedItem < *assignedItemIter)
+                    if (currentItemString < *assignedItemIter)
                     {
                         // position found, insert here
                         positionFound = true;
-                        itemsInOrder_Assigned.emplace(assignedItemIter, selectedItem);
+                        itemsInOrder_Assigned.emplace(assignedItemIter, currentItemString);
                     }
                     else
                         ++assignedItemIter;
@@ -401,7 +450,7 @@ void EditMultitag_AssignedTags::on_pushButton_2_clicked()
 
                 if (!positionFound)
                 {
-                    itemsInOrder_Assigned.push_back(selectedItem);
+                    itemsInOrder_Assigned.push_back(currentItemString);
                     positionFound = true;
                 }
 

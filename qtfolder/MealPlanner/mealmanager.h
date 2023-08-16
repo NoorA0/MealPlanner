@@ -15,10 +15,23 @@ public:
     MealManager();
     ~MealManager();
 
-    // failedPlanErrors and failedPlanCost are 0 unless generation fails,
-    //  then they are the number of errored days and total cost of the first plan generated
-    // budget between MIN_BUDGET and MAX_BUDGET (inclusive)
-    // planWeeks, in integer number of weeks, between MIN/MAX_CALCULATION_LENGTH (inclusive)
+    /* generateSchedule
+     *  generates a meal plan using the passed parameters
+     *  since plans can fail for many reasons, such as
+     *  insufficient budget or meals, the number of errored days
+     *  and cost for the errored plan are passed back for diagnosis
+     *
+     * INPUTS:
+     *  fileName : name of file to write to
+     *  budget   : budget for the full plan
+     *  planWeeks: duration of the plan in weeks
+     *  oFile    : ofstream var to write plan file
+     *  failedPlanErrors : number of days with errors present
+     *  failedPlanCost   : cost in a plan considered a failure
+     *
+     * OUTPUTS:
+     *  bool : 0 when success, 1 when errored
+     */
     bool generateSchedule(const QString& fileName,
                           const double &budget,
                           const unsigned int &planWeeks,

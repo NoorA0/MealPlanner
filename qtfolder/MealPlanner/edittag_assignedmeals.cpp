@@ -154,6 +154,10 @@ EditTag_AssignedMeals::~EditTag_AssignedMeals()
 
 void EditTag_AssignedMeals::RefreshMealsList(void)
 {
+    // block all signals while manipulating listWidgets
+    ui->listWidget_assignedMeals->blockSignals(true);
+    ui->listWidget_unassignedMeals->blockSignals(true);
+
     // clear the listWidgets
     ui->listWidget_assignedMeals->clear();
     ui->listWidget_unassignedMeals->clear();
@@ -167,20 +171,30 @@ void EditTag_AssignedMeals::RefreshMealsList(void)
     {
         ui->listWidget_assignedMeals->addItem(item);
     }
+    // unblock signals to listWidgets
+    ui->listWidget_assignedMeals->blockSignals(false);
+    ui->listWidget_unassignedMeals->blockSignals(false);
 }
 
 // unassign selected meal
 void EditTag_AssignedMeals::on_pushButton_unassignMeal_clicked()
 {
     // get selected item
-    QString selectedItem = ui->listWidget_assignedMeals->currentItem()->text();
+    QListWidgetItem *currentItem = ui->listWidget_assignedMeals->currentItem();
+    QString currentItemText = "";
     bool positionFound = false;
+
+    // check if item exists
+    if (currentItem == nullptr)
+        return;
+
+    currentItemText = currentItem->text();
 
     // remove item from itemsInOrder_Assigned
     auto assignedItemIter = itemsInOrder_Assigned.begin();
     while (!positionFound && assignedItemIter != itemsInOrder_Assigned.end())
     {
-        if (*assignedItemIter == selectedItem)
+        if (*assignedItemIter == currentItemText)
         {
             // remove item
             positionFound = true;
@@ -194,18 +208,18 @@ void EditTag_AssignedMeals::on_pushButton_unassignMeal_clicked()
     if (positionFound)
     {
         if (itemsInOrder_Unassigned.empty())
-            itemsInOrder_Unassigned.push_back(selectedItem);
+            itemsInOrder_Unassigned.push_back(currentItemText);
         else
         {
             auto unassignedItemIter = itemsInOrder_Unassigned.begin();
             positionFound = false;
             while (!positionFound && unassignedItemIter != itemsInOrder_Unassigned.end())
             {
-                if (selectedItem < *unassignedItemIter)
+                if (currentItemText < *unassignedItemIter)
                 {
                     // position found, insert here
                     positionFound = true;
-                    itemsInOrder_Unassigned.emplace(unassignedItemIter, selectedItem);
+                    itemsInOrder_Unassigned.emplace(unassignedItemIter, currentItemText);
                 }
                 else
                     ++unassignedItemIter;
@@ -213,13 +227,13 @@ void EditTag_AssignedMeals::on_pushButton_unassignMeal_clicked()
 
             if (!positionFound)
             {
-                itemsInOrder_Unassigned.push_back(selectedItem);
+                itemsInOrder_Unassigned.push_back(currentItemText);
                 positionFound = true;
             }
         }
 
         // unassign meal
-        Meal* itemMeal = itemToMeal.find(selectedItem).value();
+        Meal* itemMeal = itemToMeal.find(currentItemText).value();
         QVector<Meal*> unassignMeals;
 
         unassignMeals.push_back(itemMeal);
@@ -232,14 +246,21 @@ void EditTag_AssignedMeals::on_pushButton_unassignMeal_clicked()
 void EditTag_AssignedMeals::on_pushButton_assignMeal_clicked()
 {
     // get selected item
-    QString selectedItem = ui->listWidget_unassignedMeals->currentItem()->text();
+    QListWidgetItem *currentItem = ui->listWidget_unassignedMeals->currentItem();
+    QString currentItemText = "";
     bool positionFound = false;
+
+    // check if item exists
+    if (currentItem == nullptr)
+        return;
+
+    currentItemText = currentItem->text();
 
     // remove item from itemsInOrder_Unassigned
     auto unassignedItemIter = itemsInOrder_Unassigned.begin();
     while (!positionFound && unassignedItemIter != itemsInOrder_Unassigned.end())
     {
-        if (*unassignedItemIter == selectedItem)
+        if (*unassignedItemIter == currentItemText)
         {
             // remove item
             positionFound = true;
@@ -253,18 +274,18 @@ void EditTag_AssignedMeals::on_pushButton_assignMeal_clicked()
     if (positionFound)
     {
         if (itemsInOrder_Assigned.empty())
-            itemsInOrder_Assigned.push_back(selectedItem);
+            itemsInOrder_Assigned.push_back(currentItemText);
         else
         {
             auto assignedItemIter = itemsInOrder_Assigned.begin();
             positionFound = false;
             while (!positionFound && assignedItemIter != itemsInOrder_Assigned.end())
             {
-                if (selectedItem < *assignedItemIter)
+                if (currentItemText < *assignedItemIter)
                 {
                     // position found, insert here
                     positionFound = true;
-                    itemsInOrder_Assigned.emplace(assignedItemIter, selectedItem);
+                    itemsInOrder_Assigned.emplace(assignedItemIter, currentItemText);
                 }
                 else
                     ++assignedItemIter;
@@ -272,12 +293,12 @@ void EditTag_AssignedMeals::on_pushButton_assignMeal_clicked()
 
             if (!positionFound)
             {
-                itemsInOrder_Assigned.push_back(selectedItem);
+                itemsInOrder_Assigned.push_back(currentItemText);
                 positionFound = true;
             }
 
             // assign meal
-            Meal* itemMeal = itemToMeal.find(selectedItem).value();
+            Meal* itemMeal = itemToMeal.find(currentItemText).value();
             QVector<Meal*> assignMeals;
 
             assignMeals.push_back(itemMeal);

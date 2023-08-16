@@ -21,6 +21,7 @@ SOURCES += \
     createmultitag_promptlinktags.cpp \
     createplan_budget.cpp \
     createplan_confirmation.cpp \
+    createplan_creationdisplayerror.cpp \
     createplan_filename.cpp \
     createplan_inprogress.cpp \
     createplan_length.cpp \
@@ -66,6 +67,7 @@ HEADERS += \
     createmultitag_promptlinktags.h \
     createplan_budget.h \
     createplan_confirmation.h \
+    createplan_creationdisplayerror.h \
     createplan_filename.h \
     createplan_inprogress.h \
     createplan_length.h \
@@ -109,6 +111,7 @@ FORMS += \
     createmultitag_promptlinktags.ui \
     createplan_budget.ui \
     createplan_confirmation.ui \
+    createplan_creationdisplayerror.ui \
     createplan_filename.ui \
     createplan_inprogress.ui \
     createplan_length.ui \
