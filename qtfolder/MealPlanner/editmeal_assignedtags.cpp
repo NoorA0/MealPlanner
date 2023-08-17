@@ -15,6 +15,10 @@ EditMeal_AssignedTags::EditMeal_AssignedTags(QWidget *parent,
         this->mealPtr = mealPtr;
     }
 
+    itemToTag.clear();
+    itemsInOrder_Assigned.clear();
+    itemsInOrder_Unassigned.clear();
+
     ui->setupUi(this);
 
     // goal: itemize tags already assigned to mealPtr
@@ -70,24 +74,21 @@ EditMeal_AssignedTags::EditMeal_AssignedTags(QWidget *parent,
     QVector<Tag*> unassignedTags = mm->getNormalTags();
 
     // prune tags already allocated to mealPtr
-    auto pruneTagIter = unassignedTags.begin();
-    while (pruneTagIter != unassignedTags.end())
+    for (auto assignedTag : assignedTags)
     {
         bool found = false;
-        auto assignedTagIter = assignedTags.begin();
-        // iterate through all tags in assignedTags to find match
-        while (!found && assignedTagIter != assignedTags.end())
+        auto unassignedTagIter = unassignedTags.begin();
+        while (!found && unassignedTagIter != unassignedTags.end())
         {
-            if ((*pruneTagIter)->getName() == (*assignedTagIter)->getName())
+            // if names match, then remove from unassignedTags
+            if (assignedTag->getName() == (*unassignedTagIter)->getName())
             {
-                // tag is allocated, remove from unassignedTags
                 found = true;
-                unassignedTags.erase(pruneTagIter);
+                unassignedTags.erase(unassignedTagIter);
             }
             else
-                ++assignedTagIter;
+                ++unassignedTagIter;
         }
-        ++pruneTagIter;
     }
 
     // done pruning, now create items for remaining tags
@@ -103,7 +104,6 @@ EditMeal_AssignedTags::EditMeal_AssignedTags(QWidget *parent,
             itemStr += "Tag is DISABLED";
         else
         {
-            itemStr += "Tag is ENABLED";
             itemStr += "\nEnabled on: " + mm->formatEnabledDays(tag->getEnabledDays());
         }
         itemStr += "\nDescription: " + tag->getDescription() + "\n";

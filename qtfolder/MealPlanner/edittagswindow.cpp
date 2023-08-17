@@ -217,7 +217,9 @@ void EditTagsWindow::on_pushButton_editAssignedMeals_clicked()
 
     // check if item exists
     if (currentItem == nullptr)
+    {
         return;
+    }
 
     auto iter = itemToTag.find(currentItem->text());
 

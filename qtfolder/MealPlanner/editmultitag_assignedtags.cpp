@@ -17,6 +17,10 @@ EditMultitag_AssignedTags::EditMultitag_AssignedTags(QWidget *parent,
     }
     ui->setupUi(this);
 
+    itemToTag.clear();
+    itemsInOrder_Assigned.clear();
+    itemsInOrder_Unassigned.clear();
+
     // goal: itemize tags already assigned to this multitag
     QVector<QPair<Tag*, unsigned int>> assignedTags = tagPtr->getLinkedTags();
 
@@ -59,24 +63,21 @@ EditMultitag_AssignedTags::EditMultitag_AssignedTags(QWidget *parent,
     QVector<Tag*> unassignedTags = mm->getNormalTags();
 
     // prune tags already allocated to multitag
-    auto pruneTagIter = unassignedTags.begin();
-    while (pruneTagIter != unassignedTags.end())
+    for (auto assignedTag : assignedTags)
     {
-        bool found = false;
-        auto assignedTagIter = assignedTags.begin();
-        // iterate through all tags in assignedTags to find match
-        while (!found && assignedTagIter != assignedTags.end())
+        bool found = true;
+        auto unassignedTagIter = unassignedTags.begin();
+        while (!found && unassignedTagIter != unassignedTags.end())
         {
-            if ((*pruneTagIter)->getName() == assignedTagIter->first->getName())
+            // if names match, then remove from unassignedTags
+            if (assignedTag.first->getName() == (*unassignedTagIter)->getName())
             {
-                // tag is allocated, remove from unassignedTags
                 found = true;
-                unassignedTags.erase(pruneTagIter);
+                unassignedTags.erase(unassignedTagIter);
             }
             else
-                ++assignedTagIter;
+                ++unassignedTagIter;
         }
-        ++pruneTagIter;
     }
 
     // done pruning, now create items for remaining unassigned tags

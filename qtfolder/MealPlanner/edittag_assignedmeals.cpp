@@ -16,6 +16,10 @@ EditTag_AssignedMeals::EditTag_AssignedMeals(QWidget *parent,
     }
     ui->setupUi(this);
 
+    itemToMeal.clear();
+    itemsInOrder_Assigned.clear();
+    itemsInOrder_Unassigned.clear();
+
     // goal: itemize Meals already assigned to tagPtr
     QVector<Meal*> assignedMeals = tagPtr->getLinkedMeals();
 
@@ -69,24 +73,21 @@ EditTag_AssignedMeals::EditTag_AssignedMeals(QWidget *parent,
     QVector<Meal*> unassignedMeals = mm->getMeals();
 
     // prune meals already allocated to tagPtr
-    auto pruneMealIter = unassignedMeals.begin();
-    while (pruneMealIter != unassignedMeals.end())
+    for (auto assignedMeal : assignedMeals)
     {
         bool found = false;
-        auto assignedMealIter = assignedMeals.begin();
-        // iterate through all meals in assignedMeals to find match
-        while (!found && assignedMealIter != assignedMeals.end())
+        auto unassignedMealsIter = unassignedMeals.begin();
+        while (!found && unassignedMealsIter != unassignedMeals.end())
         {
-            if ((*pruneMealIter)->getName() == (*assignedMealIter)->getName())
+            // if names match, then remove from unassignedTags
+            if (assignedMeal->getName() == (*unassignedMealsIter)->getName())
             {
-                // meal is allocated, remove from unassignedMeals
                 found = true;
-                unassignedMeals.erase(pruneMealIter);
+                unassignedMeals.erase(unassignedMealsIter);
             }
             else
-                ++assignedMealIter;
+                ++unassignedMealsIter;
         }
-        ++pruneMealIter;
     }
 
     // done pruning, now create items for remaining meals
