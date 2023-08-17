@@ -145,7 +145,7 @@ void EditMultitag_AssignedTags::RefreshTagsList(void)
     }
     for (auto& item : itemsInOrder_Unassigned)
     {
-        ui->listWidget_assignedTags->addItem(item);
+        ui->listWidget_unassignedTags->addItem(item);
     }
 
     // unblock signals
@@ -160,10 +160,10 @@ QString EditMultitag_AssignedTags::BuildItemString(const Tag *tagPtr,
     QString itemStr = "\nName: " + tagPtr->getName()
                       + "\nDepends on MultiTag: ";
     itemStr += (tagPtr->getDependency()) ? "Yes" : "No";
-    itemStr += "\nMaximum consecutive days: " + QString::number(tagPtr->getConsecutiveLimit()) + "\n";
+    itemStr += "\nMaximum consecutive days: " + QString::number(tagPtr->getConsecutiveLimit());
 
     if (tagPtr->isDisabled())
-        itemStr += "Tag is DISABLED";
+        itemStr += "\nTag is DISABLED";
     else
     {
         itemStr += "\nEnabled on: " + mm->formatEnabledDays(tagPtr->getEnabledDays());
@@ -174,7 +174,11 @@ QString EditMultitag_AssignedTags::BuildItemString(const Tag *tagPtr,
         itemStr += "\nNumber of Meals requested from this Tag: " + QString::number(requestedMeals);
     }
 
-    itemStr += "\nDescription: " + tagPtr->getDescription() + "\n";
+    itemStr += "\nDescription: ";
+    if (tagPtr->getDescription().trimmed() == "")
+        itemStr += "[none]\n";
+    else
+        itemStr += tagPtr->getDescription() + "\n";
 
     return itemStr;
 }

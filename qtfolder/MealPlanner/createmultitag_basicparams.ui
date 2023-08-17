@@ -211,7 +211,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>(example) Contains Tags for Italian cuisine.</string>
+    <string/>
    </property>
    <property name="maxLength">
     <number>80</number>
@@ -223,7 +223,7 @@
     <bool>false</bool>
    </property>
    <property name="placeholderText">
-    <string>(example) Contains Meals suitable for picnics.</string>
+    <string>(example) contains Tags for Italian cuisine</string>
    </property>
   </widget>
   <widget class="QCheckBox" name="checkBox_sun">

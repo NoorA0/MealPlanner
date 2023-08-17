@@ -68,7 +68,13 @@ void EditMultitagsWindow::RebuildItems(void)
             // get enabled days
             tempStr += "\nEnabled on: " + mm->formatEnabledDays(tagPtr->getEnabledDays());
         }
-        tempStr += "\nDescription: " + tagPtr->getDescription() + "\n";
+
+        tempStr += "\nDescription: ";
+
+        if (tagPtr->getDescription().trimmed() == "")
+            tempStr += "[none]\n";
+        else
+            tempStr += tagPtr->getDescription() + "\n";
 
         // create new item
         itemToMultitag[tempStr] = tagPtr;

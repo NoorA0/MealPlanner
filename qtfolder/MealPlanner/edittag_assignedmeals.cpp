@@ -170,7 +170,7 @@ void EditTag_AssignedMeals::RefreshMealsList(void)
     }
     for (auto& item : itemsInOrder_Unassigned)
     {
-        ui->listWidget_assignedMeals->addItem(item);
+        ui->listWidget_unassignedMeals->addItem(item);
     }
     // unblock signals to listWidgets
     ui->listWidget_assignedMeals->blockSignals(false);

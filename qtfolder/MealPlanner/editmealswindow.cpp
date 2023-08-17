@@ -152,15 +152,21 @@ void EditMealsWindow::on_listWidget_meals_currentItemChanged(QListWidgetItem *cu
         QString tempStr = "\nName: " + tagPtr->getName() + "\nDepends on MultiTag? ";
         tempStr += (tagPtr->getDependency()) ? "Yes" : "No";
         tempStr += "\nMaximum consecutive days: " + QString::number(tagPtr->getConsecutiveLimit());
-        tempStr += "\nNumber of assigned Meals: " + QString::number(tagPtr->getLinkedMeals().count()) + "\n";
+        tempStr += "\nNumber of assigned Meals: " + QString::number(tagPtr->getLinkedMeals().count());
 
         if (tagPtr->isDisabled())
-            tempStr += "Tag is DISABLED";
+            tempStr += "\nTag is DISABLED";
         else // list the enabled days
         {            
             tempStr + "\nEnabled on: " + mm->formatEnabledDays(tagPtr->getEnabledDays());
         }
-        tempStr += "\nDescription: " + tagPtr->getDescription() + "\n";
+
+        tempStr += "\nDescription: ";
+
+        if (tagPtr->getDescription().trimmed() == "")
+            tempStr += "[none]\n";
+        else
+            tempStr += tagPtr->getDescription() + "\n";
 
         // add the item to the listWidget
         ui->listWidget_tags->addItem(tempStr);
@@ -258,6 +264,14 @@ void EditMealsWindow::on_pushButton_5_clicked()
     // check if item exists
     if (currentItem == nullptr)
         return;
+    else // get the next item to select, if currentItem is deleted
+    {
+        // get the next item, if exists
+        if (ui->listWidget_meals->count() > 1)
+        {
+            //if (ui->listWidget_meals->)
+        }
+    }
 
     auto iter = itemToMeal.find(currentItem->text());
 
@@ -274,5 +288,8 @@ void EditMealsWindow::on_pushButton_5_clicked()
 
     // refreshes list of meals to display
     RefreshMealsList();
+
+    // refresh display of linked tags
+    //on_listWidget_meals_currentItemChanged(ui->listWidget_meals->currentItem(), nullptr);
 }
 

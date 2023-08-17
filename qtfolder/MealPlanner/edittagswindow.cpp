@@ -56,7 +56,7 @@ void EditTagsWindow::RebuildItems(void)
         tempStr = "\nName: " + tagPtr->getName()
                   + "\nDepends on MultiTag? ";
         tempStr += (tagPtr->getDependency()) ? "Yes" : "No";
-        tempStr += "\nMaximum consecutive days: " + QString::number(tagPtr->getConsecutiveLimit()) + "\n";
+        tempStr += "\nMaximum consecutive days: " + QString::number(tagPtr->getConsecutiveLimit());
 
         // check if enabled
         if (tagPtr->isDisabled())
@@ -68,7 +68,13 @@ void EditTagsWindow::RebuildItems(void)
             // get enabled days
             tempStr += "\nEnabled on: " + mm->formatEnabledDays(tagPtr->getEnabledDays());
         }
-        tempStr += "\nDescription: " + tagPtr->getDescription() + "\n";
+
+        tempStr += "\nDescription: ";
+
+        if (tagPtr->getDescription().trimmed() == "")
+            tempStr += "[none]\n";
+        else
+            tempStr += tagPtr->getDescription() + "\n";
 
         // create new item
         itemToTag[tempStr] = tagPtr;

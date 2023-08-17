@@ -29,6 +29,9 @@
     <property name="spacing">
      <number>0</number>
     </property>
+    <property name="selectionRectVisible">
+     <bool>false</bool>
+    </property>
     <property name="itemAlignment">
      <set>Qt::AlignCenter</set>
     </property>

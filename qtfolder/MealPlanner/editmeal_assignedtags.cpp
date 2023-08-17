@@ -30,15 +30,21 @@ EditMeal_AssignedTags::EditMeal_AssignedTags(QWidget *parent,
         QString itemStr = "\nName: " + tag->getName()
                           + "\nDepends on MultiTag? ";
         itemStr += (tag->getDependency()) ? "Yes" : "No";
-        itemStr += "\nMaximum consecutive days: " + QString::number(tag->getConsecutiveLimit()) + "\n";
+        itemStr += "\nMaximum consecutive days: " + QString::number(tag->getConsecutiveLimit());
 
         if (tag->isDisabled())
-            itemStr += "Tag is DISABLED";
+            itemStr += "\nTag is DISABLED";
         else
         {
             itemStr += "\nEnabled on: " + mm->formatEnabledDays(tag->getEnabledDays());
         }
-        itemStr += "\nDescription: " + tag->getDescription() + "\n";
+
+        itemStr += "\nDescription: ";
+
+        if (tag->getDescription().trimmed() == "")
+            itemStr += "[none]\n";
+        else
+            itemStr += tag->getDescription() + "\n";
 
         // create entry in map
         itemToTag[itemStr] = tag;
@@ -172,7 +178,7 @@ void EditMeal_AssignedTags::RefreshTagsList(void)
     }
     for (auto& item : itemsInOrder_Unassigned)
     {
-        ui->listWidget_assignedTags->addItem(item);
+        ui->listWidget_unassignedTags->addItem(item);
     }
 
     // unblock signals
