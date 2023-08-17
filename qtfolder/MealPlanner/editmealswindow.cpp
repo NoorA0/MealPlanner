@@ -66,7 +66,7 @@ void EditMealsWindow::RebuildItems(void)
         {
             // get enabled days
             QMap<DaysOfTheWeek, bool> mealEnabledDays = mealPtr->getEnabledDays();
-            tempStr += "\nEnabled on: " + mm->formatEnabledDays(mealEnabledDays) + "\n";
+            tempStr += "\nEnabled (by tags) on: " + mm->formatEnabledDays(mealEnabledDays) + "\n";
         }
 
         // create new item
@@ -176,7 +176,9 @@ void EditMealsWindow::on_pushButton_3_clicked()
 
     // check if item exists
     if (currentItem == nullptr)
+    {
         return;
+    }
 
     auto iter = itemToMeal.find(currentItem->text());
 
