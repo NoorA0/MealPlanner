@@ -20,6 +20,9 @@ public:
                MealManager *mm = nullptr);
     ~MainWindow();
 
+signals:
+    void closeModalWindow(void);
+
 private slots:
     void getFileName(const bool &isValid, const QString &newFileName);
 
@@ -28,10 +31,6 @@ private slots:
     void getPlanBudget(const bool &isValid, const double &newBudget);
 
     void getConfirmation(const bool &isValid);
-
-    void getCreationStatus(const int &returnCode,
-                           const unsigned int &daysErrored,
-                           const double &failedBudget);
 
     void on_settingsButton_clicked();
 
@@ -50,11 +49,5 @@ private:
     int planLength; // in weeks
     double planBudget;
     bool settingsConfirmed;
-
-    // received after generating a plan
-    int returnCode;
-    unsigned int erroredDays;
-    double failedBudget;
-
 };
 #endif // MAINWINDOW_H

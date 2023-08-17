@@ -13,6 +13,8 @@
 #include "createplan_inprogress.h"
 #include "createplan_success.h"
 #include "createplan_creationdisplayerror.h"
+#include "createplan_generatorcrashed.h"
+#include <QTime>
 
 MainWindow::MainWindow(QWidget *parent, MealManager *mm)
     : QMainWindow(parent)
@@ -66,23 +68,10 @@ void MainWindow::getPlanBudget(const bool &isValid, const double &newBudget)
         planBudget = -1.0;
 }
 
-// gets return code after plan was created
-void MainWindow::getCreationStatus(const int &returnCode,
-                                   const unsigned int &erroredDays,
-                                   const double &failedBudget)
-{
-    this->returnCode = returnCode;
-    this->erroredDays = erroredDays;
-    this->failedBudget = failedBudget;
-}
-
 // gets final plan configuration confirmation
 void MainWindow::getConfirmation(const bool &isValid)
 {
-    if (isValid)
-        settingsConfirmed = true;
-    else
-        settingsConfirmed = false;
+    settingsConfirmed = isValid;
 }
 
 // clicked settings button
@@ -145,6 +134,11 @@ void MainWindow::on_quitProgramButton_clicked()
 // clicked generate program
 void MainWindow::on_generatePlanButton_clicked()
 {
+    // post-generation validation vars
+    int returnCode = -1;
+    unsigned int erroredDays = 0;
+    double failedBudget = 0;
+
     // if no meals AND tags, cannot create a plan
     if (mm->getMeals().size() < 1 || mm->getNormalTags().size() < 1)
     {
@@ -232,16 +226,23 @@ void MainWindow::on_generatePlanButton_clicked()
     }
 
     // opens window to tell user to wait, will close when done creating plan
-    CreatePlan_InProgress *cpip = new CreatePlan_InProgress(this, mm, fileName, planBudget, planLength);
+    CreatePlan_InProgress *cpip = new CreatePlan_InProgress(this);
     cpip->setAttribute(Qt::WA_DeleteOnClose);
+    cpip->setModal(true);
 
-    // get the return code to tell if creation failed or not
-    connect(cpip,
-            SIGNAL(createPlanReturn(int,uint,double)),
-            this,
-            SLOT(getCreationStatus(int,uint,double)),
-            Qt::UniqueConnection);
-    cpip->exec();
+    //open window to make user wait
+    cpip->show();
+
+    // generate plan
+    {
+        std::ofstream oFile;
+        // append .txt to file name
+        fileName += ".txt";
+        returnCode = mm->generateSchedule(fileName, planBudget, planLength, oFile, erroredDays, failedBudget);
+    }
+
+    // done, close the window
+    emit closeModalWindow();
 
     // if succeeded in creating a plan
     if (returnCode == 0)
@@ -251,10 +252,17 @@ void MainWindow::on_generatePlanButton_clicked()
         cps->setAttribute(Qt::WA_DeleteOnClose);
         cps->exec();
     }
-    else
+    else if (returnCode != -1)
     {
         // display error window
         CreatePlan_CreationDisplayError *window = new CreatePlan_CreationDisplayError(this, erroredDays, failedBudget);
+        window->setAttribute(Qt::WA_DeleteOnClose);
+        window->exec();
+    }
+    else
+    {
+        // display critical error window
+        CreatePlan_GeneratorCrashed *window = new CreatePlan_GeneratorCrashed(this);
         window->setAttribute(Qt::WA_DeleteOnClose);
         window->exec();
     }

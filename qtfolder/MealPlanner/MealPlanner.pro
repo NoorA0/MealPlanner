@@ -23,6 +23,7 @@ SOURCES += \
     createplan_confirmation.cpp \
     createplan_creationdisplayerror.cpp \
     createplan_filename.cpp \
+    createplan_generatorcrashed.cpp \
     createplan_inprogress.cpp \
     createplan_length.cpp \
     createplan_nomealsortagswarning.cpp \
@@ -69,6 +70,7 @@ HEADERS += \
     createplan_confirmation.h \
     createplan_creationdisplayerror.h \
     createplan_filename.h \
+    createplan_generatorcrashed.h \
     createplan_inprogress.h \
     createplan_length.h \
     createplan_nomealsortagswarning.h \
@@ -113,6 +115,7 @@ FORMS += \
     createplan_confirmation.ui \
     createplan_creationdisplayerror.ui \
     createplan_filename.ui \
+    createplan_generatorcrashed.ui \
     createplan_inprogress.ui \
     createplan_length.ui \
     createplan_nomealsortagswarning.ui \

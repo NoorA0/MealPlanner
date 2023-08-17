@@ -13,20 +13,14 @@ class CreatePlan_InProgress : public QDialog
     Q_OBJECT
 
 public:
-    explicit CreatePlan_InProgress(QWidget *parent = nullptr,
-                                   MealManager *mm = nullptr,
-                                   const QString &fileName = "",
-                                   const double &budget = 0,
-                                   const int &durationWeeks = 1);
+    explicit CreatePlan_InProgress(QWidget *parent = nullptr);
     ~CreatePlan_InProgress();
-
-signals:
-    void createPlanReturn(const int &returnCode,
-                          const unsigned int &daysErrored,
-                          const double &failedBudget);
 
 private:
     Ui::CreatePlan_InProgress *ui;
+
+private slots:
+    void closeWindow(void);
 };
 
 #endif // CREATEPLAN_INPROGRESS_H

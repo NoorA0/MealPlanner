@@ -22,7 +22,7 @@ EditMeal_BasicParams::EditMeal_BasicParams(QWidget *parent,
     ui->lineEdit_name->setMaxLength(this->mm->getMaximumNameLength());
     ui->doubleSpinBox_price->setMinimum(this->mm->getMinimumPrice());
     ui->doubleSpinBox_price->setMaximum(this->mm->getMaximumPrice());
-    ui->spinBox_duration->setMinimum(0);
+    ui->spinBox_duration->setMinimum(1);
     ui->spinBox_duration->setMaximum(this->mm->getMealDurationLimit());
     ui->spinBox_daysbetweenoccurrences->setMinimum(0);
     ui->spinBox_daysbetweenoccurrences->setMaximum(this->mm->getDaysBetweenOccurrencesLimit());
