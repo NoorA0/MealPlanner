@@ -314,9 +314,9 @@ private:
     const QString LOGFILE = "MealPlanner_Logs.txt";
     const double MINIMUM_PRICE = 0.0;    // lowest price for a single meal
     const double MAXIMUM_PRICE = 999.99; // highest price for a single meal
-    const unsigned int NAME_LENGTH = 40; // limit for tag and meal names
+    const unsigned int NAME_LENGTH = 40; // limit for tag, meal, and multitag names
     const unsigned int MAX_FILENAME_LENGTH = 50; // char limit for filenames
-    const unsigned int DESC_LENGTH = 80; // limit for tag descriptions
+    const unsigned int DESC_LENGTH = 55; // limit for tag descriptions
     const unsigned int MIN_REQUESTEDMEALS = 1;   // min number of requested meals from a Tag
     const unsigned int MAX_REQUESTEDMEALS = 100; // max number of requested meals from a Tag
     const unsigned int MIN_CALCULATION_LENGTH = 1; // 1 week
