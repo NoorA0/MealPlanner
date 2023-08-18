@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1194</width>
+    <width>992</width>
     <height>427</height>
    </rect>
   </property>
@@ -16,7 +16,7 @@
   <widget class="QLabel" name="label_assignedTagsTitle">
    <property name="geometry">
     <rect>
-     <x>210</x>
+     <x>160</x>
      <y>20</y>
      <width>141</width>
      <height>21</height>
@@ -31,7 +31,7 @@
     <rect>
      <x>10</x>
      <y>60</y>
-     <width>531</width>
+     <width>441</width>
      <height>351</height>
     </rect>
    </property>
@@ -48,8 +48,8 @@
   <widget class="QPushButton" name="pushButton_unassignTag">
    <property name="geometry">
     <rect>
-     <x>560</x>
-     <y>200</y>
+     <x>460</x>
+     <y>240</y>
      <width>71</width>
      <height>31</height>
     </rect>
@@ -61,8 +61,8 @@
   <widget class="QPushButton" name="pushButton_assignTag">
    <property name="geometry">
     <rect>
-     <x>560</x>
-     <y>253</y>
+     <x>460</x>
+     <y>200</y>
      <width>71</width>
      <height>31</height>
     </rect>
@@ -74,9 +74,9 @@
   <widget class="QListWidget" name="listWidget_unassignedTags">
    <property name="geometry">
     <rect>
-     <x>650</x>
+     <x>540</x>
      <y>60</y>
-     <width>531</width>
+     <width>441</width>
      <height>351</height>
     </rect>
    </property>
@@ -93,7 +93,7 @@
   <widget class="QLabel" name="label_unassignedTagsTitle">
    <property name="geometry">
     <rect>
-     <x>850</x>
+     <x>700</x>
      <y>20</y>
      <width>141</width>
      <height>21</height>
@@ -106,9 +106,9 @@
   <widget class="QPushButton" name="pushButton">
    <property name="geometry">
     <rect>
-     <x>560</x>
+     <x>460</x>
      <y>380</y>
-     <width>80</width>
+     <width>71</width>
      <height>24</height>
     </rect>
    </property>

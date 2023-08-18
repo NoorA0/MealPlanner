@@ -161,7 +161,7 @@ void EditMealsWindow::on_listWidget_meals_currentItemChanged(QListWidgetItem *cu
             tempStr + "\nEnabled on: " + mm->formatEnabledDays(tagPtr->getEnabledDays());
         }
 
-        tempStr += "\nDescription: ";
+        tempStr += "\nDesc.: ";
 
         if (tagPtr->getDescription().trimmed() == "")
             tempStr += "[none]\n";

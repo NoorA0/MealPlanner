@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1099</width>
+    <width>864</width>
     <height>438</height>
    </rect>
   </property>
@@ -17,27 +17,27 @@
    <widget class="QPushButton" name="pushButton_newTag">
     <property name="geometry">
      <rect>
-      <x>410</x>
+      <x>360</x>
       <y>390</y>
       <width>80</width>
       <height>24</height>
      </rect>
     </property>
     <property name="text">
-     <string>New Tag</string>
+     <string>New</string>
     </property>
    </widget>
    <widget class="QPushButton" name="pushButton_editTag">
     <property name="geometry">
      <rect>
-      <x>280</x>
+      <x>260</x>
       <y>390</y>
       <width>80</width>
       <height>24</height>
      </rect>
     </property>
     <property name="text">
-     <string>Edit Tag</string>
+     <string>Edit</string>
     </property>
    </widget>
    <widget class="QPushButton" name="pushButton_exit">
@@ -56,9 +56,9 @@
    <widget class="QListWidget" name="listWidget_assignedMeals">
     <property name="geometry">
      <rect>
-      <x>560</x>
+      <x>470</x>
       <y>50</y>
-      <width>531</width>
+      <width>381</width>
       <height>331</height>
      </rect>
     </property>
@@ -75,7 +75,7 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>780</x>
+      <x>580</x>
       <y>20</y>
       <width>141</width>
       <height>21</height>
@@ -90,7 +90,7 @@
      <rect>
       <x>9</x>
       <y>9</y>
-      <width>531</width>
+      <width>441</width>
       <height>371</height>
      </rect>
     </property>
@@ -107,7 +107,7 @@
    <widget class="QPushButton" name="pushButton_editAssignedMeals">
     <property name="geometry">
      <rect>
-      <x>800</x>
+      <x>610</x>
       <y>390</y>
       <width>80</width>
       <height>24</height>
@@ -127,7 +127,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Delete Tag</string>
+     <string>Delete</string>
     </property>
    </widget>
   </widget>

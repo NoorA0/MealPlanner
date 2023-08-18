@@ -174,7 +174,7 @@ QString EditMultitag_AssignedTags::BuildItemString(const Tag *tagPtr,
         itemStr += "\nNumber of Meals requested from this Tag: " + QString::number(requestedMeals);
     }
 
-    itemStr += "\nDescription: ";
+    itemStr += "\nDesc.: ";
     if (tagPtr->getDescription().trimmed() == "")
         itemStr += "[none]\n";
     else

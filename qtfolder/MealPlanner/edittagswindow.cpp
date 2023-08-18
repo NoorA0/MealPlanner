@@ -69,7 +69,7 @@ void EditTagsWindow::RebuildItems(void)
             tempStr += "\nEnabled on: " + mm->formatEnabledDays(tagPtr->getEnabledDays());
         }
 
-        tempStr += "\nDescription: ";
+        tempStr += "\nDesc.: ";
 
         if (tagPtr->getDescription().trimmed() == "")
             tempStr += "[none]\n";

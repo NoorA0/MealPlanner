@@ -39,7 +39,7 @@ EditMeal_AssignedTags::EditMeal_AssignedTags(QWidget *parent,
             itemStr += "\nEnabled on: " + mm->formatEnabledDays(tag->getEnabledDays());
         }
 
-        itemStr += "\nDescription: ";
+        itemStr += "\nDesc.: ";
 
         if (tag->getDescription().trimmed() == "")
             itemStr += "[none]\n";
@@ -112,7 +112,7 @@ EditMeal_AssignedTags::EditMeal_AssignedTags(QWidget *parent,
         {
             itemStr += "\nEnabled on: " + mm->formatEnabledDays(tag->getEnabledDays());
         }
-        itemStr += "\nDescription: " + tag->getDescription() + "\n";
+        itemStr += "\nDesc.: " + tag->getDescription() + "\n";
 
         // create entry in map
         itemToTag[itemStr] = tag;

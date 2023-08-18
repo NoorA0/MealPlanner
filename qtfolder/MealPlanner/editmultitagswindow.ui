@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1142</width>
-    <height>455</height>
+    <width>920</width>
+    <height>451</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,9 +17,9 @@
    <widget class="QListWidget" name="listWidget_assignedTags">
     <property name="geometry">
      <rect>
-      <x>581</x>
-      <y>61</y>
-      <width>531</width>
+      <x>470</x>
+      <y>60</y>
+      <width>441</width>
       <height>331</height>
      </rect>
     </property>
@@ -36,9 +36,9 @@
    <widget class="QPushButton" name="pushButton_deleteMultitag">
     <property name="geometry">
      <rect>
-      <x>190</x>
+      <x>170</x>
       <y>401</y>
-      <width>61</width>
+      <width>81</width>
       <height>24</height>
      </rect>
     </property>
@@ -49,9 +49,9 @@
    <widget class="QPushButton" name="pushButton_editMultitag">
     <property name="geometry">
      <rect>
-      <x>265</x>
+      <x>270</x>
       <y>400</y>
-      <width>61</width>
+      <width>81</width>
       <height>24</height>
      </rect>
     </property>
@@ -62,22 +62,22 @@
    <widget class="QPushButton" name="pushButton_editLinkedTags">
     <property name="geometry">
      <rect>
-      <x>805</x>
+      <x>650</x>
       <y>401</y>
       <width>80</width>
       <height>24</height>
      </rect>
     </property>
     <property name="text">
-     <string>Edit Linked</string>
+     <string>Edit Tags</string>
     </property>
    </widget>
    <widget class="QListWidget" name="listWidget_multitags">
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>10</x>
       <y>20</y>
-      <width>531</width>
+      <width>441</width>
       <height>371</height>
      </rect>
     </property>
@@ -94,10 +94,10 @@
    <widget class="QPushButton" name="pushButton_exit">
     <property name="geometry">
      <rect>
-      <x>31</x>
+      <x>11</x>
       <y>401</y>
-      <width>80</width>
-      <height>31</height>
+      <width>81</width>
+      <height>24</height>
      </rect>
     </property>
     <property name="text">
@@ -107,7 +107,7 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>801</x>
+      <x>620</x>
       <y>31</y>
       <width>141</width>
       <height>21</height>
@@ -120,9 +120,9 @@
    <widget class="QPushButton" name="pushButton_newMultitag">
     <property name="geometry">
      <rect>
-      <x>340</x>
+      <x>370</x>
       <y>401</y>
-      <width>61</width>
+      <width>81</width>
       <height>24</height>
      </rect>
     </property>

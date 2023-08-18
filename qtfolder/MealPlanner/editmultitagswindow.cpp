@@ -69,7 +69,7 @@ void EditMultitagsWindow::RebuildItems(void)
             tempStr += "\nEnabled on: " + mm->formatEnabledDays(tagPtr->getEnabledDays());
         }
 
-        tempStr += "\nDescription: ";
+        tempStr += "\nDesc.: ";
 
         if (tagPtr->getDescription().trimmed() == "")
             tempStr += "[none]\n";
@@ -273,7 +273,7 @@ void EditMultitagsWindow::on_listWidget_multitags_currentItemChanged(QListWidget
 
         tempStr += "\nNumber of Meals requested from this Tag: " + QString::number(tagPairPtr.second);
 
-        tempStr += "\nDescription: " + tagPairPtr.first->getDescription() + "\n";
+        tempStr += "\nDesc.: " + tagPairPtr.first->getDescription() + "\n";
 
         // add the item to the listWidget
         ui->listWidget_assignedTags->addItem(tempStr);
