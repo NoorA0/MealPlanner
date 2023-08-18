@@ -32,7 +32,7 @@ EditMeal_BasicParams::EditMeal_BasicParams(QWidget *parent,
     ui->doubleSpinBox_price->setValue(mealPtr->getPrice());
     ui->spinBox_duration->setValue(mealPtr->getMealDuration());
     ui->spinBox_daysbetweenoccurrences->setValue(mealPtr->getDaysBetweenOccurrences());
-    ui->checkBox_isEnabled->setChecked(mealPtr->isDisabled());
+    ui->checkBox_isEnabled->setChecked(!mealPtr->isDisabled());
 }
 
 EditMeal_BasicParams::~EditMeal_BasicParams()
