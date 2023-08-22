@@ -87,7 +87,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>10</y>
+     <y>20</y>
      <width>861</width>
      <height>411</height>
     </rect>
@@ -102,7 +102,7 @@
   <widget class="QLabel" name="label_pageNumber">
    <property name="geometry">
     <rect>
-     <x>410</x>
+     <x>405</x>
      <y>660</y>
      <width>71</width>
      <height>31</height>
@@ -138,7 +138,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>10</y>
+     <y>20</y>
      <width>601</width>
      <height>441</height>
     </rect>
@@ -157,7 +157,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>10</y>
+     <y>20</y>
      <width>811</width>
      <height>621</height>
     </rect>
