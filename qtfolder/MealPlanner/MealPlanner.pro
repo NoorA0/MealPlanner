@@ -48,6 +48,7 @@ SOURCES += \
     error_loaddatafailed.cpp \
     main.cpp \
     mainwindow.cpp \
+    manual_summaryinfo.cpp \
     manualwindow.cpp \
     meal.cpp \
     mealmanager.cpp \
@@ -94,6 +95,7 @@ HEADERS += \
     edittagswindow.h \
     error_loaddatafailed.h \
     mainwindow.h \
+    manual_summaryinfo.h \
     manualwindow.h \
     meal.h \
     mealmanager.h \
@@ -139,6 +141,7 @@ FORMS += \
     edittagswindow.ui \
     error_loaddatafailed.ui \
     mainwindow.ui \
+    manual_summaryinfo.ui \
     manualwindow.ui \
     settingswindow.ui
 
