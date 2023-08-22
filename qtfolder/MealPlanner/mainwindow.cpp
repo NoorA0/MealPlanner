@@ -97,7 +97,7 @@ void MainWindow::on_attributionsButton_clicked()
 {
     AttributionsDialogue* ad = new AttributionsDialogue(this);
     ad->setAttribute(Qt::WA_DeleteOnClose);
-    ad->show();
+    ad->exec();
 }
 
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>604</width>
+    <height>471</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,8 +17,8 @@
    <widget class="QPushButton" name="generatePlanButton">
     <property name="geometry">
      <rect>
-      <x>280</x>
-      <y>50</y>
+      <x>180</x>
+      <y>30</y>
       <width>251</width>
       <height>61</height>
      </rect>
@@ -30,8 +30,8 @@
    <widget class="QPushButton" name="settingsButton">
     <property name="geometry">
      <rect>
-      <x>280</x>
-      <y>140</y>
+      <x>180</x>
+      <y>110</y>
       <width>251</width>
       <height>61</height>
      </rect>
@@ -43,8 +43,8 @@
    <widget class="QPushButton" name="manualButton">
     <property name="geometry">
      <rect>
-      <x>280</x>
-      <y>230</y>
+      <x>180</x>
+      <y>190</y>
       <width>251</width>
       <height>61</height>
      </rect>
@@ -56,8 +56,8 @@
    <widget class="QPushButton" name="attributionsButton">
     <property name="geometry">
      <rect>
-      <x>280</x>
-      <y>310</y>
+      <x>180</x>
+      <y>270</y>
       <width>251</width>
       <height>61</height>
      </rect>
@@ -69,8 +69,8 @@
    <widget class="QPushButton" name="quitProgramButton">
     <property name="geometry">
      <rect>
-      <x>280</x>
-      <y>440</y>
+      <x>180</x>
+      <y>370</y>
       <width>251</width>
       <height>61</height>
      </rect>

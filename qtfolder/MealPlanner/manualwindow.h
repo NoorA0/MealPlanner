@@ -18,6 +18,16 @@ public:
 private slots:
     void on_returnMenuButton_clicked();
 
+    void on_explainUseButton_clicked();
+
+    void on_explainMealsButton_clicked();
+
+    void on_explainTagsButton_clicked();
+
+    void on_explainMultiTagsButton_clicked();
+
+    void on_explainExamplesButton_clicked();
+
 private:
     Ui::ManualWindow *ui;
 };
