@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Manual_ExampleInfo</class>
+ <widget class="QDialog" name="Manual_ExampleInfo">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>881</width>
+    <height>744</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Usage Examples</string>
+  </property>
+  <widget class="QLabel" name="label_page4">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>20</y>
+     <width>841</width>
+     <height>591</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:700;&quot;&gt;Advanced Usage: Sandwich Randomizer&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;(This is the same as the sandwich randomizer explained in the MultiTag pages)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Meals can be as small or large as you want them to be.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;While it is advised you make Meals as complete as possible, advanced usage of MultiTags may require small Meals, such as the following:&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Suppose that you created a Meal called &amp;quot;Slice of white bread&amp;quot;.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;This is a poor meal in the traditional sense, but it is a component of a sandwich, which will become useful as you will see..&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Now suppose you also created multiple Meals for many types of bread, multiple types of bread (Slice of sourdough, Slice of whole wheat, etc.).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Next, you create Meals for the main component of a sandwich: &amp;quot;Roast beef&amp;quot;, &amp;quot;Smoked turkey&amp;quot;, etc.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;You also create Meals for the toppings: &amp;quot;Mustard&amp;quot;, &amp;quot;Ketchup&amp;quot;, &amp;quot;Pickles&amp;quot;, etc.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Then, you create a Tag called &amp;quot;Sandwich Buns&amp;quot;, and assign the slices of bread to this Tag.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Then another Tag called &amp;quot;Sandwich Core&amp;quot; and assign &amp;quot;Roast beef&amp;quot;, &amp;quot;Smoked turkey&amp;quot;, etc., to this Tag.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Yet again, you create a Tag called &amp;quot;Sandwich Toppings&amp;quot;, and assign it to the toppings you created as Meals.&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Finally, you create a MultiTag called &amp;quot;Random Sandwich&amp;quot;, and link it to the newly created Tags.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;You set the number of requested meals for &amp;quot;Sandwich Buns&amp;quot; to 2 (for a top and bottom), while the other Linked Tags request 1 Meal each.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;And also set the Tags to Depends on MultiTag: YES, so that they only get chosen for Meal scheduling if &amp;quot;Random Sandwhich&amp;quot; is chosen.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Since you want a complete sandwich, you set Requires Fulfillment to YES, so that incomplete sandwiches are not scheduled.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Now, if the MultiTag &amp;quot;Random Sandwhich&amp;quot; is chosen, then all of the components of a sandwich will be scheduled on the same day of the week.&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;You will have effectively created a custom sandwich creator! (for more practical examples, see the next page.)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_done">
+   <property name="geometry">
+    <rect>
+     <x>400</x>
+     <y>710</y>
+     <width>80</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Done</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_page1">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>20</y>
+     <width>811</width>
+     <height>441</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:700;&quot;&gt;Basic Usage - Minimal Tags&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;You want to create a Meal Plan for yourself and you can cook 5 Meals. You're not a picky eater, so you don't care how they're scheduled.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Meals must be linked to Tags in order to work, but you don't want to create many Tags and MultiTags.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Here is the simplest solution: &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Create a single Tag and make it enabled on all days of the week.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;You could name the Tag something like &amp;quot;Always Enabled&amp;quot; and add a description if you want.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Since you don't want to use MultiTags, set MultiTag Dependency to NO.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Also, set the Consecutive Days to a very high value, so that it will never interfere with scheduling.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;(As long as the value is greater than the number of days you want to create a Meal Plan on, it will always allow Meals to be scheduled.)&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Now, create your 5 Meals. Since you're not picky, set each Meal's Days Between Occurrences to 0 days.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;This allows the Meals to occur whenever a Tag requests it, without waiting between occurrences.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Finally, assign this Tag to each of your 5 Meals. You're done!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Now you can create a Meal Plan for any duration you wish, your budget is the only limitation that could interfere with scheduling.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_page3">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>20</y>
+     <width>781</width>
+     <height>531</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:700;&quot;&gt;Advanced Usage - Multi-Course Meal&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;You want to make a multi-course Meal with the following courses: Main, Soup, Appetizer, Salad, and Dessert.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Create each Course as its own Tag, and enable them for all days, with Consecutive Days set to 1000.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Set each Tag to depend on a MultiTag, since you don't want these courses to be scheduled on their own.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Next, create Meals for all of the possible things you might serve, like 2-3 different soups, 5 appetizers, etc.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;If you want this Multi-Course meal to occur every 2 weeks at most, then set each Meal's Days Between Occurrences to 14 days.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Assign each Meal to the course it is a part of, so soups should only be assigned to the &amp;quot;Soup&amp;quot; Tag., and so on.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Since Tags only schedule a single Meal on a day, and you need more than 1 Meal to create a Multi-Course meal,&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;create a MultiTag called &amp;quot;Multi-Course Meal&amp;quot;, and link it to each of the courses: &amp;quot;Main&amp;quot;, &amp;quot;Soup&amp;quot;, etc.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Set the Requested Meals for each linked Tag to 1, unless you want something like 2 Appetizers, then go for it!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;If you want a Multi-Course meal to occur as soon as possible, and bypass the random choice that the program uses,&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;then set the MultiTag to HIGH PRIORITY, otherwise, it will have to be randomly chosen among other Tags before it can be scheduled.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;A Multi-Course meal is useless if it's incomplete. So set Require Fulfillment to REQUIRES FULFILLMENT.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Lastly, enable the MultiTag on whichever days of the week you wish.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Now you're done! Enjoy that multi-course meal!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_page2">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>20</y>
+     <width>761</width>
+     <height>511</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:700;&quot;&gt;Basic Usage - Tags as Filters&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Continuing from the previous example, you have 5 Meals and one Tag that allows Meals on every day of the week.&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Now you've become much busier than before, and some of your Meals take too long to make on a weekday.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;What you want to do is to eat 3 Meals during the weekdays, and 2 Meals on the weekends.&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Start by creating a Tag, perhaps called &amp;quot;Weekdays Only&amp;quot;, and only enable it on the weekdays.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Then create another Tag called &amp;quot;Weekends Only&amp;quot;, and only enable it on the weekend.&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;You're not that picky about which Meals you eat, so you keep the Consecutive Days to some very large value, like 1000.&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Finally, unassign the Tag called &amp;quot;Always Enabled&amp;quot; from all of your meals, because it can cause Meals to be scheduled on any day.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;You pick 3 Meals and assign them to &amp;quot;Weekdays Only&amp;quot;, and the last 2 are assigned to &amp;quot;Weekends Only&amp;quot;.&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Done! Now only 3 of the 5 Meals will be scheduled on the weekdays, and the other 2 will only occur on the weekends.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;If you ever make any more Meals, assign them to their appropriate Tag, or even both of them.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;That way, those Meals can be scheduled on both the weekdends and weekdays.&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt; font-weight:700;&quot;&gt;Keep in mind, that the more you want to restrict certain Meals/Tags, the more Tags you should create.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt; font-weight:700;&quot;&gt;Only if you really don't mind about which Meals occur, should you only have a couple Tags.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_nextPage">
+   <property name="geometry">
+    <rect>
+     <x>500</x>
+     <y>710</y>
+     <width>80</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Next Page</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_previousPage">
+   <property name="geometry">
+    <rect>
+     <x>300</x>
+     <y>710</y>
+     <width>80</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Prev. Page</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_pageNumber">
+   <property name="geometry">
+    <rect>
+     <x>405</x>
+     <y>670</y>
+     <width>71</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt; font-weight:700;&quot;&gt;Page 1/5&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
