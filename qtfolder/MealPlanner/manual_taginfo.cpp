@@ -15,7 +15,6 @@ Manual_TagInfo::Manual_TagInfo(QWidget *parent) :
 
     // set active page
     showPage(currentPage);
-
 }
 
 Manual_TagInfo::~Manual_TagInfo()
