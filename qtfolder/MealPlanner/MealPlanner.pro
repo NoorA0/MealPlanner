@@ -48,7 +48,9 @@ SOURCES += \
     error_loaddatafailed.cpp \
     main.cpp \
     mainwindow.cpp \
+    manual_exampleinfo.cpp \
     manual_mealinfo.cpp \
+    manual_multitaginfo.cpp \
     manual_summaryinfo.cpp \
     manual_taginfo.cpp \
     manualwindow.cpp \
@@ -97,7 +99,9 @@ HEADERS += \
     edittagswindow.h \
     error_loaddatafailed.h \
     mainwindow.h \
+    manual_exampleinfo.h \
     manual_mealinfo.h \
+    manual_multitaginfo.h \
     manual_summaryinfo.h \
     manual_taginfo.h \
     manualwindow.h \
@@ -145,7 +149,9 @@ FORMS += \
     edittagswindow.ui \
     error_loaddatafailed.ui \
     mainwindow.ui \
+    manual_exampleinfo.ui \
     manual_mealinfo.ui \
+    manual_multitaginfo.ui \
     manual_summaryinfo.ui \
     manual_taginfo.ui \
     manualwindow.ui \
