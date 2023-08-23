@@ -50,6 +50,7 @@ SOURCES += \
     mainwindow.cpp \
     manual_mealinfo.cpp \
     manual_summaryinfo.cpp \
+    manual_taginfo.cpp \
     manualwindow.cpp \
     meal.cpp \
     mealmanager.cpp \
@@ -98,6 +99,7 @@ HEADERS += \
     mainwindow.h \
     manual_mealinfo.h \
     manual_summaryinfo.h \
+    manual_taginfo.h \
     manualwindow.h \
     meal.h \
     mealmanager.h \
@@ -145,6 +147,7 @@ FORMS += \
     mainwindow.ui \
     manual_mealinfo.ui \
     manual_summaryinfo.ui \
+    manual_taginfo.ui \
     manualwindow.ui \
     settingswindow.ui
 
