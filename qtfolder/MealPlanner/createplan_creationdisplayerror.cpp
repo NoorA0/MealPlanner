@@ -15,7 +15,7 @@ CreatePlan_CreationDisplayError::CreatePlan_CreationDisplayError(QWidget *parent
 
     // set label text to display error values
     QString setText = DAYSERRORED_PREAMBLE + QString::number(daysErrored)
-                      + FAILEDBUDGET_PREAMBLE + QString::number(failedBudget)
+                      + FAILEDBUDGET_PREAMBLE + QString::number(failedBudget, 'g', 8) // set precision to 8 digits
                       + END_TAGS;
 
     ui->label_errorDetails->setText(setText);
