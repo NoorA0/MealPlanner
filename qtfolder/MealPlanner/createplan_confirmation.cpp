@@ -14,7 +14,7 @@ createplan_confirmation::createplan_confirmation(QWidget *parent,
     QDialog(parent),
     ui(new Ui::createplan_confirmation)
 {
-    ui->setupUi(this);
+    ui->setupUi(this);    
 
     // gather values and prepare text
     QString newText = PART_ONE
@@ -22,7 +22,7 @@ createplan_confirmation::createplan_confirmation(QWidget *parent,
                       + PART_TWO
                       + QString::number(planLength)
                       + PART_THREE
-                      + QString::number(planBudget)
+                      + QString::number(planBudget, 'g', 8) // sets precision to 8 digits
                       + PART_FOUR;
 
     // set text

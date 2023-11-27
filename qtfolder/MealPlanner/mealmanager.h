@@ -285,8 +285,11 @@ public:
     unsigned int getRequestedMealsLimit(void) {return MAX_REQUESTEDMEALS;}
     QString getDataFileName(void) {return DATA_NAME;}
     QString getLogFileName(void) {return LOGFILE;}
-    double getMinimumPrice(void) {return MINIMUM_PRICE;}
-    double getMaximumPrice(void) {return MAXIMUM_PRICE;}
+    double getMinimumMealPrice(void) {return MINIMUM_PRICE;}
+    double getMaximumMealPrice(void) {return MAXIMUM_PRICE;}
+    double getMinimumBudget(void) {return MIN_BUDGET;}
+    double getMaximumBudget(void) {return MAX_BUDGET;}
+
     unsigned int getMaximumNameLength(void) {return NAME_LENGTH;}
     unsigned int getMaximumFileNameLength(void) {return MAX_FILENAME_LENGTH;}
     unsigned int getMaximumDescriptionLength(void) {return DESC_LENGTH;}
@@ -321,8 +324,8 @@ private:
     const unsigned int MAX_REQUESTEDMEALS = 100; // max number of requested meals from a Tag
     const unsigned int MIN_CALCULATION_LENGTH = 1; // 1 week
     const unsigned int MAX_CALCULATION_LENGTH = 52; // just under a year (in weeks)
-    const unsigned int MIN_BUDGET = 0;
-    const unsigned int MAX_BUDGET = 100000;
+    const double MIN_BUDGET = 0;      // min budget for an entire meal plan
+    const double MAX_BUDGET = 100000; // max budget for an entire meal plan
 
     // used in generateSchedule()
     const unsigned int GENERATED_PLANS = 500; // number of meal plans to make

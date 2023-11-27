@@ -15,8 +15,8 @@ createPlan_Budget::createPlan_Budget(QWidget *parent,
     ui->setupUi(this);
 
     // set limits to budget
-    ui->doubleSpinBox->setMinimum(mm->getMinimumPrice());
-    ui->doubleSpinBox->setMaximum(mm->getMaximumPrice());
+    ui->doubleSpinBox->setMinimum(mm->getMinimumBudget());
+    ui->doubleSpinBox->setMaximum(mm->getMaximumBudget());
 }
 
 createPlan_Budget::~createPlan_Budget()

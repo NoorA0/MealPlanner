@@ -20,8 +20,8 @@ createmeal_basicparams::createmeal_basicparams(QWidget *parent,
 
     // set value limits
     ui->lineEdit_name->setMaxLength(this->mm->getMaximumNameLength());
-    ui->doubleSpinBox_price->setMinimum(this->mm->getMinimumPrice());
-    ui->doubleSpinBox_price->setMaximum(this->mm->getMaximumPrice());
+    ui->doubleSpinBox_price->setMinimum(this->mm->getMinimumMealPrice());
+    ui->doubleSpinBox_price->setMaximum(this->mm->getMaximumMealPrice());
     ui->spinBox_duration->setMinimum(1);
     ui->spinBox_duration->setMaximum(this->mm->getMealDurationLimit());
     ui->spinBox_daysbetweenoccurrences->setMinimum(0);
