@@ -6,78 +6,228 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>604</width>
-    <height>471</height>
+    <width>887</width>
+    <height>696</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Main Menu</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="generatePlanButton">
+   <widget class="QStackedWidget" name="stackedWidget">
     <property name="geometry">
      <rect>
-      <x>180</x>
-      <y>30</y>
-      <width>251</width>
-      <height>61</height>
+      <x>19</x>
+      <y>9</y>
+      <width>811</width>
+      <height>661</height>
      </rect>
     </property>
-    <property name="text">
-     <string>Create a new Plan</string>
+    <property name="currentIndex">
+     <number>0</number>
     </property>
-   </widget>
-   <widget class="QPushButton" name="settingsButton">
-    <property name="geometry">
-     <rect>
-      <x>180</x>
-      <y>110</y>
-      <width>251</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Configure</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="manualButton">
-    <property name="geometry">
-     <rect>
-      <x>180</x>
-      <y>190</y>
-      <width>251</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Program Manual</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="attributionsButton">
-    <property name="geometry">
-     <rect>
-      <x>180</x>
-      <y>270</y>
-      <width>251</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Attributions</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="quitProgramButton">
-    <property name="geometry">
-     <rect>
-      <x>180</x>
-      <y>370</y>
-      <width>251</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Save &amp;&amp; Exit</string>
-    </property>
+    <widget class="QWidget" name="MainMenuPage">
+     <widget class="QPushButton" name="settingsButton">
+      <property name="geometry">
+       <rect>
+        <x>280</x>
+        <y>140</y>
+        <width>251</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Configure</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="generatePlanButton">
+      <property name="geometry">
+       <rect>
+        <x>280</x>
+        <y>60</y>
+        <width>251</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Create a new Plan</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="manualButton">
+      <property name="geometry">
+       <rect>
+        <x>280</x>
+        <y>220</y>
+        <width>251</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Program Manual</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="quitProgramButton">
+      <property name="geometry">
+       <rect>
+        <x>280</x>
+        <y>400</y>
+        <width>251</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Save &amp;&amp; Exit</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="attributionsButton">
+      <property name="geometry">
+       <rect>
+        <x>280</x>
+        <y>300</y>
+        <width>251</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Attributions</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="GeneratePlan"/>
+    <widget class="QWidget" name="SettingsPage">
+     <widget class="QPushButton" name="returnFromSettingsPage">
+      <property name="geometry">
+       <rect>
+        <x>280</x>
+        <y>470</y>
+        <width>251</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Back to Main Menu</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="editMultiTagsButton">
+      <property name="geometry">
+       <rect>
+        <x>320</x>
+        <y>240</y>
+        <width>171</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>View/Edit MultiTags</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="editTagsButton">
+      <property name="geometry">
+       <rect>
+        <x>320</x>
+        <y>160</y>
+        <width>171</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>View/Edit Tags</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="editMealsButton">
+      <property name="geometry">
+       <rect>
+        <x>320</x>
+        <y>80</y>
+        <width>171</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>View/Edit Meals</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="ManualPage">
+     <widget class="QPushButton" name="explainExamplesButton">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>390</y>
+        <width>221</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Example Usage</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="explainUseButton">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>110</y>
+        <width>221</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>How do I use this program?</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="explainTagsButton">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>250</y>
+        <width>221</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Tags</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="explainMultiTagsButton">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>320</y>
+        <width>221</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>MultiTags</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="returnFromManualPage">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>480</y>
+        <width>221</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Back to Menu</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="explainMealsButton">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>180</y>
+        <width>221</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Meals</string>
+      </property>
+     </widget>
+    </widget>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>

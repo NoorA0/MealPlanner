@@ -1,8 +1,7 @@
 #include <QDebug>
 #include "mainwindow.h"
 #include "mealmanager.h"
-#include "settingswindow.h"
-#include "manualwindow.h"
+//#include "settingswindow.h"
 #include "attributionsdialogue.h"
 #include "ui_mainwindow.h"
 #include "createplan_filename.h"
@@ -14,7 +13,23 @@
 #include "createplan_success.h"
 #include "createplan_creationdisplayerror.h"
 #include "createplan_generatorcrashed.h"
+#include "editmealswindow.h"
+#include "edittagswindow.h"
+#include "editmultitagswindow.h"
+#include "manual_summaryinfo.h"
+#include "manual_mealinfo.h"
+#include "manual_taginfo.h"
+#include "manual_multitaginfo.h"
+#include "manual_exampleinfo.h"
 #include <QTime>
+
+// returns to the main menu page of the QStackedWidget and sets the title
+// used by the "return to main menu" button in the other pages
+void MainWindow::ReturnToMainMenuPage()
+{
+    ui->stackedWidget->setCurrentWidget(ui->MainMenuPage);
+    this->setWindowTitle(titleBarTitle_MainMenu);
+}
 
 MainWindow::MainWindow(QWidget *parent, MealManager *mm)
     : QMainWindow(parent)
@@ -33,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent, MealManager *mm)
     planLength = 0;
     planBudget = -1.0;
     settingsConfirmed = false;
+    ui->stackedWidget->setCurrentWidget(ui->MainMenuPage);
 }
 
 MainWindow::~MainWindow()
@@ -74,25 +90,22 @@ void MainWindow::getConfirmation(const bool &isValid)
     settingsConfirmed = isValid;
 }
 
-// clicked settings button
+// switch to the settings page
 void MainWindow::on_settingsButton_clicked()
 {
-    hide();
-    SettingsWindow *sw = new SettingsWindow(this, this->mm);
-    sw->setAttribute(Qt::WA_DeleteOnClose);
-    sw->show();
+    ui->stackedWidget->setCurrentWidget(ui->SettingsPage);
+    this->setWindowTitle(titleBarTitle_Settings);
+
 }
 
-// clicked manual button
+// switch to the manual page
 void MainWindow::on_manualButton_clicked()
-{
-    hide();
-    ManualWindow *mw = new ManualWindow(this);
-    mw->setAttribute(Qt::WA_DeleteOnClose);
-    mw->show();
+{    
+    ui->stackedWidget->setCurrentWidget(ui->ManualPage);
+    this->setWindowTitle(titleBarTitle_ProgramManual);
 }
 
-// clicked attributions
+// show attributions
 void MainWindow::on_attributionsButton_clicked()
 {
     AttributionsDialogue* ad = new AttributionsDialogue(this);
@@ -268,3 +281,81 @@ void MainWindow::on_generatePlanButton_clicked()
     }
 }
 
+// settings - view/edit meals
+void MainWindow::on_editMealsButton_clicked()
+{
+    //hide();
+    EditMealsWindow *emw = new EditMealsWindow(this, this->mm);
+    emw->setAttribute(Qt::WA_DeleteOnClose);
+    emw->exec();
+}
+
+// settings - view/edit tags
+void MainWindow::on_editTagsButton_clicked()
+{
+    hide();
+    EditTagsWindow *etw = new EditTagsWindow(this, this->mm);
+    etw->setAttribute(Qt::WA_DeleteOnClose);
+    etw->show();
+}
+
+// settings - view/edit multitags
+void MainWindow::on_editMultiTagsButton_clicked()
+{
+    hide();
+    EditMultitagsWindow *emw = new EditMultitagsWindow(this, this->mm);
+    emw->setAttribute(Qt::WA_DeleteOnClose);
+    emw->show();
+}
+
+// settings - return to main menu page
+void MainWindow::on_returnFromSettingsPage_clicked()
+{
+    ReturnToMainMenuPage();
+}
+
+// manual - general overview
+void MainWindow::on_explainUseButton_clicked()
+{
+    Manual_SummaryInfo *msi = new Manual_SummaryInfo(this);
+    msi->setAttribute(Qt::WA_DeleteOnClose);
+    msi->exec();
+}
+
+// manual - meal info
+void MainWindow::on_explainMealsButton_clicked()
+{
+    Manual_MealInfo *mmi = new Manual_MealInfo(this);
+    mmi->setAttribute(Qt::WA_DeleteOnClose);
+    mmi->exec();
+}
+
+// manual - tag info
+void MainWindow::on_explainTagsButton_clicked()
+{
+    Manual_TagInfo *mti = new Manual_TagInfo(this);
+    mti->setAttribute(Qt::WA_DeleteOnClose);
+    mti->exec();
+}
+
+// manual - multitag info
+void MainWindow::on_explainMultiTagsButton_clicked()
+{
+    Manual_MultitagInfo *mmi = new Manual_MultitagInfo(this);
+    mmi->setAttribute(Qt::WA_DeleteOnClose);
+    mmi->exec();
+}
+
+// manual - example use cases
+void MainWindow::on_explainExamplesButton_clicked()
+{
+    Manual_ExampleInfo *mei = new Manual_ExampleInfo(this);
+    mei->setAttribute(Qt::WA_DeleteOnClose);
+    mei->exec();
+}
+
+// manual - return to main menu page
+void MainWindow::on_returnFromManualPage_clicked()
+{
+    ReturnToMainMenuPage();
+}

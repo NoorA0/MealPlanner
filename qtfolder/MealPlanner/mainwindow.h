@@ -42,6 +42,26 @@ private slots:
 
     void on_generatePlanButton_clicked();
 
+    void on_returnFromManualPage_clicked();
+
+    void on_returnFromSettingsPage_clicked();
+
+    void on_explainExamplesButton_clicked();
+
+    void on_explainUseButton_clicked();
+
+    void on_explainMealsButton_clicked();
+
+    void on_explainTagsButton_clicked();
+
+    void on_explainMultiTagsButton_clicked();
+
+    void on_editMealsButton_clicked();
+
+    void on_editTagsButton_clicked();
+
+    void on_editMultiTagsButton_clicked();
+
 private:
     Ui::MainWindow *ui;
     MealManager *mm;
@@ -49,5 +69,15 @@ private:
     int planLength; // in weeks
     double planBudget;
     bool settingsConfirmed;
+
+    // titles for each page in QStackedLayout
+    const QString titleBarTitle_MainMenu = "Main Menu";
+    const QString titleBarTitle_Settings = "Program Settings";
+    const QString titleBarTitle_CreatePlan = "Create a Meal Plan";
+    const QString titleBarTitle_ProgramManual = "User Manual";
+
+    // returns to the main menu page of the QStackedWidget and sets the title
+    // used by the "return to main menu" button in the other pages
+    void ReturnToMainMenuPage();
 };
 #endif // MAINWINDOW_H
