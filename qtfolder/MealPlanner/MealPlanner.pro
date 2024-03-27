@@ -37,6 +37,7 @@ SOURCES += \
     deletetag_confirmation.cpp \
     editmeal_assignedtags.cpp \
     editmeal_basicparams.cpp \
+    editmeals.cpp \
     editmealswindow.cpp \
     editmultitag_assignedtags.cpp \
     editmultitag_assigntagmeals.cpp \
@@ -44,6 +45,7 @@ SOURCES += \
     editmultitagswindow.cpp \
     edittag_assignedmeals.cpp \
     edittag_basicparams.cpp \
+    edittags.cpp \
     edittagswindow.cpp \
     error_loaddatafailed.cpp \
     main.cpp \
@@ -89,6 +91,7 @@ HEADERS += \
     deletetag_confirmation.h \
     editmeal_assignedtags.h \
     editmeal_basicparams.h \
+    editmeals.h \
     editmealswindow.h \
     editmultitag_assignedtags.h \
     editmultitag_assigntagmeals.h \
@@ -96,6 +99,7 @@ HEADERS += \
     editmultitagswindow.h \
     edittag_assignedmeals.h \
     edittag_basicparams.h \
+    edittags.h \
     edittagswindow.h \
     error_loaddatafailed.h \
     mainwindow.h \
@@ -139,6 +143,7 @@ FORMS += \
     deletetag_confirmation.ui \
     editmeal_assignedtags.ui \
     editmeal_basicparams.ui \
+    editmeals.ui \
     editmealswindow.ui \
     editmultitag_assignedtags.ui \
     editmultitag_assigntagmeals.ui \
@@ -146,6 +151,7 @@ FORMS += \
     editmultitagswindow.ui \
     edittag_assignedmeals.ui \
     edittag_basicparams.ui \
+    edittags.ui \
     edittagswindow.ui \
     error_loaddatafailed.ui \
     mainwindow.ui \

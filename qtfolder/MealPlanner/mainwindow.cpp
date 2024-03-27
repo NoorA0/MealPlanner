@@ -13,8 +13,8 @@
 #include "createplan_success.h"
 #include "createplan_creationdisplayerror.h"
 #include "createplan_generatorcrashed.h"
-#include "editmealswindow.h"
-#include "edittagswindow.h"
+#include "editmeals.h"
+#include "edittags.h"
 #include "editmultitagswindow.h"
 #include "manual_summaryinfo.h"
 #include "manual_mealinfo.h"
@@ -284,19 +284,17 @@ void MainWindow::on_generatePlanButton_clicked()
 // settings - view/edit meals
 void MainWindow::on_editMealsButton_clicked()
 {
-    //hide();
-    EditMealsWindow *emw = new EditMealsWindow(this, this->mm);
-    emw->setAttribute(Qt::WA_DeleteOnClose);
-    emw->exec();
+    EditMeals *em = new EditMeals(this, this->mm);
+    em->setAttribute(Qt::WA_DeleteOnClose);
+    em->exec();
 }
 
 // settings - view/edit tags
 void MainWindow::on_editTagsButton_clicked()
 {
-    hide();
-    EditTagsWindow *etw = new EditTagsWindow(this, this->mm);
-    etw->setAttribute(Qt::WA_DeleteOnClose);
-    etw->show();
+    EditTags *et = new EditTags(this, this->mm);
+    et->setAttribute(Qt::WA_DeleteOnClose);
+    et->exec();
 }
 
 // settings - view/edit multitags
